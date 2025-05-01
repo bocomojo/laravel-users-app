@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SdoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,6 +12,8 @@ Route::get('/', function () {
 Route::resource('users', UserController::class);
 // Already included in `Route::resource('users', UserController::class);`
 Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+
+Route::resource('sdo', SdoController::class);
 
 Route::get('/dashboard', function () {
     return view('dashboard');
