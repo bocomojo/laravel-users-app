@@ -18,9 +18,30 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('sdo.index')" :active="request()->routeIs('sdo.*')">
+                    <!-- <x-nav-link :href="route('sdo.index')" :active="request()->routeIs('sdo.*')">
                         {{ __('SDO Records') }}
-                    </x-nav-link>
+                    </x-nav-link> -->
+                </div>
+                <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1">
+                    <x-dropdown align="left">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('SDO') }}
+                                <svg class="ms-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('sdo.index')">
+                                {{ __('SDO Records') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('documents.index')">
+                                {{ __('Compliance Tracking') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
                 </div>
                 <!-- Documents Dropdown -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1">
