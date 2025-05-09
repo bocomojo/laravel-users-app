@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sdo;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+
 
 class SdoController extends Controller
 {
@@ -36,27 +40,33 @@ class SdoController extends Controller
     // Store a new SDO record in the database
     public function store(Request $request)
     {
-        // Validate the incoming request to ensure the data is correct
-        $request->validate([
+        // Validate the SDO fields
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:sdo,email',
+            'email' => 'required|email|unique:users,email',
             'contact_number' => 'required|string|max:20',
         ]);
     
-        try {
-            // Create a new SDO record in the database
-            Sdo::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'contact_number' => $request->contact_number,
-            ]);
+        // Save SDO to your sdos table
+        $sdo = Sdo::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'contact_number' => $validated['contact_number'],
+        ]);
     
-            // Redirect to the index page with a success message
-            return redirect()->route('sdo.index')->with('success', 'SDO record created successfully!');
-        } catch (\Exception $e) {
-            // Redirect to the index page with an error message in case of failure
-            return redirect()->route('sdo.index')->with('error', 'An error occurred. Please try again later.');
-        }
+        // Extract first name and generate default password
+        $firstName = Str::of($validated['name'])->explode(' ')->first();
+        $defaultPassword = strtolower($firstName) . '12345';
+    
+        // Create User account with default password
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($defaultPassword),
+            'role' => 'user', // or 'staff' depending on your logic
+        ]);
+    
+        return redirect()->route('sdo.index')->with('success', 'SDO and user account created successfully!');
     }    
 
     // Show the form to edit an existing SDO record

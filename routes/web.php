@@ -5,6 +5,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SdoController;
 use App\Http\Controllers\PdfListController;
 use App\Http\Controllers\PdfUploadController;
+use App\Http\Controllers\UserFileController;
+use App\Http\Controllers\ComplianceFileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +18,22 @@ Route::resource('users', UserController::class);
 Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
 
 Route::resource('sdo', SdoController::class);
+
+Route::get('/compliance', [ComplianceFileController::class, 'index'])->name('sdo.compliance.index');
+
+Route::get('/my-files', [UserFileController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('user_files');
+
+Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.updateRole');
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+});
+
+Route::middleware(['auth', 'role:admin,staff'])->group(function () {
+    Route::get('/staff-section', [StaffController::class, 'index'])->name('staff.section');
+});
 
 Route::get('/pdfs', [PdfListController::class, 'index'])->name('documents.index');
 Route::get('/pdf/upload', [PdfUploadController::class, 'create'])->name('pdf.upload');

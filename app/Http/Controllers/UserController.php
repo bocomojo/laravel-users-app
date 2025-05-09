@@ -25,6 +25,18 @@ class UserController extends Controller
     {
         return view('users.edit', compact('user'));
     }
+    
+    public function updateRole(Request $request, User $user)
+    {
+        $request->validate([
+            'role' => 'required|in:admin,staff,user',
+        ]);
+
+        $user->role = $request->role;
+        $user->save();
+
+        return redirect()->back()->with('success', 'User role updated successfully.');
+    }
 
     // Handle the update logic
     public function update(Request $request, User $user)

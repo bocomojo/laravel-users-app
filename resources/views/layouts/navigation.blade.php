@@ -18,9 +18,9 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
-                    <!-- <x-nav-link :href="route('sdo.index')" :active="request()->routeIs('sdo.*')">
-                        {{ __('SDO Records') }}
-                    </x-nav-link> -->
+                    <x-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
+                        {{ __('Audit Findings') }}
+                    </x-nav-link>
                 </div>
                 <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1">
                     <x-dropdown align="left">
@@ -37,14 +37,14 @@
                             <x-dropdown-link :href="route('sdo.index')">
                                 {{ __('SDO Records') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('documents.index')">
+                            <x-dropdown-link :href="route('sdo.compliance.index')">
                                 {{ __('Compliance Tracking') }}
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
-                </div>
+                <!-- </div> -->
                 <!-- Documents Dropdown -->
-                <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1">
+                <!-- <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1"> -->
                     <x-dropdown align="left">
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
@@ -57,7 +57,7 @@
 
                         <x-slot name="content">
                             <x-dropdown-link :href="route('pdf.upload')">
-                                {{ __('Upload File') }}
+                                {{ __('Upload File()') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('documents.index')">
                                 {{ __('View File Records') }}
@@ -122,8 +122,14 @@
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
+                {{ __('Audit Findings') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('sdo.index')" :active="request()->routeIs('sdo.*')">
                 {{ __('SDO Records') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('sdo.compliance.index')" :active="request()->routeIs('sdo.*')">
+                {{ __('Compliance Tracking') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('pdf.upload')">
                 {{ __('Upload File') }}
