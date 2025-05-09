@@ -8,6 +8,9 @@ use App\Http\Controllers\PdfUploadController;
 use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ComplianceFileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TestMailController;
+
+Route::get('/send-test-email', [TestMailController::class, 'send'])->name('send.test.email');
 
 Route::get('/', function () {
     return view('welcome');
