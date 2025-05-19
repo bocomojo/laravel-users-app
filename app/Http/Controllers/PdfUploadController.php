@@ -17,42 +17,45 @@ class PdfUploadController extends Controller
         return view('pdf.upload');
     }
 
-    // Handle the upload and send email
+    // Handle the batch upload and send email
     public function store(Request $request)
     {
         $request->validate([
-            'pdf_file' => 'required|mimes:pdf|max:10240',
+            'pdf_file.*' => 'required|mimes:pdf|max:10240',
         ]);
 
-        $file = $request->file('pdf_file');
-        $extension = $file->getClientOriginalExtension();
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $filename = $originalName . '_' . time() . '.' . $extension;
+        $files = $request->file('pdf_file');
 
-        // Store the file in 'storage/app/public/pdfs'
-        $path = $file->storeAs('pdfs', $filename, 'public');
+        foreach ($files as $file) {
+            $extension = $file->getClientOriginalExtension();
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = $originalName . '_' . time() . '.' . $extension;
 
-        // Insert into compliance_files
-        ComplianceFile::create([
-            'filename' => $filename,
-            'status' => 'email sent',
-        ]);
+            // Store the file
+            $path = $file->storeAs('pdfs', $filename, 'public');
 
-        // Extract SDO name from the original filename (format: XXXX_John Doe_XXXX)
-        $filenameParts = explode('_', $originalName);
-        $sdoName = $filenameParts[1] ?? null;
+            // Log in compliance_files
+            ComplianceFile::create([
+                'filename' => $filename,
+                'status' => 'email sent',
+            ]);
 
-        if ($sdoName) {
-            $sdo = Sdo::where('name', 'LIKE', '%' . $sdoName . '%')->first();
+            // Extract SDO name (assumes format: XXXX_John Doe_XXXX.pdf)
+            $filenameParts = explode('_', $originalName);
+            $sdoName = $filenameParts[1] ?? null;
 
-            if ($sdo && $sdo->email) {
-                $fullPath = storage_path('app/public/pdfs/' . $filename);
+            if ($sdoName) {
+                $sdo = Sdo::where('name', 'LIKE', '%' . $sdoName . '%')->first();
 
-                // Send email
-                Mail::to($sdo->email)->send(new AssignedFileMail($sdo, $filename, $fullPath));
+                if ($sdo && $sdo->email) {
+                    $fullPath = storage_path('app/public/pdfs/' . $filename);
+
+                    // Send the email
+                    Mail::to($sdo->email)->send(new AssignedFileMail($sdo, $filename, $fullPath));
+                }
             }
         }
 
-        return redirect()->route('pdf.upload')->with('success', 'PDF uploaded and email sent if SDO match found.');
+        return redirect()->route('pdf.upload')->with('success', 'PDF(s) uploaded and emails sent where matches found.');
     }
 }

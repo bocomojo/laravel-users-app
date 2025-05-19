@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">
-            {{ __('Upload PDF') }}
+            {{ __('Upload PDFs') }}
         </h2>
     </x-slot>
 
@@ -17,17 +17,17 @@
                 @csrf
 
                 <div class="mb-4">
-                    <label for="pdf_file" class="block text-sm font-medium text-gray-700">Choose a PDF</label>
-                    <input type="file" name="pdf_file" id="pdf_file" accept="application/pdf"
+                    <label for="pdf_file" class="block text-sm font-medium text-gray-700">Choose PDF files</label>
+                    <input type="file" name="pdf_file[]" id="pdf_file" accept="application/pdf" multiple
                         class="mt-2 block w-full border border-gray-300 p-2 rounded">
-                    @error('pdf_file')
+                    @error('pdf_file.*')
                         <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <button type="submit"
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150">
-                    Upload
+                    Upload PDFs
                 </button>
             </form>
         </div>

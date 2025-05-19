@@ -54,7 +54,7 @@
                                                 <select name="role" onchange="this.form.submit()" class="rounded-md bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 px-2 py-1 pr-8">
                                                     <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
                                                     <option value="staff" {{ $user->role === 'staff' ? 'selected' : '' }}>Staff</option>
-                                                    <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>SDO//</option>
+                                                    <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>SDO</option>
                                                 </select>
                                             </form>
 
