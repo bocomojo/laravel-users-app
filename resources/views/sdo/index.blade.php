@@ -61,13 +61,30 @@
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->contact_number }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
-                                            <a href="{{ route('sdo.edit', $record->id) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Edit</a>
-                                            <form method="POST" action="{{ route('sdo.destroy', $record->id) }}" class="inline-block ml-4">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                                            </form>
-                                        </td>
+
+                                        <!-- Add Cash Button -->
+                                        <a href="{{ route('liquidation.create', ['sdo_id' => $record->id]) }}"
+                                        class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
+                                            Add Cash
+                                        </a>
+
+                                        <!-- Edit Button -->
+                                        <a href="{{ route('sdo.edit', $record->id) }}"
+                                        class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">
+                                            Edit
+                                        </a>
+
+                                        <!-- Delete Button with Confirmation -->
+                                        <form method="POST" action="{{ route('sdo.destroy', $record->id) }}" class="inline-block ml-2"
+                                            onsubmit="return confirm('Are you sure you want to delete this SDO record?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
                                     </tr>
                                 @endforeach
                             </tbody>

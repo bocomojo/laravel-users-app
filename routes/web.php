@@ -9,6 +9,10 @@ use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ComplianceFileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestMailController;
+use App\Http\Controllers\LiquidationController;
+
+Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
+Route::post('/liquidation', [LiquidationController::class, 'store'])->name('liquidation.store');
 
 Route::get('/send-test-email', [TestMailController::class, 'send'])->name('send.test.email');
 
