@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Sdo;
 use App\Models\CashAdvance;
 
-class LiquidationController extends Controller
+class CashAdvanceController extends Controller
 {
     public function create(Request $request)
     {
