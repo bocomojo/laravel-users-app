@@ -10,6 +10,9 @@ use App\Http\Controllers\ComplianceFileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
+use App\Http\Controllers\LiquidationController;
+
+Route::get('/liquidation', [LiquidationController::class, 'index'])->name('liquidation.index');
 
 Route::get('/sdo/cash_advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
 Route::post('/sdo/cash_advance', [CashAdvanceController::class, 'store'])->name('sdo.cash_advance.store');

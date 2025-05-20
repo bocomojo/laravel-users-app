@@ -21,9 +21,9 @@
                     <x-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
                         {{ __('Audit Findings') }}
                     </x-nav-link>
-                    <!-- <x-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
+                    <x-nav-link :href="route('liquidation.index')" :active="request()->routeIs('liquidation.index')">
                         {{ __('Liquidations') }}
-                    </x-nav-link> -->
+                    </x-nav-link>
                 </div>
                 <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1">
                     <x-dropdown align="left">
@@ -128,9 +128,9 @@
             <x-responsive-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
                 {{ __('Audit Findings') }}
             </x-responsive-nav-link>
-            <!-- <x-responsive-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
+            <x-responsive-nav-link :href="route('liquidation.index')" :active="request()->routeIs('liquidation.index')">
                 {{ __('Liquidations') }}
-            </x-responsive-nav-link> -->
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('sdo.index')" :active="request()->routeIs('sdo.*')">
                 {{ __('SDO Records') }}
             </x-responsive-nav-link>
