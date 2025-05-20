@@ -63,7 +63,7 @@
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
 
                                         <!-- Add Cash Button -->
-                                        <a href="{{ route('liquidation.create', ['sdo_id' => $record->id]) }}"
+                                        <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
                                         class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
                                             Add Cash
                                         </a>

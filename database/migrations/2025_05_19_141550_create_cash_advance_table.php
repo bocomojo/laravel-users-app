@@ -8,7 +8,7 @@ class CreateCashAdvanceTable extends Migration
 {
     public function up()
     {
-        Schema::create('cash_advance', function (Blueprint $table) {
+        Schema::create('create', function (Blueprint $table) {
             $table->id();
 
             // Make sure sdo_id matches the type of the primary key in sdo table
@@ -29,6 +29,6 @@ class CreateCashAdvanceTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('cash_advance');
+        Schema::dropIfExists('create');
     }
 }

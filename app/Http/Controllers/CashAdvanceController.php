@@ -17,7 +17,7 @@ class CashAdvanceController extends Controller
             abort(404, 'SDO not found.');
         }
 
-        return view('liquidation.create', [
+        return view('sdo.cash_advance.create', [
             'sdoId' => $sdo->id,
             'sdoName' => $sdo->name,
         ]);
@@ -27,8 +27,8 @@ class CashAdvanceController extends Controller
     {
         $request->validate([
             'sdo_id' => 'required|exists:sdo,id',
-            'check_number' => 'required|string|max:255',
-            'transaction_type' => 'required|string|max:255',
+            'check_number' => 'required|string|max:500',
+            'transaction_type' => 'required|string|max:500',
             'granted_amount' => 'required|numeric|min:0',
         ]);
 

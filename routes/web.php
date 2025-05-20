@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
 
-Route::get('/liquidation/create', [CashAdvanceController::class, 'create'])->name('liquidation.create');
-Route::post('/liquidation', [CashAdvanceController::class, 'store'])->name('liquidation.store');
+Route::get('/sdo/cash_advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
+Route::post('/sdo/cash_advance', [CashAdvanceController::class, 'store'])->name('sdo.cash_advance.store');
 
 Route::get('/send-test-email', [TestMailController::class, 'send'])->name('send.test.email');
 
