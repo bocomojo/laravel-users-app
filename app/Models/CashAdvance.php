@@ -17,4 +17,16 @@ class CashAdvance extends Model
         'transaction_type',
         'granted_amount',
     ];
+
+    protected $casts = [
+        'granted_amount' => 'float',
+    ];
+
+    /**
+     * Get the SDO associated with this cash advance.
+     */
+    public function sdo()
+    {
+        return $this->belongsTo(Sdo::class, 'sdo_id');
+    }
 }

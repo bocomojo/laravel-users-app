@@ -39,8 +39,11 @@
                     <!-- Transaction Type -->
                     <div class="mb-4">
                         <label for="transaction_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transaction Type</label>
-                        <input type="text" name="transaction_type" id="transaction_type" required
-                               class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                        <select name="transaction_type" id="transaction_type" required
+                                class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                            <option value="">-- Select Type --</option>
+                            <option value="Cash Advance" selected>Cash Advance</option>
+                        </select>
                     </div>
 
                     <!-- Granted Amount -->

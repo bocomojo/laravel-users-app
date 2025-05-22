@@ -12,6 +12,9 @@ use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\LiquidationController;
 
+Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
+Route::post('/liquidation', [LiquidationController::class, 'store'])->name('liquidation.store');
+Route::get('/liquidation/{id}', [LiquidationController::class, 'show'])->name('liquidation.show');
 Route::get('/liquidation', [LiquidationController::class, 'index'])->name('liquidation.index');
 
 Route::get('/sdo/cash_advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
