@@ -16,6 +16,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Check #</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Remaining Balance</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th> <!-- New column -->
                                 </tr>
@@ -27,14 +28,26 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->check_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->transaction_type }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ number_format($advance->granted_amount, 2) }}</td>
+                                        @php
+                                            $totalLiquidated = $advance->liquidations->sum('liquidated_amount'); // adds all liquidation amounts
+                                            $remainingBalance = $advance->granted_amount - $totalLiquidated;
+                                        @endphp
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ number_format($remainingBalance, 2) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->created_at->format('Y-m-d') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap space-x-2">
                                             <a href="{{ route('liquidation.show', $advance->id) }}" class="inline-block px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600">
                                                 View
                                             </a>
-                                            <a href="{{ route('liquidation.create', ['cash_advance_id' => $advance->id]) }}" class="inline-block px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700">
+                                            @if ($remainingBalance == 0)
+                                                <a href="{{ route('certificate.print', $advance->id) }}" target="_blank"
+                                                class="inline-block px-3 py-1 text-sm text-white bg-purple-600 rounded hover:bg-purple-700">
+                                                    Print Certificate
+                                                </a>
+                                            @else
+                                                <a href="{{ route('liquidation.create', ['cash_advance_id' => $advance->id]) }}" class="inline-block px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700">
                                                 Add Liquidation
-                                            </a>
+                                                </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

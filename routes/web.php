@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\LiquidationController;
+use App\Http\Controllers\CertificateController;
+
+Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
+
+Route::get('/liquidation/export/{cashAdvanceId}', [LiquidationController::class, 'export'])->name('liquidation.export');
 
 Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
 Route::post('/liquidation', [LiquidationController::class, 'store'])->name('liquidation.store');

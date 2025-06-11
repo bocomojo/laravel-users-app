@@ -28,14 +28,28 @@ class CashAdvanceController extends Controller
         $request->validate([
             'sdo_id' => 'required|exists:sdo,id',
             'check_number' => 'required|string|max:500',
-            'transaction_type' => 'required|string|max:500',
+            'check_date' => 'nullable|date',
+            'dv_number' => 'nullable|string|max:255',
+            'dv_date' => 'nullable|date',
+            'ors_number' => 'nullable|string|max:255',
+            'ors_date' => 'nullable|date',
+            'particulars' => 'nullable|string|max:2000',
+            'transaction_type' => 'required|string|max:255',
+            'pap' => 'required|string|max:255',
             'granted_amount' => 'required|numeric|min:0',
         ]);
 
         CashAdvance::create([
             'sdo_id' => $request->sdo_id,
             'check_number' => $request->check_number,
+            'check_date' => $request->check_date,
+            'dv_number' => $request->dv_number,
+            'dv_date' => $request->dv_date,
+            'ors_number' => $request->ors_number,
+            'ors_date' => $request->ors_date,
+            'particulars' => $request->particulars,
             'transaction_type' => $request->transaction_type,
+            'pap' => $request->pap,
             'granted_amount' => $request->granted_amount,
         ]);
 

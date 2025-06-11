@@ -60,7 +60,7 @@
 
                         <x-slot name="content">
                             <x-dropdown-link :href="route('pdf.upload')">
-                                {{ __('Upload File()') }}
+                                {{ __('Upload File') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('documents.index')">
                                 {{ __('View File Records') }}

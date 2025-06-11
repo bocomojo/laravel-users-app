@@ -6,106 +6,136 @@
     </x-slot>
 
     <div class="py-12">
-        <!-- Return Button -->
-        <div class="max-w-7xl mx-auto px-4 lg:px-8 mb-4 flex justify-end">
+    
+        <div class="max-w-full mx-auto px-4 lg:px-8 mb-4 flex justify-between items-center">
+            <!-- Export Button -->
+            <a href="{{ route('liquidation.export', $cashAdvance->id) }}"
+            class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
+                ↓ Export to Excel
+            </a>
+
+            <!-- Return Button -->
             <a href="{{ route('liquidation.index') }}"
             class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                 ← Return to Cash Advances
             </a>
         </div>
-        <div class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto px-4 lg:px-8">
+
+        <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">
 
             <!-- Left container: Cash Advance Summary -->
             <div class="w-full lg:w-1/3">
-                <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 space-y-6 border border-gray-700">
-                    <!-- SDO Information -->
+                <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
                     <div>
-                        <h3 class="text-xl font-semibold mb-3 border-b border-gray-600 pb-2">SDO Information</h3>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
-                        </p>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">SDO ID:</span> {{ $cashAdvance->sdo_id }}
-                        </p>
-                    </div>
-
-                    <!-- Cash Advance Details -->
-                    <div>
-                        <h3 class="text-xl font-semibold mb-3 border-b border-gray-600 pb-2">Cash Advance Details</h3>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">Check Number:</span> {{ $cashAdvance->check_number }}
-                        </p>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">Transaction Type:</span> {{ $cashAdvance->transaction_type }}
-                        </p>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">Granted Amount:</span> ₱{{ number_format($cashAdvance->granted_amount, 2) }}
-                        </p>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            <span class="font-medium text-white">Created At:</span> {{ $cashAdvance->created_at->format('F d, Y') }}
-                        </p>
+                        <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2">Cash Advance Details</h3>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-300">
+                                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-sm font-medium text-white mb-1">Particulars:</p>
+                            <p class="text-sm text-gray-300 text-justify">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-sm">
+                                <span class="font-medium text-white">PAP:</span>
+                                <span class="text-gray-300">{{ $cashAdvance->pap ?? 'N/A' }}</span>
+                            </p>
+                        </div>
+                        <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
+                                    <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
+                                    <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium text-white py-2 pr-4">DV Number</td>
+                                    <td class="py-2 pr-4">{{ $cashAdvance->dv_number ?? 'N/A' }}</td>
+                                    <td class="py-2">{{ $cashAdvance->dv_date ? \Carbon\Carbon::parse($cashAdvance->dv_date)->format('m/d/Y') : 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium text-white py-2 pr-4">ORS Number</td>
+                                    <td class="py-2 pr-4">{{ $cashAdvance->ors_number ?? 'N/A' }}</td>
+                                    <td class="py-2">{{ $cashAdvance->ors_date ? \Carbon\Carbon::parse($cashAdvance->ors_date)->format('m/d/Y') : 'N/A' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="space-y-2 text-sm text-white mt-4 border-t border-gray-600 pt-4">
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Granted Amount:</span>
+                                <span>₱{{ number_format($cashAdvance->granted_amount, 2) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-
             <!-- Right container: Liquidation Table -->
             <div class="w-full lg:w-2/3">
                 <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 overflow-x-auto">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Related Liquidations</h3>
-                            
-                            <div class="text-sm text-right space-y-1">
-    <p class="text-gray-700 dark:text-gray-300">
-        <span class="font-semibold">Starting Balance:</span>
-        ₱{{ number_format($cashAdvance->granted_amount, 2) }}
-    </p>
-    <p class="text-gray-700 dark:text-gray-300">
-        <span class="font-semibold">Remaining Balance:</span>
-        ₱{{ number_format(
-            $cashAdvance->granted_amount - $liquidations->sum('liquidated_amount'),
-        2) }}
-    </p>
-</div>
-
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Related Liquidations</h3>
+                        <div class="text-sm text-right space-y-1">
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <span class="font-semibold">Starting Balance:</span>
+                                ₱{{ number_format($cashAdvance->granted_amount, 2) }}
+                            </p>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <span class="font-semibold">Remaining Balance:</span>
+                                ₱{{ number_format($cashAdvance->granted_amount - $liquidations->sum('liquidated_amount'), 2) }}
+                            </p>
                         </div>
+                    </div>
 
-                        <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
-                            <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort:</label>
-                                <select name="sort" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
-                                    <option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}>Newest First</option>
-                                    <option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}>Oldest First</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter:</label>
-                                <select name="type" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
-                                    <option value="">All</option>
-                                    <option value="Liquidation" {{ $filterType == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
-                                    <option value="Refund" {{ $filterType == 'Refund' ? 'selected' : '' }}>Refund</option>
-                                </select>
-                            </div>
-                        </form>
-                    @if ($liquidations->isEmpty())
-                        <p class="text-gray-600 dark:text-gray-400">No liquidations found for this cash advance.</p>
-                    @else
+                    <!-- Sorting & Filtering -->
+                    <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort:</label>
+                            <select name="sort" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                                <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Newest First</option>
+                                <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>Oldest First</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter:</label>
+                            <select name="type" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                                <option value="">All</option>
+                                <option value="Liquidation" {{ request('type') == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
+                                <option value="Refund" {{ request('type') == 'Refund' ? 'selected' : '' }}>Refund</option>
+                            </select>
+                        </div>
+                    </form>
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Granted Amount</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liquidated Amount</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Grant Amount</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liqd   Amount</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Date Received</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Number</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Date</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OR Number</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OR Date</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
                                 </tr>
                             </thead>
+                             @if ($liquidations->isEmpty())
+                        <p class="text-gray-600 dark:text-gray-400">No liquidations found for this cash advance.</p>
+                    @else
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($liquidations as $liquidation)
                                     <tr>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->granted_amount, 2) }}</td>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->liquidated_amount, 2) }}</td>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->created_at->format('F d, Y') }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->granted_amount, 2) }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->liquidated_amount, 2) }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_number ?? '—' }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->or_number ?? '—' }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->or_date ? \Carbon\Carbon::parse($liquidation->or_date)->format('F d, Y') : '—' }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->created_at->format('F d, Y') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -113,7 +143,6 @@
                     @endif
                 </div>
             </div>
-
         </div>
     </div>
 </x-app-layout>

@@ -14,8 +14,16 @@ class CashAdvance extends Model
     protected $fillable = [
         'sdo_id',
         'check_number',
+        'check_date',
+        'dv_number',
+        'dv_date',
+        'ors_number',
+        'ors_date',
+        'particulars',
         'transaction_type',
+        'pap',
         'granted_amount',
+        
     ];
 
     protected $casts = [
@@ -29,4 +37,10 @@ class CashAdvance extends Model
     {
         return $this->belongsTo(Sdo::class, 'sdo_id');
     }
+
+    public function liquidations()
+    {
+        return $this->hasMany(\App\Models\Liquidation::class);
+    }
+
 }

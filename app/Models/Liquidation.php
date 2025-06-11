@@ -12,10 +12,18 @@ class Liquidation extends Model
     protected $table = 'liquidations'; // explicitly specify table name
 
     protected $fillable = [
-        'sdo_name',
-        'check_number',
-        'granted_amount',
-        'liquidated_amount',
-        'liquidation_type',
-    ];
+    'cash_advance_id',
+    'sdo_name', // Add this
+    'check_number',
+    'granted_amount',
+    'liquidated_amount',
+    'liquidation_type',
+    'liq_date_received',
+    'liq_number',
+    'liq_date',
+    'or_number',
+    'or_date',
+];
+
+
 }
