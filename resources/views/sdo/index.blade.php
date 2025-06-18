@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div x-data="{ openModalId: null }" class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -13,9 +13,9 @@
 
                     <!-- Add and Search Controls Row -->
                     <div class="mb-6 flex flex-row items-center justify-between flex-wrap gap-4">
-                        
+
                         <!-- Add New Record Button -->
-                        <a href="{{ route('sdo.create') }}" 
+                        <a href="{{ route('sdo.create') }}"
                             class="inline-flex items-center px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-md shadow hover:bg-green-700 transition">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -62,29 +62,49 @@
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->contact_number }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
 
-                                        <!-- Add Cash Button -->
-                                        <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
-                                        class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
-                                            Add Cash
-                                        </a>
+                                            <!-- Add Cash Button -->
+                                            <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
+                                                class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
+                                                Add Cash
+                                            </a>
 
-                                        <!-- Edit Button -->
-                                        <a href="{{ route('sdo.edit', $record->id) }}"
-                                        class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">
-                                            Edit
-                                        </a>
+                                            <!-- Edit Button -->
+                                            <a href="{{ route('sdo.edit', $record->id) }}"
+                                                class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">
+                                                Edit
+                                            </a>
 
-                                        <!-- Delete Button with Confirmation -->
-                                        <form method="POST" action="{{ route('sdo.destroy', $record->id) }}" class="inline-block ml-2"
-                                            onsubmit="return confirm('Are you sure you want to delete this SDO record?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition">
+                                            <!-- Delete Button triggers modal -->
+                                            <button @click="openModalId = {{ $record->id }}"
+                                                class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition">
                                                 Delete
                                             </button>
-                                        </form>
-                                    </td>
+
+                                            <!-- Modal Confirmation -->
+                                            <div x-show="openModalId === {{ $record->id }}" style="display: none"
+                                                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                                                    <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Confirm Deletion</h2>
+                                                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-6">
+                                                        Are you sure you want to delete <strong>{{ $record->name }}</strong>? This action cannot be undone.
+                                                    </p>
+                                                    <div class="flex justify-end space-x-4">
+                                                        <button @click="openModalId = null"
+                                                            class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400">
+                                                            Cancel
+                                                        </button>
+                                                        <form method="POST" action="{{ route('sdo.destroy', $record->id) }}">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                                                Confirm
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -20,14 +20,20 @@ class UserController extends Controller
 
         return view('users', compact('users', 'search'));
     }
+
     // Show the edit form
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
-    
+
+    // Update user role (with protection)
     public function updateRole(Request $request, User $user)
     {
+        if ($user->id == 1) {
+            return redirect()->back()->with('error', 'Cannot change the role of the super admin.');
+        }
+
         $request->validate([
             'role' => 'required|in:admin,staff,user',
         ]);
@@ -50,13 +56,16 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'User updated successfully!');
     }
-    
-    // Handle the delete action
+
+    // Handle the delete action (with protection)
     public function destroy(User $user)
     {
+        if ($user->id == 1) {
+            return redirect()->route('users.index')->with('error', 'Cannot delete the super admin.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully!');
     }
 }
-
