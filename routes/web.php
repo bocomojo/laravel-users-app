@@ -69,4 +69,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::resource('liquidation', App\Http\Controllers\LiquidationController::class)->only([
+    'edit', 'update', 'destroy'
+]);
+
+
 require __DIR__.'/auth.php';

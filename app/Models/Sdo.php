@@ -14,4 +14,10 @@ class Sdo extends Model
 
     // Allow mass assignment for these fields
     protected $fillable = ['name', 'email', 'contact_number'];
+
+    public function cashAdvance()
+{
+    return $this->hasOne(CashAdvance::class)->latestOfMany();
+}
+
 }

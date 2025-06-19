@@ -23,6 +23,7 @@ class CashAdvance extends Model
         'transaction_type',
         'pap',
         'granted_amount',
+        'status',
         
     ];
 

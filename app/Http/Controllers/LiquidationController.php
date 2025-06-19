@@ -14,24 +14,18 @@ class LiquidationController extends Controller
     {
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidations.xlsx');
     }
-    /**
-     * Display a listing of the cash advances.
-     */
+
     public function index()
     {
         $cashAdvances = CashAdvance::with('sdo')->latest()->get();
-
         return view('liquidation.index', compact('cashAdvances'));
     }
 
-    /**
-     * Display a single cash advance with its related liquidations.
-     */
     public function show($id, Request $request)
     {
         $cashAdvance = CashAdvance::with('sdo')->findOrFail($id);
 
-        $sortOrder = $request->get('sort', 'desc'); // default to latest
+        $sortOrder = $request->get('sort', 'desc');
         $filterType = $request->get('type');
 
         $liquidations = Liquidation::where('check_number', $cashAdvance->check_number)
@@ -42,9 +36,6 @@ class LiquidationController extends Controller
         return view('liquidation.show', compact('cashAdvance', 'liquidations', 'sortOrder', 'filterType'));
     }
 
-    /**
-     * Show the form for adding a liquidation for a specific cash advance.
-     */
     public function create(Request $request)
     {
         $cashAdvanceId = $request->get('cash_advance_id');
@@ -53,12 +44,8 @@ class LiquidationController extends Controller
         return view('liquidation.create', compact('cashAdvance'));
     }
 
-    /**
-     * Store a new liquidation entry.
-     */
     public function store(Request $request)
     {
-        // Base validation rules
         $rules = [
             'cash_advance_id' => 'required|exists:cash_advance,id',
             'sdo_name' => 'required|string|max:255',
@@ -71,7 +58,6 @@ class LiquidationController extends Controller
             'liq_date' => 'required|date',
         ];
 
-        // Add conditional rules for refund
         if ($request->input('liquidation_type') === 'Refund') {
             $rules['or_number'] = 'required|string|max:255';
             $rules['or_date'] = 'required|date';
@@ -79,15 +65,81 @@ class LiquidationController extends Controller
 
         $validated = $request->validate($rules);
 
-        // If not Refund, nullify OR fields
         if ($validated['liquidation_type'] !== 'Refund') {
             $validated['or_number'] = null;
             $validated['or_date'] = null;
         }
 
-        // Create the liquidation with the validated data including cash_advance_id
         Liquidation::create($validated);
 
+        $cashAdvance = CashAdvance::with('liquidations')->find($validated['cash_advance_id']);
+        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+
+        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+        $cashAdvance->save();
+
         return redirect()->route('liquidation.index')->with('success', 'Liquidation added successfully.');
+    }
+
+    public function edit($id)
+    {
+        $liquidation = Liquidation::findOrFail($id);
+        return view('liquidation.edit', compact('liquidation'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $liquidation = Liquidation::findOrFail($id);
+
+        $rules = [
+            'granted_amount' => 'required|numeric|min:0',
+            'liquidated_amount' => 'required|numeric|min:0',
+            'liquidation_type' => 'required|string|max:255',
+            'liq_date_received' => 'required|date',
+            'liq_number' => 'required|string|max:255',
+            'liq_date' => 'required|date',
+        ];
+
+        if ($request->input('liquidation_type') === 'Refund') {
+            $rules['or_number'] = 'required|string|max:255';
+            $rules['or_date'] = 'required|date';
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($validated['liquidation_type'] !== 'Refund') {
+            $validated['or_number'] = null;
+            $validated['or_date'] = null;
+        }
+
+        $liquidation->update($validated);
+
+        $cashAdvance = CashAdvance::with('liquidations')->find($liquidation->cash_advance_id);
+        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+
+        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+        $cashAdvance->save();
+
+        return redirect()->route('liquidation.show', $cashAdvance->id)
+                         ->with('success', 'Liquidation updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $liquidation = Liquidation::findOrFail($id);
+        $cashAdvanceId = $liquidation->cash_advance_id;
+        $liquidation->delete();
+
+        $cashAdvance = CashAdvance::with('liquidations')->find($cashAdvanceId);
+        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+
+        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+        $cashAdvance->save();
+
+        return redirect()->route('liquidation.show', $cashAdvanceId)
+                         ->with('success', 'Liquidation deleted successfully.');
     }
 }

@@ -50,6 +50,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Email</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Contact Number</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -60,13 +61,50 @@
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->contact_number }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">
+                                            @if ($record->cashAdvance && $record->cashAdvance->status === 'Ongoing')
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 dark:bg-yellow-700 dark:text-yellow-100 rounded-full">
+                                                    Ongoing
+                                                </span>
+                                            @else
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 dark:bg-green-700 dark:text-green-100 rounded-full">
+                                                    Eligible
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
 
-                                            <!-- Add Cash Button -->
-                                            <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
-                                                class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
-                                                Add Cash
-                                            </a>
+                                            <!-- Add Cash Button with Conditional Modal -->
+                                            <div x-data="{ showEligibilityModal: false }">
+                                                @if ($record->cashAdvance && $record->cashAdvance->status === 'Ongoing')
+                                                    <button @click="showEligibilityModal = true"
+                                                        class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
+                                                        Add Cash
+                                                    </button>
+
+                                                    <!-- Eligibility Modal -->
+                                                    <div x-show="showEligibilityModal" style="display: none"
+                                                        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                                                            <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Not Eligible</h2>
+                                                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-6">
+                                                                This SDO is currently <strong>not eligible</strong> for a new cash advance due to an ongoing record.
+                                                            </p>
+                                                            <div class="flex justify-end">
+                                                                <button @click="showEligibilityModal = false"
+                                                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                                                    Close
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
+                                                        class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
+                                                        Add Cash
+                                                    </a>
+                                                @endif
+                                            </div>
 
                                             <!-- Edit Button -->
                                             <a href="{{ route('sdo.edit', $record->id) }}"

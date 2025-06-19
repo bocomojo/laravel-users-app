@@ -51,6 +51,7 @@ class CashAdvanceController extends Controller
             'transaction_type' => $request->transaction_type,
             'pap' => $request->pap,
             'granted_amount' => $request->granted_amount,
+            'status' => 'Ongoing',
         ]);
 
         return redirect()->route('sdo.index')->with('success', 'Cash advance added successfully.');
