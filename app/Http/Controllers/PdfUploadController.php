@@ -20,20 +20,26 @@ class PdfUploadController extends Controller
 
     public function store(Request $request)
     {
+        // Extend max execution time to avoid timeout
+        ini_set('max_execution_time', 300); // 5 minutes
+
+        // Validate uploaded files
         $request->validate([
-            'pdf_file.*' => 'required|mimes:pdf|max:10240',
+            'pdf_file.*' => 'required|mimes:pdf|max:10240', // max 10MB per file
         ]);
 
         if (!$request->hasFile('pdf_file')) {
             return redirect()->back()->withErrors(['pdf_file' => 'No files were uploaded.']);
         }
 
-        // Basic internet connection check
+        // Optional: Skip if unreliable
+        /*
         try {
             Http::timeout(3)->get('https://www.google.com');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['connection' => 'No internet connection. Please try again later.']);
         }
+        */
 
         $files = $request->file('pdf_file');
         $emailSuccesses = [];
@@ -44,10 +50,10 @@ class PdfUploadController extends Controller
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $filename = $originalName . '_' . time() . '.' . $extension;
 
-            // Store the file
+            // Store file in public disk under /storage/pdfs
             $file->storeAs('pdfs', $filename, 'public');
 
-            // Extract SDO name (format: XXXX_John Doe_XXXX.pdf)
+            // Extract SDO name (expected format: XXXX_John Doe_XXXX.pdf)
             $filenameParts = explode('_', $originalName);
             $sdoName = $filenameParts[1] ?? null;
 
@@ -64,7 +70,7 @@ class PdfUploadController extends Controller
                         $emailSuccesses[] = $sdo->email;
                         $emailStatus = 'email sent';
                     } catch (\Exception $e) {
-                        Log::error("Email to {$sdo->email} failed: " . $e->getMessage());
+                        Log::error("Failed to send email to {$sdo->email}: " . $e->getMessage());
                         $emailFailures[] = $sdo->email;
                     }
                 } else {
@@ -74,14 +80,14 @@ class PdfUploadController extends Controller
                 $emailFailures[] = $originalName;
             }
 
-            // Log in compliance_files
+            // Log file upload result
             ComplianceFile::create([
                 'filename' => $filename,
                 'status' => $emailStatus,
             ]);
         }
 
-        // Tailored message
+        // Return with tailored feedback
         if (count($emailSuccesses) > 0 && count($emailFailures) > 0) {
             return redirect()->route('pdf.upload')->with('warning', 'Some emails failed to send: ' . implode(', ', $emailFailures));
         } elseif (count($emailFailures) > 0) {
