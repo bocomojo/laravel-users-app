@@ -34,13 +34,13 @@
                             </p>
                         </div>
                         <div class="mb-4">
-                            <p class="text-sm font-medium text-white mb-1">Particulars:</p>
-                            <p class="text-sm text-gray-300 text-justify">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
+                            <p class="font-medium text-white">Particulars:</p>
+                            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
                         </div>
                         <div class="mb-4">
                             <p class="text-sm">
                                 <span class="font-medium text-white">PAP:</span>
-                                <span class="text-gray-300">{{ $cashAdvance->pap ?? 'N/A' }}</span>
+                                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
                             </p>
                         </div>
                         <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">

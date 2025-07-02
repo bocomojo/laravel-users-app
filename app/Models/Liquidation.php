@@ -9,7 +9,7 @@ class Liquidation extends Model
 {
     use HasFactory;
 
-    protected $table = 'liquidations'; // explicitly specify table name
+    protected $table = 'liquidation'; // explicitly specify table name
 
     protected $fillable = [
     'cash_advance_id',

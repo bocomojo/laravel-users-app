@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Sdo;
 use App\Models\CashAdvance;
+use App\Models\Pap;
 
 class CashAdvanceController extends Controller
 {
+    // Show form to create a new Cash Advance
     public function create(Request $request)
     {
         $sdoId = $request->get('sdo_id');
@@ -17,12 +19,16 @@ class CashAdvanceController extends Controller
             abort(404, 'SDO not found.');
         }
 
+        $paps = Pap::all(); // ✅ Fetch PAP records
+
         return view('sdo.cash_advance.create', [
             'sdoId' => $sdo->id,
             'sdoName' => $sdo->name,
+            'paps' => $paps, // ✅ Pass to view
         ]);
     }
 
+    // Store the new Cash Advance
     public function store(Request $request)
     {
         $request->validate([
@@ -35,7 +41,7 @@ class CashAdvanceController extends Controller
             'ors_date' => 'nullable|date',
             'particulars' => 'nullable|string|max:2000',
             'transaction_type' => 'required|string|max:255',
-            'pap' => 'required|string|max:255',
+            'pap' => 'required|exists:pap,id', // ✅ now expects valid pap id
             'granted_amount' => 'required|numeric|min:0',
         ]);
 
@@ -49,11 +55,19 @@ class CashAdvanceController extends Controller
             'ors_date' => $request->ors_date,
             'particulars' => $request->particulars,
             'transaction_type' => $request->transaction_type,
-            'pap' => $request->pap,
+            'pap' => $request->pap, // ✅ stores the pap_id
             'granted_amount' => $request->granted_amount,
             'status' => 'Ongoing',
         ]);
 
         return redirect()->route('sdo.index')->with('success', 'Cash advance added successfully.');
+    }
+
+    // Optional: show a single cash advance with PAP relation
+    public function show($id)
+    {
+        $cashAdvance = CashAdvance::with('pap')->findOrFail($id);
+
+        return view('sdo.cash_advance.show', compact('cashAdvance'));
     }
 }

@@ -30,7 +30,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->transaction_type }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ number_format($advance->granted_amount, 2) }}</td>
                                         @php
-                                            $totalLiquidated = $advance->liquidations->sum('liquidated_amount'); // adds all liquidation amounts
+                                            $totalLiquidated = $advance->liquidation->sum('liquidated_amount'); // adds all liquidation amounts
                                             $remainingBalance = $advance->granted_amount - $totalLiquidated;
                                         @endphp
                                         <td class="px-6 py-4 whitespace-nowrap">{{ number_format($remainingBalance, 2) }}</td>

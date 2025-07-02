@@ -15,9 +15,9 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    <!-- <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
-                    </x-nav-link>
+                    </x-nav-link> -->
                     <x-nav-link :href="route('user_files')" :active="request()->routeIs('user_files')">
                         {{ __('Audit Findings') }}
                     </x-nav-link>
@@ -65,6 +65,30 @@
                             <x-dropdown-link :href="route('documents.index')">
                                 {{ __('View File Records') }}
                             </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+                    <!-- Settings Dropdown -->
+                <!-- <div class="hidden sm:flex sm:items-center sm:ms-6 mt-1"> -->
+                    <x-dropdown align="left">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('Settings') }}
+                                <svg class="ms-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('users.index')">
+                                {{ __('Users') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('pap.index')">
+                                {{ __('PAP') }}
+                            </x-dropdown-link>
+                                <!-- <x-dropdown-link :href="route('documents.index')">
+                                    {{ __('Transaction Type') }}
+                                </x-dropdown-link> -->
                         </x-slot>
                     </x-dropdown>
                 </div>

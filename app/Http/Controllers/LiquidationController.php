@@ -12,7 +12,7 @@ class LiquidationController extends Controller
 {
     public function export($cashAdvanceId)
     {
-        return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidations.xlsx');
+        return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
     public function index()
@@ -72,8 +72,8 @@ class LiquidationController extends Controller
 
         Liquidation::create($validated);
 
-        $cashAdvance = CashAdvance::with('liquidations')->find($validated['cash_advance_id']);
-        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
+        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
         $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
         $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
@@ -84,13 +84,13 @@ class LiquidationController extends Controller
 
     public function edit($id)
     {
-        $liquidation = Liquidation::findOrFail($id);
+        $liquidations = Liquidation::findOrFail($id);
         return view('liquidation.edit', compact('liquidation'));
     }
 
     public function update(Request $request, $id)
     {
-        $liquidation = Liquidation::findOrFail($id);
+        $liquidations = Liquidation::findOrFail($id);
 
         $rules = [
             'granted_amount' => 'required|numeric|min:0',
@@ -113,10 +113,10 @@ class LiquidationController extends Controller
             $validated['or_date'] = null;
         }
 
-        $liquidation->update($validated);
+        $liquidations->update($validated);
 
-        $cashAdvance = CashAdvance::with('liquidations')->find($liquidation->cash_advance_id);
-        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $cashAdvance = CashAdvance::with('liquidation')->find($liquidations->cash_advance_id);
+        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
         $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
         $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
@@ -128,12 +128,12 @@ class LiquidationController extends Controller
 
     public function destroy($id)
     {
-        $liquidation = Liquidation::findOrFail($id);
-        $cashAdvanceId = $liquidation->cash_advance_id;
-        $liquidation->delete();
+        $liquidations = Liquidation::findOrFail($id);
+        $cashAdvanceId = $liquidations->cash_advance_id;
+        $liquidations->delete();
 
-        $cashAdvance = CashAdvance::with('liquidations')->find($cashAdvanceId);
-        $totalLiquidated = $cashAdvance->liquidations->sum('liquidated_amount');
+        $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
+        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
         $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
         $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';

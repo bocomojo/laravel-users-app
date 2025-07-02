@@ -12,6 +12,14 @@ use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\LiquidationController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\PapController;
+
+// Route::get('/pap', [PapController::class, 'index'])->name('pap.index');
+// Route::get('/pap/create', [PapController::class, 'create'])->name('pap.create');
+// Route::post('/pap', [PapController::class, 'store'])->name('pap.store');
+Route::resource('pap', PapController::class);
+Route::get('/pap/import', [PapController::class, 'import'])->name('pap.import');
+Route::post('/pap/import', [PapController::class, 'import'])->name('pap.import');
 
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 

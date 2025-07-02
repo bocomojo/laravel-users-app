@@ -39,9 +39,15 @@ class CashAdvance extends Model
         return $this->belongsTo(Sdo::class, 'sdo_id');
     }
 
-    public function liquidations()
+    public function liquidation()
     {
         return $this->hasMany(\App\Models\Liquidation::class);
+    }
+    
+    public function papData()
+    {
+        // return $this->belongsTo(\App\Models\Pap::class, 'pap');
+        return $this->belongsTo(Pap::class, 'pap');
     }
 
 }
