@@ -38,36 +38,41 @@ class SdoController extends Controller
     }
 
     // Store a new SDO record in the database
+    // Store a new SDO record in the database
     public function store(Request $request)
     {
-        // Validate the SDO fields
+        // 1. Validate incoming data
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email|unique:users,email',
             'contact_number' => 'required|string|max:20',
         ]);
-    
-        // Save SDO to your sdos table
+
+        // 2. Save SDO info
         $sdo = Sdo::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'name'           => $validated['name'],
+            'email'          => $validated['email'],
             'contact_number' => $validated['contact_number'],
         ]);
-    
-        // Extract first name and generate default password
-        $firstName = Str::of($validated['name'])->explode(' ')->first();
+
+        // 3. Create the linked User account
+        $firstName       = Str::of($validated['name'])->explode(' ')->first();
         $defaultPassword = strtolower($firstName) . '12345';
-    
-        // Create User account with default password
-        User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+
+        $user = User::create([
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
             'password' => Hash::make($defaultPassword),
-            'role' => 'user', // or 'staff' depending on your logic
+            // ⛔️ remove any plain “role” column if you’re using Spatie only
         ]);
-    
-        return redirect()->route('sdo.index')->with('success', 'SDO and user account created successfully!');
-    }    
+
+        // 4. 👉 Give the default Spatie role **user**
+        $user->assignRole('user');   // or $user->syncRoles(['user']);
+
+        return redirect()
+            ->route('sdo.index')
+            ->with('success', 'SDO and user account created successfully!');
+    }   
 
     // Show the form to edit an existing SDO record
     public function edit($id)

@@ -53,9 +53,12 @@
                                                     onchange="this.form.submit()"
                                                     class="rounded-md bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 px-2 py-1 pr-8"
                                                     {{ $user->id == 1 ? 'disabled' : '' }}>
-                                                    <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
-                                                    <option value="staff" {{ $user->role === 'staff' ? 'selected' : '' }}>Staff</option>
-                                                    <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>SDO</option>
+
+                                                    @foreach(['admin', 'staff', 'user'] as $role)
+                                                        <option value="{{ $role }}" {{ $user->hasRole($role) ? 'selected' : '' }}>
+                                                            {{ ucfirst($role) }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
                                             </form>
 

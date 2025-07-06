@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SdoController;
@@ -7,12 +8,19 @@ use App\Http\Controllers\PdfListController;
 use App\Http\Controllers\PdfUploadController;
 use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ComplianceFileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestMailController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\LiquidationController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\PapController;
+use Spatie\Permission\Middlewares\PermissionMiddleware;
+use Spatie\Permission\Middlewares\RoleOrPermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+
+Route::aliasMiddleware('role', RoleMiddleware::class);
+
+Route::aliasMiddleware('permission', PermissionMiddleware::class);
+Route::aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);
 
 // Route::get('/pap', [PapController::class, 'index'])->name('pap.index');
 // Route::get('/pap/create', [PapController::class, 'create'])->name('pap.create');
@@ -81,5 +89,6 @@ Route::resource('liquidation', App\Http\Controllers\LiquidationController::class
     'edit', 'update', 'destroy'
 ]);
 
+Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.updateRole');
 
 require __DIR__.'/auth.php';

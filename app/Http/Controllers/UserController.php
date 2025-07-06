@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+        public function __construct()
+    {
+        // Only logged‑in admins can hit ANY action in this controller
+        $this->middleware(['auth', 'role:admin']);
+    }
+    
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -30,18 +36,14 @@ class UserController extends Controller
     // Update user role (with protection)
     public function updateRole(Request $request, User $user)
     {
-        if ($user->id == 1) {
-            return redirect()->back()->with('error', 'Cannot change the role of the super admin.');
-        }
-
         $request->validate([
-            'role' => 'required|in:admin,staff,user',
+            'role' => 'required|string|in:admin,staff,user',
         ]);
 
-        $user->role = $request->role;
-        $user->save();
+        // Remove existing roles
+        $user->syncRoles([$request->role]);
 
-        return redirect()->back()->with('success', 'User role updated successfully.');
+        return redirect()->back()->with('success', 'User role updated.');
     }
 
     // Handle the update logic
