@@ -64,6 +64,23 @@
                         </table>
                         <div class="space-y-2 text-sm text-white mt-4 border-t border-gray-600 pt-4">
                             <div class="flex justify-between">
+                                <span class="font-semibold">Payout Start:</span>
+                                <span>
+                                    {{ $cashAdvance->payout_start 
+                                        ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') 
+                                        : '-' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Payout End:</span>
+                                <span>
+                                    {{ $cashAdvance->payout_end 
+                                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') 
+                                        : '-' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
                                 <span class="font-semibold">Granted Amount:</span>
                                 <span>₱{{ number_format($cashAdvance->granted_amount, 2) }}</span>
                             </div>

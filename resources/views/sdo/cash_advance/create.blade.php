@@ -35,6 +35,8 @@
                         <textarea name="particulars" id="particulars" rows="3"
                             class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600"></textarea>
                     </div>
+                    <div class="mt-6">
+                    </div>
 
                     <!-- Grid for grouped fields -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -101,6 +103,24 @@
                                 <option value="">-- Select Type --</option>
                                 <option value="Cash Advance" selected>Cash Advance</option>
                             </select>
+                        </div>
+
+                        <!-- Payout Start -->
+                        <div>
+                            <label for="payout_start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Start of Payout
+                            </label>
+                            <input type="date" name="payout_start" id="payout_start"
+                                class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                        </div>
+
+                        <!-- Payout End -->
+                        <div>
+                            <label for="payout_end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                End of Payout
+                            </label>
+                            <input type="date" name="payout_end" id="payout_end"
+                                class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         </div>
 
                         <!-- Granted Amount -->

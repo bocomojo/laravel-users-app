@@ -24,11 +24,15 @@ class CashAdvance extends Model
         'pap',
         'granted_amount',
         'status',
+        'payout_start',
+        'payout_end',
         
     ];
 
     protected $casts = [
         'granted_amount' => 'float',
+        'payout_start' => 'date',
+        'payout_end'   => 'date',
     ];
 
     /**
