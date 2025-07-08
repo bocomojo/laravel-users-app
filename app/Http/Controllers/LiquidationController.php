@@ -84,16 +84,16 @@ class LiquidationController extends Controller
 
     public function edit($id)
     {
-        $liquidations = Liquidation::findOrFail($id);
+        $liquidation = Liquidation::findOrFail($id);    // singular
         return view('liquidation.edit', compact('liquidation'));
     }
 
     public function update(Request $request, $id)
     {
-        $liquidations = Liquidation::findOrFail($id);
+        $liquidation = Liquidation::findOrFail($id);
 
         $rules = [
-            'granted_amount' => 'required|numeric|min:0',
+            // 'granted_amount' => 'required|numeric|min:0',
             'liquidated_amount' => 'required|numeric|min:0',
             'liquidation_type' => 'required|string|max:255',
             'liq_date_received' => 'required|date',
@@ -113,9 +113,9 @@ class LiquidationController extends Controller
             $validated['or_date'] = null;
         }
 
-        $liquidations->update($validated);
+        $liquidation->update($validated);
 
-        $cashAdvance = CashAdvance::with('liquidation')->find($liquidations->cash_advance_id);
+        $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
         $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
         $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
@@ -128,9 +128,9 @@ class LiquidationController extends Controller
 
     public function destroy($id)
     {
-        $liquidations = Liquidation::findOrFail($id);
-        $cashAdvanceId = $liquidations->cash_advance_id;
-        $liquidations->delete();
+        $liquidation = Liquidation::findOrFail($id);
+        $cashAdvanceId = $liquidation->cash_advance_id;
+        $liquidation->delete();
 
         $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
         $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');

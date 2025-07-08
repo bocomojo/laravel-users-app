@@ -47,6 +47,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::put('/cash-advance/{id}/update-dates', [\App\Http\Controllers\CashAdvanceController::class, 'updateDates'])->name('cash-advance.update-dates');
+
 Route::resource('users', UserController::class);
 // Already included in `Route::resource('users', UserController::class);`
 Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');

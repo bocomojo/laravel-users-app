@@ -30,6 +30,21 @@ class CashAdvanceController extends Controller
         ]);
     }
 
+    public function updateDates(Request $request, $id)
+    {
+        $request->validate([
+            'payout_start' => 'required|date',
+            'payout_end' => 'required|date|after_or_equal:payout_start',
+        ]);
+
+        $cashAdvance = CashAdvance::findOrFail($id);
+        $cashAdvance->payout_start = $request->payout_start;
+        $cashAdvance->payout_end = $request->payout_end;
+        $cashAdvance->save();
+
+        return redirect()->back()->with('success', 'Payout dates updated successfully.');
+    }
+
     /* ------------------------------------------------------------------------
      | Store the new Cash Advance
      * --------------------------------------------------------------------- */

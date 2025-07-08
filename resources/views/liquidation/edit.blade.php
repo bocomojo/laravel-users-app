@@ -25,21 +25,21 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="sdo_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SDO Name</label>
+                            <label for="sdo_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SDO Name<span class="text-red-500">*</span></label>
                             <input type="text" id="sdo_name" readonly
                                    value="{{ $liquidation->cashAdvance->sdo->name ?? 'N/A' }}"
                                    class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
-                            <label for="liquidated_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidated Amount</label>
+                            <label for="liquidated_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidated Amount<span class="text-red-500">*</span></label>
                             <input type="number" step="0.01" name="liquidated_amount" id="liquidated_amount"
                                    value="{{ old('liquidated_amount', $liquidation->liquidated_amount) }}" required
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
 
                         <div>
-                            <label for="liquidation_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidation Type</label>
+                            <label for="liquidation_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidation Type<span class="text-red-500">*</span></label>
                             <select name="liquidation_type" id="liquidation_type" required
                                     class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
                                 <option value="Liquidation" {{ old('liquidation_type', $liquidation->liquidation_type) == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
@@ -48,21 +48,21 @@
                         </div>
 
                         <div>
-                            <label for="liq_date_received" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date Received</label>
+                            <label for="liq_date_received" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date Received<span class="text-red-500">*</span></label>
                             <input type="date" name="liq_date_received" id="liq_date_received"
                                    value="{{ old('liq_date_received', $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('Y-m-d') : '') }}"
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
 
                         <div>
-                            <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Number</label>
+                            <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Number<span class="text-red-500">*</span></label>
                             <input type="text" name="liq_number" id="liq_number"
                                    value="{{ old('liq_number', $liquidation->liq_number) }}"
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
 
                         <div>
-                            <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date</label>
+                            <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date<span class="text-red-500">*</span></label>
                             <input type="date" name="liq_date" id="liq_date"
                                    value="{{ old('liq_date', $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('Y-m-d') : '') }}"
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
@@ -72,14 +72,14 @@
                     <div id="refund-fields" style="display: none;">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label for="or_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">OR Number</label>
+                                <label for="or_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">OR Number<span class="text-red-500">*</span></label>
                                 <input type="text" name="or_number" id="or_number"
                                        value="{{ old('or_number', $liquidation->or_number) }}"
                                        class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                             </div>
 
                             <div>
-                                <label for="or_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">OR Date</label>
+                                <label for="or_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">OR Date<span class="text-red-500">*</span></label>
                                 <input type="date" name="or_date" id="or_date"
                                        value="{{ old('or_date', $liquidation->or_date ? \Carbon\Carbon::parse($liquidation->or_date)->format('Y-m-d') : '') }}"
                                        class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
