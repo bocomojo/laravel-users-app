@@ -23,26 +23,32 @@ class SendDemandLetters extends Command
             ->get();
 
         foreach ($cashAdvances as $advance) {
-            $end = Carbon::parse($advance->payout_end);
+            $payoutEnd = Carbon::parse($advance->payout_end);
+            $deadline = $payoutEnd->copy()->addDays(30);
 
-            // 30 days passed and not yet fully liquidated
-            if ($now->greaterThanOrEqualTo($end->addDays(30))) {
-                $remaining = $advance->granted_amount - $advance->liquidation->sum('liquidated_amount');
+            $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
+            $remaining = $advance->granted_amount - $totalLiquidated;
 
-                if ($remaining > 0) {
-                    // Send the email
-                    Mail::to($advance->sdo->email)->send(new DemandLetterMail($advance));
+            // ✅ Case 1: Fully liquidated before or at deadline — mark safe
+            if ($remaining <= 0) {
+                $advance->demand_letter_sent_at = $now;
+                $advance->save();
 
-                    // Mark as sent
-                    $advance->demand_letter_sent_at = $now;
-                    $advance->save();
+                $this->info("Marked as fully liquidated: " . $advance->sdo->name);
+                continue;
+            }
 
-                    $this->info("Demand letter sent to: " . $advance->sdo->email);
-                }
+            // ✅ Case 2: Not yet liquidated AND deadline passed — send demand
+            if ($now->greaterThanOrEqualTo($deadline)) {
+                Mail::to($advance->sdo->email)->send(new DemandLetterMail($advance));
+
+                $advance->demand_letter_sent_at = $now;
+                $advance->save();
+
+                $this->info("Demand letter sent to: " . $advance->sdo->email);
             }
         }
 
         return Command::SUCCESS;
     }
 }
-

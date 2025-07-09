@@ -15,20 +15,37 @@ class LiquidationController extends Controller
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $cashAdvances = CashAdvance::with('sdo')->latest()->get();
+        $query = CashAdvance::with(['sdo', 'papData', 'liquidation']);
+
+        // Handle search
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('sdo', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('papData', fn($q) => $q->where('pap_name', 'like', "%{$search}%"))
+                  ->orWhere('check_number', 'like', "%{$search}%");
+            });
+        }
+
+        // Handle status filter
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        $cashAdvances = $query->latest()->paginate(10);
+
         return view('liquidation.index', compact('cashAdvances'));
     }
 
     public function show($id, Request $request)
     {
-        $cashAdvance = CashAdvance::with('sdo')->findOrFail($id);
+        $cashAdvance = CashAdvance::with(['sdo', 'liquidation'])->findOrFail($id);
 
         $sortOrder = $request->get('sort', 'desc');
         $filterType = $request->get('type');
 
-        $liquidations = Liquidation::where('check_number', $cashAdvance->check_number)
+        $liquidations = Liquidation::where('cash_advance_id', $cashAdvance->id)
             ->when($filterType, fn($query) => $query->where('liquidation_type', $filterType))
             ->orderBy('created_at', $sortOrder)
             ->get();
@@ -36,6 +53,7 @@ class LiquidationController extends Controller
         return view('liquidation.show', compact('cashAdvance', 'liquidations', 'sortOrder', 'filterType'));
     }
 
+    // ✅ Added: Create method
     public function create(Request $request)
     {
         $cashAdvanceId = $request->get('cash_advance_id');
@@ -84,7 +102,7 @@ class LiquidationController extends Controller
 
     public function edit($id)
     {
-        $liquidation = Liquidation::findOrFail($id);    // singular
+        $liquidation = Liquidation::findOrFail($id);
         return view('liquidation.edit', compact('liquidation'));
     }
 
@@ -93,7 +111,6 @@ class LiquidationController extends Controller
         $liquidation = Liquidation::findOrFail($id);
 
         $rules = [
-            // 'granted_amount' => 'required|numeric|min:0',
             'liquidated_amount' => 'required|numeric|min:0',
             'liquidation_type' => 'required|string|max:255',
             'liq_date_received' => 'required|date',

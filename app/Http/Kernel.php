@@ -63,7 +63,7 @@ class Kernel extends HttpKernel
 
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('demand:send')->daily();
+        $schedule->command('demand:send')->dailyAt('01:00');
     }
 
 }
