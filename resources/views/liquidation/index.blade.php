@@ -14,11 +14,11 @@
                             <thead class="bg-gray-100 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">SDO Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">PAP</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Check #</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Remaining Balance</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th> <!-- New column -->
                                 </tr>
                             </thead>
@@ -28,13 +28,13 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->sdo->name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->check_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $advance->transaction_type }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $advance->papData->pap_name}}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ number_format($advance->granted_amount, 2) }}</td>
                                         @php
                                             $totalLiquidated = $advance->liquidation->sum('liquidated_amount'); // adds all liquidation amounts
                                             $remainingBalance = $advance->granted_amount - $totalLiquidated;
                                         @endphp
                                         <td class="px-6 py-4 whitespace-nowrap">{{ number_format($remainingBalance, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $advance->created_at->format('Y-m-d') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap space-x-2">
                                             <a href="{{ route('liquidation.show', $advance->id) }}" class="inline-block px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600">
                                                 View

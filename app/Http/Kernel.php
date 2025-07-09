@@ -60,4 +60,10 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
 
     ];
+
+    protected function schedule(Schedule $schedule): void
+    {
+        $schedule->command('demand:send')->daily();
+    }
+
 }
