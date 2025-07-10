@@ -13,11 +13,19 @@ class Sdo extends Model
     protected $table = 'sdo';
 
     // Allow mass assignment for these fields
-    protected $fillable = ['name', 'email', 'contact_number'];
+    protected $fillable = [
+        'name',
+        'ppower_name',
+        'email',
+        'corporate_email',
+        'contact_number',
+        'position',
+        'official_station',
+        'employment_status',
+    ];
 
     public function cashAdvance()
-{
-    return $this->hasOne(CashAdvance::class)->latestOfMany();
-}
-
+    {
+        return $this->hasOne(CashAdvance::class)->latestOfMany();
+    }
 }

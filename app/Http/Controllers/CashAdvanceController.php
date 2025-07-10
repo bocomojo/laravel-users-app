@@ -9,9 +9,19 @@ use App\Models\Pap;
 
 class CashAdvanceController extends Controller
 {
-    /* ------------------------------------------------------------------------
-     | Show form to create a new Cash Advance
-     * --------------------------------------------------------------------- */
+    // ✅ New: Show list of all cash advances, optionally filtered by sdo_id
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+
+        $sdoRecords = Sdo::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+        })->paginate(10);
+
+        return view('sdo.cash_advance.index', compact('sdoRecords', 'search'));
+    }
+
     public function create(Request $request)
     {
         $sdoId = $request->get('sdo_id');
@@ -45,9 +55,6 @@ class CashAdvanceController extends Controller
         return redirect()->back()->with('success', 'Payout dates updated successfully.');
     }
 
-    /* ------------------------------------------------------------------------
-     | Store the new Cash Advance
-     * --------------------------------------------------------------------- */
     public function store(Request $request)
     {
         $request->validate([
@@ -62,8 +69,6 @@ class CashAdvanceController extends Controller
             'transaction_type'=> 'required|string|max:255',
             'pap'             => 'required|exists:pap,id',
             'granted_amount'  => 'required|numeric|min:0',
-
-            // 🆕 payout dates
             'payout_start'    => 'nullable|date',
             'payout_end'      => 'nullable|date|after_or_equal:payout_start',
         ]);
@@ -81,20 +86,15 @@ class CashAdvanceController extends Controller
             'pap'             => $request->pap,
             'granted_amount'  => $request->granted_amount,
             'status'          => 'Ongoing',
-
-            // 🆕 columns
             'payout_start'    => $request->payout_start,
             'payout_end'      => $request->payout_end,
         ]);
 
         return redirect()
-            ->route('sdo.index')
+            ->route('sdo.cash_advance.index', ['sdo_id' => $request->sdo_id])
             ->with('success', 'Cash advance added successfully.');
     }
 
-    /* ------------------------------------------------------------------------
-     | Optional: show a single cash advance
-     * --------------------------------------------------------------------- */
     public function show($id)
     {
         $cashAdvance = CashAdvance::with('pap')->findOrFail($id);
