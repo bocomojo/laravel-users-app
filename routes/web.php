@@ -41,6 +41,8 @@ Route::match(['get', 'post'], '/pap/import', [PapController::class, 'import'])->
 // ============= CERTIFICATES =============
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 
+Route::get('/liquidation/condensed-export', [LiquidationController::class, 'condensedExport'])->name('liquidation.condensed.export');
+
 // ============= LIQUIDATION ==============
 Route::resource('liquidation', LiquidationController::class)->only([
     'create', 'store', 'show', 'index', 'edit', 'update', 'destroy'

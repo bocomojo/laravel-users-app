@@ -7,10 +7,53 @@ use App\Models\Sdo;
 use App\Models\CashAdvance;
 use App\Models\Liquidation;
 use App\Exports\LiquidationsExport;
+use App\Exports\CondensedLiquidationExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class LiquidationController extends Controller
 {
+    public function condensedExport(Request $request)
+    {
+        $query = \App\Models\Liquidation::query();
+
+        if ($request->filled('type')) {
+            $query->where('liquidation_type', $request->type);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('liq_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('liq_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('liq_date_recieved', '>=', $request->received_date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('liq_date_recieved', '<=', $request->received_date_to);
+        }
+
+        if ($request->filled('sdo_name')) {
+            $query->whereHas('cashAdvance.sdo', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->sdo_name . '%');
+            });
+        }
+
+        if ($request->filled('number')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('check_number', 'like', '%' . $request->number . '%')
+                ->orWhere('liq_number', 'like', '%' . $request->number . '%');
+            });
+        }
+
+        $liquidations = $query->with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap'])->get();
+
+        return Excel::download(new CondensedLiquidationExport($liquidations), 'condensed_liquidation.xlsx');
+    }
+
     public function export($cashAdvanceId)
     {
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
@@ -19,8 +62,9 @@ class LiquidationController extends Controller
     public function index()
     {
         $liquidations = \App\Models\Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap'])->latest()->paginate(15);
+        $sdos = Sdo::orderBy('name')->get();
 
-        return view('liquidation.index', compact('liquidations'));
+        return view('liquidation.index', compact('liquidations', 'sdos'));
     }
 
     public function show($id, Request $request)

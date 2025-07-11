@@ -4,19 +4,22 @@
             {{ __('Liquidation Records') }}
         </h2>
     </x-slot>
-<a href="{{ route('liquidation.create') }}"
-   class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg z-50"
-   title="Add Liquidation">
-   <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" stroke-width="2"
-        viewBox="0 0 24 24">
-       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-   </svg>
-</a>
 
-    <div class="py-6">
+    {{-- Floating Add Button --}}
+    <a href="{{ route('liquidation.create') }}"
+       class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg z-50"
+       title="Add Liquidation">
+        <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+    </a>
+
+    <div class="py-6" x-data="{ openExportModal: false }">
         <div class="max-w-7xl mx-auto">
             <div class="bg-white dark:bg-gray-800 shadow-md rounded-md overflow-hidden">
-                {{-- Filter + Search Bar --}}
+
+                {{-- Filters & Search --}}
                 <form method="GET" class="px-6 py-4 border-b dark:border-gray-700">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div class="flex flex-wrap gap-3">
@@ -50,6 +53,14 @@
                                 <button type="submit"
                                     class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md">
                                     Apply
+                                </button>
+                            </div>
+
+                            {{-- Export Button --}}
+                            <div class="mt-auto">
+                                <button type="button" @click="openExportModal = true"
+                                    class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md">
+                                    Export
                                 </button>
                             </div>
                         </div>
@@ -124,5 +135,85 @@
                 </div>
             </div>
         </div>
+
+        {{-- Export Modal --}}
+<div x-show="openExportModal" x-cloak class="fixed inset-0 flex items-center justify-center z-50">
+    <div class="fixed inset-0 bg-black bg-opacity-50" @click="openExportModal = false"></div>
+    <form method="GET" action="{{ route('liquidation.condensed.export') }}"
+          class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-md w-full max-w-lg z-50 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Condensed Export Filters</h2>
+
+        {{-- Liquidation Date Range --}}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date From</label>
+                <input type="date" name="liq_date_from"
+                       class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date To</label>
+                <input type="date" name="liq_date_to"
+                       class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+        </div>
+
+        {{-- Received Date Range --}}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Received Date From</label>
+                <input type="date" name="received_date_from"
+                       class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Received Date To</label>
+                <input type="date" name="received_date_to"
+                       class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+        </div>
+
+        {{-- Type --}}
+        <div>
+            <label class="text-sm text-gray-700 dark:text-gray-300">Type</label>
+            <select name="type"
+                    class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                <option value="">All</option>
+                <option value="Liquidation">Liquidation</option>
+                <option value="Refund">Refund</option>
+            </select>
+        </div>
+
+        {{-- SDO Name --}}
+        <div>
+            <label class="text-sm text-gray-700 dark:text-gray-300">SDO Name</label>
+            <select name="sdo_name"
+                    class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                <option value="">All</option>
+                @foreach($sdos as $sdo)
+                    <option value="{{ $sdo->name }}">{{ $sdo->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Number --}}
+        <div>
+            <label class="text-sm text-gray-700 dark:text-gray-300">Check or Liq Number</label>
+            <input type="text" name="number"
+                   class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+        </div>
+
+        {{-- Actions --}}
+        <div class="flex justify-end gap-2">
+            <button type="button" @click="openExportModal = false"
+                    class="px-4 py-2 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">
+                Cancel
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded">
+                Export
+            </button>
+        </div>
+    </form>
+</div>
+
     </div>
 </x-app-layout>
