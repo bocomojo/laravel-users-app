@@ -1,152 +1,126 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Cash Advances / Liquidation') }}
+            {{ __('Liquidation Records') }}
         </h2>
     </x-slot>
+<a href="{{ route('liquidation.create') }}"
+   class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg z-50"
+   title="Add Liquidation">
+   <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24">
+       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+   </svg>
+</a>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-x-auto">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    
-                    {{-- Filter Form --}}
-                    <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
-                        <select name="status" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
-                            <option value="">All Status</option>
-                            <option value="Fully Liquidated" {{ request('status') == 'Fully Liquidated' ? 'selected' : '' }}>Fully Liquidated</option>
-                            <option value="Ongoing" {{ request('status') == 'Ongoing' ? 'selected' : '' }}>Ongoing</option>
-                        </select>
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-white dark:bg-gray-800 shadow-md rounded-md overflow-hidden">
+                {{-- Filter + Search Bar --}}
+                <form method="GET" class="px-6 py-4 border-b dark:border-gray-700">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div class="flex flex-wrap gap-3">
+                            {{-- Type Filter --}}
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
+                                <select name="type" id="type"
+                                    class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="">All</option>
+                                    <option value="Liquidation" {{ request('type') == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
+                                    <option value="Refund" {{ request('type') == 'Refund' ? 'selected' : '' }}>Refund</option>
+                                </select>
+                            </div>
 
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
-                            Filter
-                        </button>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search SDO, PAP, or Check #" 
-                            class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
-                    </form>
+                            {{-- Date From --}}
+                            <div>
+                                <label for="date_from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
+                                <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
+                                    class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
+                            </div>
 
-                    {{-- Table --}}
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                        <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
+                            {{-- Date To --}}
+                            <div>
+                                <label for="date_to" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
+                                <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}"
+                                    class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
+                            </div>
+
+                            {{-- Apply Button --}}
+                            <div class="mt-auto">
+                                <button type="submit"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md">
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Search --}}
+                        <div class="relative w-full md:w-64">
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
+                                class="w-full pl-10 pr-4 py-2 rounded-md text-sm border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                {{-- Table --}}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+                        <thead class="text-xs uppercase bg-gray-100 dark:bg-gray-700 font-semibold">
                             <tr>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">SDO Name</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">PAP</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Check #</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Amount</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Remaining Balance</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Actions</th>
-                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Demand Letter Status</th>
+                                <th class="px-6 py-3">SDO</th>
+                                <th class="px-6 py-3">Check #</th>
+                                <th class="px-6 py-3">Granted</th>
+                                <th class="px-6 py-3">Liquidated</th>
+                                <th class="px-6 py-3">Type</th>
+                                <th class="px-6 py-3">Received</th>
+                                <th class="px-6 py-3">Liq #</th>
+                                <th class="px-6 py-3">Liq Date</th>
+                                <th class="px-6 py-3">OR #</th>
+                                <th class="px-6 py-3">OR Date</th>
+                                <th class="px-6 py-3 text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($cashAdvances as $advance)
-                                @php
-                                    $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
-                                    $remainingBalance = $advance->granted_amount - $totalLiquidated;
-                                @endphp
-                                <tr>
-                                    <td class="px-6 py-4">{{ $advance->sdo->name ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4">{{ $advance->papData->pap_name ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4">{{ $advance->check_number }}</td>
-                                    <td class="px-6 py-4">{{ $advance->transaction_type }}</td>
-                                    <td class="px-6 py-4">₱{{ number_format($advance->granted_amount, 2) }}</td>
-                                    <td class="px-6 py-4">₱{{ number_format($remainingBalance, 2) }}</td>
-
-                                    {{-- Actions --}}
-                                    <td class="px-6 py-4 space-y-2">
-                                        <a href="{{ route('liquidation.show', $advance->id) }}"
-                                            class="block px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 text-center">
-                                            View
+                        <tbody>
+                            @forelse ($liquidations as $liq)
+                                <tr class="{{ $loop->odd ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700' }} hover:bg-blue-50 dark:hover:bg-gray-600 transition">
+                                    <td class="px-6 py-3">{{ $liq->sdo_name }}</td>
+                                    <td class="px-6 py-3">{{ $liq->check_number }}</td>
+                                    <td class="px-6 py-3">₱{{ number_format($liq->granted_amount, 2) }}</td>
+                                    <td class="px-6 py-3">₱{{ number_format($liq->liquidated_amount, 2) }}</td>
+                                    <td class="px-6 py-3">{{ $liq->liquidation_type }}</td>
+                                    <td class="px-6 py-3">{{ $liq->liq_date_received }}</td>
+                                    <td class="px-6 py-3">{{ $liq->liq_number }}</td>
+                                    <td class="px-6 py-3">{{ $liq->liq_date }}</td>
+                                    <td class="px-6 py-3">{{ $liq->or_number }}</td>
+                                    <td class="px-6 py-3">{{ $liq->or_date }}</td>
+                                    <td class="px-6 py-3 text-center">
+                                        <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                            Edit
                                         </a>
-
-                                        @if ($remainingBalance == 0)
-                                            <a href="{{ route('certificate.print', $advance->id) }}" target="_blank"
-                                                class="block px-3 py-1 text-sm text-white bg-purple-600 rounded hover:bg-purple-700 text-center">
-                                                Print Certificate
-                                            </a>
-                                        @else
-                                            <a href="{{ route('liquidation.create', ['cash_advance_id' => $advance->id]) }}"
-                                                class="block px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700 text-center">
-                                                Add Liquidation
-                                            </a>
-                                        @endif
                                     </td>
-
-                                    {{-- Demand Letter Status --}}
-<td class="px-6 py-4">
-    @php
-        $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
-        $remaining = $advance->granted_amount - $totalLiquidated;
-        $now = \Carbon\Carbon::now();
-
-        $hasPayoutEnd = $advance->payout_end !== null;
-        $payoutEnd = $hasPayoutEnd ? \Carbon\Carbon::parse($advance->payout_end) : null;
-        $deadline = $hasPayoutEnd ? $payoutEnd->copy()->addDays(30) : null;
-    @endphp
-
-    @if ($advance->demand_letter_sent_at)
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded dark:bg-green-800 dark:text-green-100">
-            Sent
-        </span>
-        <br>
-        <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ \Carbon\Carbon::parse($advance->demand_letter_sent_at)->diffForHumans() }}
-        </span>
-
-    @elseif ($remaining <= 0)
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
-            Not Needed
-        </span>
-
-    @elseif ($hasPayoutEnd)
-        @php
-            $diffInSeconds = $now->diffInSeconds($deadline, false);
-            $days = floor(abs($diffInSeconds) / 86400);
-            $hours = floor((abs($diffInSeconds) % 86400) / 3600);
-        @endphp
-
-        @if ($diffInSeconds > 0)
-            <span class="inline-block px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded dark:bg-yellow-700 dark:text-yellow-100">
-                Pending
-            </span>
-            <br>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ $days }} day{{ $days !== 1 ? 's' : '' }} and {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} left
-            </span>
-        @else
-            <span class="inline-block px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded dark:bg-red-700 dark:text-red-100">
-                Overdue
-            </span>
-            <br>
-            <span class="text-xs text-red-400 dark:text-red-300 font-medium">
-                {{ $days }} day{{ $days !== 1 ? 's' : '' }} and {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} overdue
-            </span>
-        @endif
-
-    @else
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
-            No payout end
-        </span>
-    @endif
-</td>
-
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                        No cash advances found.
+                                    <td colspan="11" class="text-center px-6 py-6 text-gray-500 dark:text-gray-400">
+                                        No liquidation records found.
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
 
-                    {{-- Pagination --}}
-                    <div class="mt-4">
-                        {{ $cashAdvances->withQueryString()->links() }}
-                    </div>
+                {{-- Pagination --}}
+                <div class="px-6 py-4">
+                    {{ $liquidations->links() }}
                 </div>
             </div>
         </div>

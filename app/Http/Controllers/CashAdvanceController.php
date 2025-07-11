@@ -40,6 +40,13 @@ class CashAdvanceController extends Controller
         ]);
     }
 
+    public function cashAdvances()
+    {
+        $cashAdvances = CashAdvance::with('sdo', 'pap')->paginate(15);
+
+        return view('sdo.cash_advance.cash_advances', compact('cashAdvances'));
+    }
+
     public function updateDates(Request $request, $id)
     {
         $request->validate([

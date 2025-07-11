@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Sdo;
 use App\Models\CashAdvance;
 use App\Models\Liquidation;
 use App\Exports\LiquidationsExport;
@@ -15,27 +16,11 @@ class LiquidationController extends Controller
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = CashAdvance::with(['sdo', 'papData', 'liquidation']);
+        $liquidations = \App\Models\Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap'])->latest()->paginate(15);
 
-        // Handle search
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('sdo', fn($q) => $q->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('papData', fn($q) => $q->where('pap_name', 'like', "%{$search}%"))
-                  ->orWhere('check_number', 'like', "%{$search}%");
-            });
-        }
-
-        // Handle status filter
-        if ($status = $request->input('status')) {
-            $query->where('status', $status);
-        }
-
-        $cashAdvances = $query->latest()->paginate(10);
-
-        return view('liquidation.index', compact('cashAdvances'));
+        return view('liquidation.index', compact('liquidations'));
     }
 
     public function show($id, Request $request)
@@ -53,20 +38,23 @@ class LiquidationController extends Controller
         return view('liquidation.show', compact('cashAdvance', 'liquidations', 'sortOrder', 'filterType'));
     }
 
-    // ✅ Added: Create method
     public function create(Request $request)
     {
-        $cashAdvanceId = $request->get('cash_advance_id');
-        $cashAdvance = CashAdvance::with('sdo')->findOrFail($cashAdvanceId);
+        $cashAdvance = null;
+        $sdoList = Sdo::orderBy('name')->get();
 
-        return view('liquidation.create', compact('cashAdvance'));
+        if ($request->has('cash_advance_id')) {
+            $cashAdvance = CashAdvance::with('sdo')->findOrFail($request->get('cash_advance_id'));
+        }
+
+        return view('liquidation.create', compact('cashAdvance', 'sdoList'));
     }
 
     public function store(Request $request)
     {
         $rules = [
-            'cash_advance_id' => 'required|exists:cash_advance,id',
-            'sdo_name' => 'required|string|max:255',
+            'cash_advance_id' => 'nullable|exists:cash_advance,id',
+            'sdo_id' => 'required|exists:sdo,id',
             'check_number' => 'required|string|max:255',
             'granted_amount' => 'required|numeric|min:0',
             'liquidated_amount' => 'required|numeric|min:0',
@@ -90,12 +78,14 @@ class LiquidationController extends Controller
 
         Liquidation::create($validated);
 
-        $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
-        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
-        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+        if ($validated['cash_advance_id']) {
+            $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
+            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
-        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
-        $cashAdvance->save();
+            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->save();
+        }
 
         return redirect()->route('liquidation.index')->with('success', 'Liquidation added successfully.');
     }
@@ -103,7 +93,9 @@ class LiquidationController extends Controller
     public function edit($id)
     {
         $liquidation = Liquidation::findOrFail($id);
-        return view('liquidation.edit', compact('liquidation'));
+        $sdoList = Sdo::orderBy('name')->get();
+
+        return view('liquidation.edit', compact('liquidation', 'sdoList'));
     }
 
     public function update(Request $request, $id)
@@ -132,14 +124,16 @@ class LiquidationController extends Controller
 
         $liquidation->update($validated);
 
-        $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
-        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
-        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+        if ($liquidation->cash_advance_id) {
+            $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
+            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
-        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
-        $cashAdvance->save();
+            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->save();
+        }
 
-        return redirect()->route('liquidation.show', $cashAdvance->id)
+        return redirect()->route('liquidation.show', $liquidation->cash_advance_id)
                          ->with('success', 'Liquidation updated successfully.');
     }
 
@@ -149,12 +143,14 @@ class LiquidationController extends Controller
         $cashAdvanceId = $liquidation->cash_advance_id;
         $liquidation->delete();
 
-        $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
-        $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
-        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+        if ($cashAdvanceId) {
+            $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
+            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
-        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
-        $cashAdvance->save();
+            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->save();
+        }
 
         return redirect()->route('liquidation.show', $cashAdvanceId)
                          ->with('success', 'Liquidation deleted successfully.');

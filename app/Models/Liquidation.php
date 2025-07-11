@@ -24,6 +24,10 @@ class Liquidation extends Model
     'or_number',
     'or_date',
 ];
+public function cashAdvance()
+{
+    return $this->belongsTo(\App\Models\CashAdvance::class, 'cash_advance_id');
+}
 
 
 }

@@ -19,45 +19,50 @@ use App\Http\Controllers\{
     UserFileController
 };
 use Spatie\Permission\Middleware\{PermissionMiddleware, RoleOrPermissionMiddleware, RoleMiddleware};
+use App\Models\CashAdvance;
 
-// Register role/permission middlewares
+// Register role/permission middleware
 Route::aliasMiddleware('role', RoleMiddleware::class);
 Route::aliasMiddleware('permission', PermissionMiddleware::class);
 Route::aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);
 
-// Default welcome route
-Route::get('/', fn() => view('welcome'));
+// Welcome page
+Route::get('/', fn () => view('welcome'));
 
-// Dashboard (requires auth + verification)
-Route::get('/dashboard', fn() => view('dashboard'))
+// Dashboard
+Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 // ================= PAP ==================
 Route::resource('pap', PapController::class);
-Route::get('/pap/import', [PapController::class, 'import'])->name('pap.import');
-Route::post('/pap/import', [PapController::class, 'import'])->name('pap.import');
+Route::match(['get', 'post'], '/pap/import', [PapController::class, 'import'])->name('pap.import');
 
-// ================= CERTIFICATE ==========
+// ============= CERTIFICATES =============
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 
 // ============= LIQUIDATION ==============
+Route::resource('liquidation', LiquidationController::class)->only([
+    'create', 'store', 'show', 'index', 'edit', 'update', 'destroy'
+]);
 Route::get('/liquidation/export/{cashAdvanceId}', [LiquidationController::class, 'export'])->name('liquidation.export');
-Route::resource('liquidation', LiquidationController::class)->only(['create', 'store', 'show', 'index', 'edit', 'update', 'destroy']);
-Route::get('/liquidation', [LiquidationController::class, 'index'])->name('liquidation.index');
-Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
 
-
-// =========== CASH ADVANCE (SDO) =========
+// ========= CASH ADVANCE + SDO ==========
 Route::prefix('sdo')->name('sdo.')->group(function () {
     Route::resource('cash_advance', CashAdvanceController::class)->except(['edit', 'destroy']);
+
+    // ✅ New route for listing all cash advances
+    Route::get('cash-advances/all', [CashAdvanceController::class, 'cashAdvances'])
+        ->name('cash_advance.cash_advances');
+
     Route::get('bonded/create', [BondedOfficialController::class, 'create'])->name('bonded.create');
     Route::get('bonded_officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
+
     Route::get('export', [SdoController::class, 'export'])->name('export');
     Route::post('import', [SdoController::class, 'import'])->name('import');
 });
 
-// Cash Advance update-only route
+// Specific update-only route
 Route::put('/cash-advance/{id}/update-dates', [CashAdvanceController::class, 'updateDates'])->name('cash-advance.update-dates');
 
 // =============== USERS ==================
@@ -68,14 +73,14 @@ Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name(
 Route::resource('sdo', SdoController::class);
 
 // ========== COMPLIANCE FILES ============
-Route::get('/compliance', [ComplianceFileController::class, 'index'])->name('sdo.compliance.index');
-Route::get('/compliance/create', [ComplianceFileController::class, 'create'])->name('sdo.compliance.create');
-Route::post('/compliance', [ComplianceFileController::class, 'store'])->name('sdo.compliance.store');
+Route::prefix('compliance')->name('sdo.compliance.')->group(function () {
+    Route::get('/', [ComplianceFileController::class, 'index'])->name('index');
+    Route::get('create', [ComplianceFileController::class, 'create'])->name('create');
+    Route::post('/', [ComplianceFileController::class, 'store'])->name('store');
+});
 
 // ========== USER FILES ==================
-Route::get('/my-files', [UserFileController::class, 'index'])
-    ->middleware('auth')
-    ->name('user_files');
+Route::get('/my-files', [UserFileController::class, 'index'])->middleware('auth')->name('user_files');
 
 // ============= PDF DOCUMENTS ============
 Route::get('/pdfs', [PdfListController::class, 'index'])->name('documents.index');
@@ -89,17 +94,30 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ============= ADMIN/STUDENT DASHBOARDS ============
+// ============= ADMIN DASHBOARD ==========
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 });
 
+// ============ STAFF SECTION =============
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/staff-section', [StaffController::class, 'index'])->name('staff.section');
 });
 
-// ========== MISC TEST ==========
+// ========== MISC TEST ROUTE ============
 Route::get('/send-test-email', [TestMailController::class, 'send'])->name('send.test.email');
 
-// ========== AUTH ROUTES =========
+// ========== AUTH ROUTES ================
 require __DIR__.'/auth.php';
+
+// ========== AJAX API ROUTE =============
+Route::middleware('auth')->get('/api/latest-ongoing-cash-advance/{sdoId}', function ($sdoId) {
+    $cashAdvance = CashAdvance::where('sdo_id', $sdoId)
+        ->where('status', 'Ongoing')
+        ->latest()
+        ->first();
+
+    return $cashAdvance
+        ? response()->json($cashAdvance)
+        : response()->json(['message' => 'No ongoing cash advance found.'], 404);
+});

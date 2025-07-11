@@ -88,7 +88,7 @@
                     </div>
 
                     <div class="flex justify-between items-center mt-6">
-                        <a href="{{ route('liquidation.show', $liquidation->cash_advance_id) }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back </a>
+                        <a href="{{ url()->previous() }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back</a>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Update</button>
                     </div>
                 </form>

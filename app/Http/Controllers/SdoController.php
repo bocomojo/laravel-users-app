@@ -114,4 +114,12 @@ class SdoController extends Controller
 
         return redirect()->route('sdo.index')->with('success', 'SDO record deleted successfully.');
     }
+
+    // ✅ NEW: Manual liquidation form route (without cash advance)
+    public function createForLiquidation()
+    {
+        $sdos = Sdo::orderBy('name')->get();
+        return view('liquidation.create', compact('sdos'))->with('cashAdvance', null);
+    }
 }
+    

@@ -54,4 +54,9 @@ class CashAdvance extends Model
         return $this->belongsTo(Pap::class, 'pap');
     }
 
+    public function pap()
+    {
+        return $this->belongsTo(Pap::class, 'pap', 'id');
+    }
+
 }
