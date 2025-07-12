@@ -16,7 +16,7 @@ class Liquidation extends Model
     'sdo_name', // Add this
     'check_number',
     'granted_amount',
-    'liquidated_amount',
+    'for_liquidation_amount',
     'liquidation_type',
     'liq_date_received',
     'liq_number',

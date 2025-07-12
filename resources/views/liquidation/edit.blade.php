@@ -32,9 +32,9 @@
                         </div>
 
                         <div>
-                            <label for="liquidated_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidated Amount<span class="text-red-500">*</span></label>
-                            <input type="number" step="0.01" name="liquidated_amount" id="liquidated_amount"
-                                   value="{{ old('liquidated_amount', $liquidation->liquidated_amount) }}" required
+                            <label for="for_liquidation_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidated Amount<span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" name="for_liquidation_amount" id="for_liquidation_amount"
+                                   value="{{ old('for_liquidation_amount', $liquidation->for_liquidation_amount) }}" required
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
 

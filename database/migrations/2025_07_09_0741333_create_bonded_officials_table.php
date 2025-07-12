@@ -18,7 +18,7 @@ return new class extends Migration {
     $table->date('effectivity_date')->nullable();
     $table->date('expiration_date')->nullable();
     $table->text('remarks')->nullable();
-    $table->decimal('unliquidated_amount', 15, 2)->default(0);
+    $table->decimal('unfor_liquidation_amount', 15, 2)->default(0);
     $table->date('received_in_accounting')->nullable();
     $table->string('remarks_status')->nullable();
     $table->date('date_complied')->nullable();

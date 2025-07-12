@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('liquidations', function (Blueprint $table) {
-            $table->date('liq_date_received')->nullable()->after('liquidated_amount');
+            $table->date('liq_date_received')->nullable()->after('for_liquidation_amount');
             $table->string('liq_number')->nullable()->after('liq_date_received');
             $table->date('liq_date')->nullable()->after('liq_number');
         });

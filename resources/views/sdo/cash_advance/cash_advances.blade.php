@@ -43,7 +43,7 @@
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($cashAdvances as $advance)
                                 @php
-                                    $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
+                                    $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
                                     $remainingBalance = $advance->granted_amount - $totalLiquidated;
                                 @endphp
                                 <tr>
@@ -77,7 +77,7 @@
                                     {{-- Demand Letter Status --}}
 <td class="px-6 py-4">
     @php
-        $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
+        $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
         $remaining = $advance->granted_amount - $totalLiquidated;
         $now = \Carbon\Carbon::now();
 

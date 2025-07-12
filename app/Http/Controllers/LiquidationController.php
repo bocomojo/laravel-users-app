@@ -59,10 +59,37 @@ class LiquidationController extends Controller
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $liquidations = \App\Models\Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap'])->latest()->paginate(15);
-        $sdos = Sdo::orderBy('name')->get();
+        $query = \App\Models\Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap']);
+
+        // Filter by type
+        if ($request->filled('type')) {
+            $query->where('liquidation_type', $request->type);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('liq_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('liq_date', '<=', $request->date_to);
+        }
+
+        // Search by sdo_name, liq_number, or liq_date_received
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('sdo_name', 'like', "%{$search}%")
+                ->orWhere('liq_number', 'like', "%{$search}%")
+                ->orWhere('liq_date_received', 'like', "%{$search}%")
+                ->orWhere('check_number', 'like', "%{$search}%");
+            });
+        }
+
+        $liquidations = $query->latest()->paginate(15)->appends($request->query());
+
+        $sdos = \App\Models\Sdo::orderBy('name')->get();
 
         return view('liquidation.index', compact('liquidations', 'sdos'));
     }
@@ -101,7 +128,7 @@ class LiquidationController extends Controller
             'sdo_id' => 'required|exists:sdo,id',
             'check_number' => 'required|string|max:255',
             'granted_amount' => 'required|numeric|min:0',
-            'liquidated_amount' => 'required|numeric|min:0',
+            'for_liquidation_amount' => 'required|numeric|min:0',
             'liquidation_type' => 'required|string|max:255',
             'liq_date_received' => 'required|date',
             'liq_number' => 'required|string|max:255',
@@ -124,7 +151,7 @@ class LiquidationController extends Controller
 
         if ($validated['cash_advance_id']) {
             $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
-            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
             $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
             $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
@@ -147,7 +174,7 @@ class LiquidationController extends Controller
         $liquidation = Liquidation::findOrFail($id);
 
         $rules = [
-            'liquidated_amount' => 'required|numeric|min:0',
+            'for_liquidation_amount' => 'required|numeric|min:0',
             'liquidation_type' => 'required|string|max:255',
             'liq_date_received' => 'required|date',
             'liq_number' => 'required|string|max:255',
@@ -170,7 +197,7 @@ class LiquidationController extends Controller
 
         if ($liquidation->cash_advance_id) {
             $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
-            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
             $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
             $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
@@ -189,7 +216,7 @@ class LiquidationController extends Controller
 
         if ($cashAdvanceId) {
             $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
-            $totalLiquidated = $cashAdvance->liquidation->sum('liquidated_amount');
+            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
             $remaining = $cashAdvance->granted_amount - $totalLiquidated;
 
             $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';

@@ -26,7 +26,7 @@ class SendDemandLetters extends Command
             $payoutEnd = Carbon::parse($advance->payout_end);
             $deadline = $payoutEnd->copy()->addDays(30);
 
-            $totalLiquidated = $advance->liquidation->sum('liquidated_amount');
+            $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
             $remaining = $advance->granted_amount - $totalLiquidated;
 
             // ✅ Case 1: Fully liquidated before or at deadline — mark safe

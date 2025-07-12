@@ -15,9 +15,9 @@
             </a>
 
             <!-- Return Button -->
-            <a href="{{ route('liquidation.index') }}"
+            <a href="{{ url()->previous() }}"
             class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                ← Return to Cash Advances
+                ← Return to Recent Page
             </a>
         </div>
 
@@ -130,10 +130,17 @@
                     <span class="font-semibold">Starting Balance:</span>
                     ₱{{ number_format($cashAdvance->granted_amount, 2) }}
                 </p>
-                <p class="text-gray-700 dark:text-gray-300">
-                    <span class="font-semibold">Remaining Balance:</span>
-                    ₱{{ number_format($cashAdvance->granted_amount - $liquidations->sum('liquidated_amount'), 2) }}
-                </p>
+                @php
+    $liquidatedTotal = isset($liquidations)
+        ? $liquidations->sum('for_liquidation_amount')
+        : (isset($liquidation) ? $liquidation->for_liquidation_amount : 0);
+@endphp
+
+<p class="text-gray-700 dark:text-gray-300">
+    <span class="font-semibold">Remaining Balance:</span>
+    ₱{{ number_format($cashAdvance->granted_amount - $liquidatedTotal, 2) }}
+</p>
+
             </div>
         </div>
 
@@ -159,14 +166,12 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Grant Amount</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Transaction Type</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference (LR/OR)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Reviewed</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Date Received</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Number</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Date</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OR Number</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OR Date</th>
+                    
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                 </tr>
@@ -178,13 +183,19 @@
                     @foreach ($liquidations as $liquidation)
                         <tr>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->granted_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->liquidated_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                @if ($liquidation->liquidation_type === 'Refund')
+                                    {{ $liquidation->or_number ?? '—' }}
+                                @elseif ($liquidation->liquidation_type === 'Liquidation')
+                                    {{ $liquidation->liq_number ?? '—' }}
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_number ?? '—' }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->or_number ?? '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->or_date ? \Carbon\Carbon::parse($liquidation->or_date)->format('F d, Y') : '—' }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->for_liquidation_amount, 2) }}</td>
+                            
                             <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->created_at->format('F d, Y') }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
                                 <div class="flex flex-col items-start space-y-1">

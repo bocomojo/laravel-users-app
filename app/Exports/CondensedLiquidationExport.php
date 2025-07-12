@@ -21,7 +21,7 @@ class CondensedLiquidationExport implements FromCollection, WithHeadings
                 $liq->cashAdvance->sdo->name ?? '',
                 $liq->check_number,
                 $liq->granted_amount,
-                $liq->liquidated_amount,
+                $liq->for_liquidation_amount,
                 $liq->liquidation_type,
                 $liq->liq_date_received,
                 $liq->liq_number,

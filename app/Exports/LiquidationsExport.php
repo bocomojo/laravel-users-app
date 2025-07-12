@@ -83,7 +83,7 @@ class LiquidationsExport implements FromCollection, WithHeadings
                 $this->d($cash->payout_end),
                 $liq->liquidation_type,
                 $liq->granted_amount,
-                $liq->liquidated_amount,
+                $liq->for_liquidation_amount,
                 $this->d($liq->liq_date_received),
                 $liq->liq_number,
                 $this->d($liq->liq_date),

@@ -42,6 +42,8 @@ Route::match(['get', 'post'], '/pap/import', [PapController::class, 'import'])->
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 
 Route::get('/liquidation/condensed-export', [LiquidationController::class, 'condensedExport'])->name('liquidation.condensed.export');
+Route::get('/liquidation/cash-advance/{cash_advance_id}', [LiquidationController::class, 'showByCashAdvanceId'])->name('liquidation.show.cash');
+Route::get('/liquidation/check/{check_number}', [LiquidationController::class, 'showByCheckNumber'])->name('liquidation.byCheckNumber');
 
 // ============= LIQUIDATION ==============
 Route::resource('liquidation', LiquidationController::class)->only([

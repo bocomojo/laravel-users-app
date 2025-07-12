@@ -15,7 +15,7 @@ class BondedOfficial extends Model
         'effectivity_date',
         'expiration_date',
         'remarks',
-        'unliquidated_amount',
+        'unfor_liquidation_amount',
         'received_in_accounting',
         'remarks_status',
         'date_complied',

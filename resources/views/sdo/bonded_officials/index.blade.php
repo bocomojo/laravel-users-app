@@ -51,7 +51,7 @@
                                         @endphp
                                         {{ $daysLeft > 0 ? $daysLeft . ' days left' : 'Expired ' . abs($daysLeft) . ' days ago' }}
                                     </td>
-                                    <td class="px-4 py-2">₱{{ number_format($official->unliquidated_amount, 2) }}</td>
+                                    <td class="px-4 py-2">₱{{ number_format($official->unfor_liquidation_amount, 2) }}</td>
                                     <td class="px-4 py-2">{{ $official->email }}</td>
                                     <td class="px-4 py-2">{{ $official->corporate_email }}</td>
                                     <td class="px-4 py-2">{{ $official->received_in_accounting }}</td>

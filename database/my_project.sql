@@ -36,7 +36,7 @@ CREATE TABLE `bonded_officials` (
   `effectivity_date` date DEFAULT NULL,
   `expiration_date` date DEFAULT NULL,
   `remarks` text DEFAULT NULL,
-  `unliquidated_amount` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `unfor_liquidation_amount` decimal(15,2) NOT NULL DEFAULT 0.00,
   `received_in_accounting` date DEFAULT NULL,
   `remarks_status` varchar(255) DEFAULT NULL,
   `date_complied` date DEFAULT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE `liquidation` (
   `sdo_name` varchar(255) NOT NULL,
   `check_number` varchar(255) NOT NULL,
   `granted_amount` decimal(15,2) NOT NULL,
-  `liquidated_amount` decimal(15,2) NOT NULL,
+  `for_liquidation_amount` decimal(15,2) NOT NULL,
   `liquidation_type` varchar(255) NOT NULL,
   `liq_date_received` date NOT NULL,
   `liq_number` varchar(255) NOT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE `liquidation` (
 -- Dumping data for table `liquidation`
 --
 
-INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `liquidated_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `created_at`, `updated_at`) VALUES
+INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `created_at`, `updated_at`) VALUES
 (1, 2, 'Nicky Palero', '25-02-00002', 20000000.00, 200000.00, 'Liquidation', '2025-07-02', 'LIQ-01-00001', '2025-07-02', NULL, NULL, '2025-07-02 00:09:05', '2025-07-08 06:52:38'),
 (2, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 100000.00, 'Refund', '2025-07-07', '25-25-25252', '2025-07-07', '25-25-25252', '2025-07-07', '2025-07-07 04:26:24', '2025-07-07 04:26:24'),
 (3, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 10000000.00, 'Liquidation', '2025-07-07', '25-25-25252', '2025-07-07', NULL, NULL, '2025-07-07 04:27:04', '2025-07-08 19:09:20'),

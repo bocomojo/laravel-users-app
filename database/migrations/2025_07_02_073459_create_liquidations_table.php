@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('sdo_name');
             $table->string('check_number');
             $table->decimal('granted_amount', 15, 2);
-            $table->decimal('liquidated_amount', 15, 2);
+            $table->decimal('for_liquidation_amount', 15, 2);
 
             $table->string('liquidation_type');
             $table->date('liq_date_received');
