@@ -25,76 +25,100 @@
 
             <!-- Left container: Cash Advance Summary -->
             <div class="w-full lg:w-1/3" x-data="{ editDates: false }">
-                <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
-                            Cash Advance Details
-                            <button @click="editDates = true" class="text-sm text-blue-400 hover:underline" title="Edit Payout Dates">
-                                ✎ Edit
-                            </button>
-                        </h3>
-                        <div class="mb-4">
-                            <p class="text-sm text-gray-300">
-                                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
-                            </p>
-                        </div>
-                        <div class="mb-4">
-                            <p class="font-medium text-white">Particulars:</p>
-                            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
-                        </div>
-                        <div class="mb-4">
-                            <p class="text-sm">
-                                <span class="font-medium text-white">PAP:</span>
-                                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
-                            </p>
-                        </div>
-                        <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
-                            <tbody>
-                                <tr>
-                                    <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
-                                    <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
-                                    <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="font-medium text-white py-2 pr-4">DV Number</td>
-                                    <td class="py-2 pr-4">{{ $cashAdvance->dv_number ?? 'N/A' }}</td>
-                                    <td class="py-2">{{ $cashAdvance->dv_date ? \Carbon\Carbon::parse($cashAdvance->dv_date)->format('m/d/Y') : 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="font-medium text-white py-2 pr-4">ORS Number</td>
-                                    <td class="py-2 pr-4">{{ $cashAdvance->ors_number ?? 'N/A' }}</td>
-                                    <td class="py-2">{{ $cashAdvance->ors_date ? \Carbon\Carbon::parse($cashAdvance->ors_date)->format('m/d/Y') : 'N/A' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
+    <div>
+        <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
+            Cash Advance Details
+            <button @click="editDates = true" class="text-sm text-blue-400 hover:underline" title="Edit Payout Dates">
+                ✎ Edit
+            </button>
+        </h3>
 
-                        <!-- Dates Section -->
-                        <div class="space-y-2 text-sm text-white mt-4 border-t border-gray-600 pt-4">
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Start of Payout:</span>
-                                <span>
-                                    {{ $cashAdvance->payout_start 
-                                        ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') 
-                                        : '-' }}
-                                </span>
-                            </div>
+        <!-- Name -->
+        <div class="mb-4">
+            <p class="text-medium text-gray-300">
+                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
+            </p>
+        <!-- </div> -->
 
-                            <div class="flex justify-between">
-                                <span class="font-semibold">End of Payout:</span>
-                                <span>
-                                    {{ $cashAdvance->payout_end 
-                                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') 
-                                        : '-' }}
-                                </span>
-                            </div>
+        <!-- Particulars -->
+        <!-- <div class="mb-4"> -->
+            <p class="font-medium text-white">Particulars:</p>
+            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
+        </div>
 
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Granted Amount:</span>
-                                <span>₱{{ number_format($cashAdvance->granted_amount, 2) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- PAP + Payout Dates -->
+        <div class="mb-4 space-y-1 text-sm text-white">
+            <p>
+                <span class="font-medium text-white">PAP:</span>
+                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
+            </p>
+            <p>
+                <span class="font-medium text-white">Start of Payout:</span>
+                <span class="text-gray-300">
+                    {{ $cashAdvance->payout_start 
+                        ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') 
+                        : '—' }}
+                </span>
+            </p>
+            <p>
+                <span class="font-medium text-white">End of Payout:</span>
+                <span class="text-gray-300">
+                    {{ $cashAdvance->payout_end 
+                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') 
+                        : '—' }}
+                </span>
+            </p>
+            <p>
+                <span class="font-medium text-white">Due Date:</span>
+                <span class="text-gray-300">
+                    {{ $cashAdvance->payout_end 
+                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->addDays(31)->format('F j, Y') 
+                        : '—' }}
+                </span>
+            </p>
+        </div>
+
+            <!-- Table: Check, DV, ORS -->
+            <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
+                <tbody>
+                    <tr>
+                        <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
+                        <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
+                        <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Granted Amount -->
+            <div class="flex justify-between text-sm text-white border-t border-gray-600 pt-4">
+                <span class="font-semibold">Granted Amount:</span>
+                <span>₱{{ number_format($cashAdvance->granted_amount, 2) }}</span>
+            </div>
+            <!-- Total Liq. received -->
+            <div class="flex justify-between text-sm text-white pt-4">
+                <span class="font-semibold">Total Liquidation Received:</span>
+                <span>
+                    ₱{{ number_format($cashAdvance->liquidation->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount'), 2) }}
+                </span>
+            </div>
+            <!-- Total For Compliance -->
+            <div class="flex justify-between text-sm text-white pt-4">
+                <span class="font-semibold">Total Unsubmitted & For Compliance:</span>
+                <span>
+                    ₱{{ number_format($cashAdvance->liquidation->sum('for_compliance_amount'), 2) }}
+                </span>
+            </div>
+            <!-- Total Refund -->
+            <div class="flex justify-between text-sm text-white pt-4">
+                <span class="font-semibold">Total Refund:</span>
+                <span>
+                    ₱{{ number_format($cashAdvance->liquidation->where('liquidation_type', 'Refund')->sum('for_liquidation_amount'), 2) }}
+                </span>
+            </div>
+        </div>
+    </div>
+
 
                 <!-- Edit Modal -->
                 <div x-show="editDates" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -131,16 +155,15 @@
                     ₱{{ number_format($cashAdvance->granted_amount, 2) }}
                 </p>
                 @php
-    $liquidatedTotal = isset($liquidations)
-        ? $liquidations->sum('for_liquidation_amount')
-        : (isset($liquidation) ? $liquidation->for_liquidation_amount : 0);
-@endphp
+                    $liquidatedTotal = isset($liquidations)
+                        ? $liquidations->sum('for_liquidation_amount')
+                        : (isset($liquidation) ? $liquidation->for_liquidation_amount : 0);
+                @endphp
 
-<p class="text-gray-700 dark:text-gray-300">
-    <span class="font-semibold">Remaining Balance:</span>
-    ₱{{ number_format($cashAdvance->granted_amount - $liquidatedTotal, 2) }}
-</p>
-
+                <p class="text-gray-700 dark:text-gray-300">
+                    <span class="font-semibold">Remaining Balance:</span>
+                    ₱{{ number_format($cashAdvance->granted_amount - $liquidatedTotal, 2) }}
+                </p>
             </div>
         </div>
 
@@ -163,16 +186,20 @@
             </div>
         </form>
 
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
+        <div class="overflow-y-auto max-h-[500px]">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 sticky top-0 z-10">
+            <thead class="bg-gray-50 dark:bg-gray-700 ">
                 <tr>
+                    <!-- <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider bg-gray-50 dark:bg-gray-700"> -->
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Transaction Type</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference (LR/OR)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received/Paid</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Reviewed</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount</th>
-                    
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount Received</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount for Compliance</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Audited Amount</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Auditor</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">JEV No.</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -195,8 +222,21 @@
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->for_liquidation_amount, 2) }}</td>
-                            
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->created_at->format('F d, Y') }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">₱{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">₱{{ number_format($liquidation->pre_audited_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->pre_auditor }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                @if (empty($liquidation->jev_no))
+                                    <input
+                                        type="text"
+                                        placeholder="Enter JEV"
+                                        onchange="confirmInlineUpdate(this, '{{ $liquidation->id }}')"
+                                        class="w-24 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring focus:ring-blue-300 dark:focus:ring-blue-700"
+                                    />
+                                @else
+                                    {{ $liquidation->jev_no }}
+                                @endif
+                            </td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
                                 <div class="flex flex-col items-start space-y-1">
                                     <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
@@ -229,4 +269,34 @@
 
         </div>
     </div>
+    <script>
+function confirmInlineUpdate(input, id) {
+    const value = input.value;
+
+    if (confirm('Are you sure you want to update this amount?')) {
+        fetch(`/liquidation/update-inline/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                field: 'for_compliance_amount',
+                value: value
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert('Update successful!');
+        })
+        .catch(err => {
+            alert('Update failed!');
+            console.error(err);
+        });
+    } else {
+        input.value = input.defaultValue;
+    }
+}
+</script>
+
 </x-app-layout>

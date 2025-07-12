@@ -16,7 +16,8 @@ use App\Http\Controllers\{
     StaffController,
     TestMailController,
     UserController,
-    UserFileController
+    UserFileController,
+    PreAuditorController
 };
 use Spatie\Permission\Middleware\{PermissionMiddleware, RoleOrPermissionMiddleware, RoleMiddleware};
 use App\Models\CashAdvance;
@@ -44,6 +45,10 @@ Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->
 Route::get('/liquidation/condensed-export', [LiquidationController::class, 'condensedExport'])->name('liquidation.condensed.export');
 Route::get('/liquidation/cash-advance/{cash_advance_id}', [LiquidationController::class, 'showByCashAdvanceId'])->name('liquidation.show.cash');
 Route::get('/liquidation/check/{check_number}', [LiquidationController::class, 'showByCheckNumber'])->name('liquidation.byCheckNumber');
+Route::post('/liquidation/update-inline/{id}', [LiquidationController::class, 'inlineUpdate']);
+Route::resource('pre-auditors', PreAuditorController::class);
+Route::post('/pre-auditors/import', [PreAuditorController::class, 'import'])->name('pre-auditors.import');
+
 
 // ============= LIQUIDATION ==============
 Route::resource('liquidation', LiquidationController::class)->only([

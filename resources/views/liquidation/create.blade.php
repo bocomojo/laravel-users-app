@@ -62,21 +62,24 @@
                         </div>
 
                         <div>
-                            <label for="liq_date_received" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date Received</label>
+                            <label for="liq_date_received" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidation Date Received</label>
                             <input type="date" name="liq_date_received" id="liq_date_received" value="{{ old('liq_date_received') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                        </div>
-
-                        <div>
-                            <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Number</label>
-                            <input type="text" name="liq_number" id="liq_number" value="{{ old('liq_number') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                        </div>
-
-                        <div>
-                            <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date</label>
-                            <input type="date" name="liq_date" id="liq_date" value="{{ old('liq_date') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
                     </div>
 
+                    <div id="liquidation-fields">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">LR Number</label>
+                                <input type="text" name="liq_number" id="liq_number" value="{{ old('liq_number') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            </div>
+                            <div>
+                                <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">LR Date</label>
+                                <input type="date" name="liq_date" id="liq_date" value="{{ old('liq_date') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            </div>
+                        </div>
+                    </div>
+                                        
                     <div id="refund-fields" style="display: none;">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
@@ -103,57 +106,29 @@
         document.addEventListener('DOMContentLoaded', function () {
             const liquidationType = document.getElementById('liquidation_type');
             const refundFields = document.getElementById('refund-fields');
+            const liquidationFields = document.getElementById('liquidation-fields');
             const orNumber = document.getElementById('or_number');
             const orDate = document.getElementById('or_date');
-            const sdoSelect = document.getElementById('sdo_id');
-            const grantedField = document.getElementById('granted_amount');
-            const checkField = document.getElementById('check_number');
-            const cashAdvanceField = document.getElementById('cash_advance_id');
-            const submitBtn = document.getElementById('submit_btn');
-            const grantedError = document.getElementById('granted_amount_error');
-            const checkError = document.getElementById('check_number_error');
+            const liqNumber = document.getElementById('liq_number');
+            const liqDate = document.getElementById('liq_date');
 
-            function toggleRefundFields() {
+            function toggleLiquidationInputs() {
                 const isRefund = liquidationType.value === 'Refund';
+
+                // Toggle fields
                 refundFields.style.display = isRefund ? 'block' : 'none';
+                liquidationFields.style.display = isRefund ? 'none' : 'block';
+
+                // Required attributes
                 orNumber.required = isRefund;
                 orDate.required = isRefund;
+                liqNumber.required = !isRefund;
+                liqDate.required = !isRefund;
             }
 
-            async function fetchLatestAdvance(sdoId) {
-                if (!sdoId) return;
-
-                const url = `/api/latest-ongoing-cash-advance/${sdoId}`;
-                try {
-                    const res = await fetch(url);
-                    const data = await res.json();
-
-                    if (data && data.id) {
-                        grantedField.value = data.granted_amount;
-                        checkField.value = data.check_number;
-                        cashAdvanceField.value = data.id;
-                        grantedError.classList.add('hidden');
-                        checkError.classList.add('hidden');
-                        submitBtn.disabled = false;
-                    } else {
-                        grantedField.value = '';
-                        checkField.value = '';
-                        cashAdvanceField.value = '';
-                        grantedError.classList.remove('hidden');
-                        checkError.classList.remove('hidden');
-                        submitBtn.disabled = true;
-                    }
-                } catch (e) {
-                    console.error('Fetch error', e);
-                }
-            }
-
-            sdoSelect.addEventListener('change', (e) => {
-                fetchLatestAdvance(e.target.value);
-            });
-
-            liquidationType.addEventListener('change', toggleRefundFields);
-            toggleRefundFields();
+            liquidationType.addEventListener('change', toggleLiquidationInputs);
+            toggleLiquidationInputs(); // Call on load
         });
     </script>
+
 </x-app-layout>

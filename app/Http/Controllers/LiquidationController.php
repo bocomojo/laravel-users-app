@@ -109,6 +109,19 @@ class LiquidationController extends Controller
         return view('liquidation.show', compact('cashAdvance', 'liquidations', 'sortOrder', 'filterType'));
     }
 
+    public function inlineUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'value' => 'required|string|max:255',
+        ]);
+
+        $liq = Liquidation::findOrFail($id);
+        $liq->jev_no = $request->value;
+        $liq->save();
+
+        return response()->json(['message' => 'JEV No. updated successfully']);
+    }
+
     public function create(Request $request)
     {
         $cashAdvance = null;
@@ -170,43 +183,49 @@ class LiquidationController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $liquidation = Liquidation::findOrFail($id);
+{
+    $liquidation = Liquidation::findOrFail($id);
 
-        $rules = [
-            'for_liquidation_amount' => 'required|numeric|min:0',
-            'liquidation_type' => 'required|string|max:255',
-            'liq_date_received' => 'required|date',
-            'liq_number' => 'required|string|max:255',
-            'liq_date' => 'required|date',
-        ];
+    $rules = [
+        'for_liquidation_amount' => 'required|numeric|min:0',
+        'for_compliance_amount' => 'required|numeric|min:0',
+        'liquidation_type' => 'required|string|max:255',
+        'liq_date_received' => 'required|date',
+        'liq_number' => 'required|string|max:255',
+        'liq_date' => 'required|date',
+    ];
 
-        if ($request->input('liquidation_type') === 'Refund') {
-            $rules['or_number'] = 'required|string|max:255';
-            $rules['or_date'] = 'required|date';
-        }
-
-        $validated = $request->validate($rules);
-
-        if ($validated['liquidation_type'] !== 'Refund') {
-            $validated['or_number'] = null;
-            $validated['or_date'] = null;
-        }
-
-        $liquidation->update($validated);
-
-        if ($liquidation->cash_advance_id) {
-            $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
-            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
-            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
-
-            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
-            $cashAdvance->save();
-        }
-
-        return redirect()->route('liquidation.show', $liquidation->cash_advance_id)
-                         ->with('success', 'Liquidation updated successfully.');
+    if ($request->input('liquidation_type') === 'Refund') {
+        $rules['or_number'] = 'required|string|max:255';
+        $rules['or_date'] = 'required|date';
     }
+
+    $validated = $request->validate($rules);
+
+    // If not refund, OR fields are null
+    if ($validated['liquidation_type'] !== 'Refund') {
+        $validated['or_number'] = null;
+        $validated['or_date'] = null;
+    }
+
+    // Compute pre-audited amount
+    $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] - $validated['for_compliance_amount'];
+
+    $liquidation->update($validated);
+
+    // Update CashAdvance status
+    if ($liquidation->cash_advance_id) {
+        $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
+        $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
+        $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+
+        $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+        $cashAdvance->save();
+    }
+
+    return redirect()->route('liquidation.show', $liquidation->cash_advance_id)
+                     ->with('success', 'Liquidation updated successfully.');
+}
 
     public function destroy($id)
     {

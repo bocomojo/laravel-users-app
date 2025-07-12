@@ -137,6 +137,7 @@
                         <div x-show="open" x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                             <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Users') }}</a>
                             <a href="{{ route('pap.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('PAP') }}</a>
+                            <a href="{{ route('pre-auditors.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Pre-Auditors') }}</a>
                         </div>
                     </div>
 

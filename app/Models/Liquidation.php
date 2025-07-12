@@ -13,7 +13,7 @@ class Liquidation extends Model
 
     protected $fillable = [
     'cash_advance_id',
-    'sdo_name', // Add this
+    'sdo_name',
     'check_number',
     'granted_amount',
     'for_liquidation_amount',
@@ -23,6 +23,9 @@ class Liquidation extends Model
     'liq_date',
     'or_number',
     'or_date',
+    'for_compliance_amount',
+    'pre_audited_amount',
+    'pre_auditor_id',
 ];
 public function cashAdvance()
 {

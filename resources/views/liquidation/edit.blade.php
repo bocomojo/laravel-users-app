@@ -53,19 +53,23 @@
                                    value="{{ old('liq_date_received', $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('Y-m-d') : '') }}"
                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                         </div>
+                    </div>
 
-                        <div>
-                            <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Number<span class="text-red-500">*</span></label>
-                            <input type="text" name="liq_number" id="liq_number"
-                                   value="{{ old('liq_number', $liquidation->liq_number) }}"
-                                   class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                        </div>
+                    <div id="liq-fields">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liqidation Number<span class="text-red-500">*</span></label>
+                                <input type="text" name="liq_number" id="liq_number"
+                                    value="{{ old('liq_number', $liquidation->liq_number) }}"
+                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            </div>
 
-                        <div>
-                            <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liq. Date<span class="text-red-500">*</span></label>
-                            <input type="date" name="liq_date" id="liq_date"
-                                   value="{{ old('liq_date', $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('Y-m-d') : '') }}"
-                                   class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            <div>
+                                <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liquidation Date<span class="text-red-500">*</span></label>
+                                <input type="date" name="liq_date" id="liq_date"
+                                    value="{{ old('liq_date', $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('Y-m-d') : '') }}"
+                                    class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            </div>
                         </div>
                     </div>
 
@@ -86,7 +90,22 @@
                             </div>
                         </div>
                     </div>
-
+                    
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="for_compliance_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount For Compliance<span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" name="for_compliance_amount" id="for_compliance_amount"
+                                   value="{{ old('for_compliance_amount', $liquidation->for_compliance_amount) }}" required
+                                   class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                        </div>
+                        <div>
+                            <label for="pre_auditor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pre-Auditor<span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="pre_auditor" readonly
+                                value="{{ $liquidation->preAuditor->name ?? 'N/A' }}"
+                                class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
+                        </div>
+                    </div>
                     <div class="flex justify-between items-center mt-6">
                         <a href="{{ url()->previous() }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back</a>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Update</button>
@@ -100,18 +119,30 @@
         document.addEventListener('DOMContentLoaded', function () {
             const liquidationType = document.getElementById('liquidation_type');
             const refundFields = document.getElementById('refund-fields');
+            const liqFields = document.getElementById('liq-fields');
+
             const orNumber = document.getElementById('or_number');
             const orDate = document.getElementById('or_date');
 
-            function toggleRefundFields() {
+            const liqNumber = document.getElementById('liq_number');
+            const liqDate = document.getElementById('liq_date');
+
+            function toggleFields() {
                 const isRefund = liquidationType.value === 'Refund';
+
                 refundFields.style.display = isRefund ? 'block' : 'none';
+                liqFields.style.display = isRefund ? 'none' : 'block';
+
                 orNumber.required = isRefund;
                 orDate.required = isRefund;
+
+                liqNumber.required = !isRefund;
+                liqDate.required = !isRefund;
             }
 
-            liquidationType.addEventListener('change', toggleRefundFields);
-            toggleRefundFields();
+            liquidationType.addEventListener('change', toggleFields);
+            toggleFields();
         });
     </script>
+
 </x-app-layout>
