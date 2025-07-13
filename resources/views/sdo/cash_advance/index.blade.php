@@ -9,23 +9,10 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <!-- <h3 class="text-lg font-medium mb-4">SDO Records List</h3> -->
 
-                    <!-- Add and Search Controls Row -->
-                    <div class="mb-6 flex flex-row items-center justify-between flex-wrap gap-4">
-
-                        <!-- Add New Record Button -->
-                        <!-- <a href="{{ route('sdo.create') }}"
-                            class="inline-flex items-center px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-md shadow hover:bg-green-700 transition">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
-                                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            Add New SDO
-                        </a> -->
-
-                        <!-- Search Form -->
-                        <form method="GET" action="{{ route('sdo.index') }}" class="flex items-center gap-2">
+                    <!-- Search -->
+                    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+                        <form method="GET" action="{{ route('sdo.cash.advance') }}" class="flex items-center gap-2 ml-auto">
                             <input
                                 type="text"
                                 name="search"
@@ -56,11 +43,14 @@
 
                             <tbody class="bg-white dark:bg-gray-800">
                                 @foreach ($sdoRecords as $record)
+                                    @php
+                                        $hasOngoing = $record->cashAdvance && $record->cashAdvance->status === 'Ongoing';
+                                    @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-b dark:border-gray-600">
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">
-                                            @if ($record->cashAdvance && $record->cashAdvance->status === 'Ongoing')
+                                            @if ($hasOngoing)
                                                 <span class="inline-block px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 dark:bg-yellow-700 dark:text-yellow-100 rounded-full">
                                                     Ongoing
                                                 </span>
@@ -71,16 +61,13 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
-
-                                            <!-- Add Cash Button with Conditional Modal -->
                                             <div x-data="{ showEligibilityModal: false }">
-                                                @if ($record->cashAdvance && $record->cashAdvance->status === 'Ongoing')
+                                                @if ($hasOngoing)
                                                     <button @click="showEligibilityModal = true"
                                                         class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
                                                         Add Cash
                                                     </button>
 
-                                                    <!-- Eligibility Modal -->
                                                     <div x-show="showEligibilityModal" style="display: none"
                                                         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                                                         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -104,19 +91,11 @@
                                                 @endif
                                             </div>
 
-                                            <!-- Edit Button -->
-                                            <!-- <a href="{{ route('sdo.edit', $record->id) }}"
-                                                class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">
-                                                Edit
-                                            </a> -->
-
-                                            <!-- Delete Button triggers modal -->
                                             <button @click="openModalId = {{ $record->id }}"
                                                 class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition">
                                                 Delete
                                             </button>
 
-                                            <!-- Modal Confirmation -->
                                             <div x-show="openModalId === {{ $record->id }}" style="display: none"
                                                 class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                                                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">

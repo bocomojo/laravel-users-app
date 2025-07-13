@@ -37,14 +37,12 @@
 
                         <div>
                             <label for="check_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Check Number</label>
-                            <input type="text" name="check_number" id="check_number" readonly value="{{ old('check_number') }}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
-                            <p id="check_number_error" class="text-xs text-red-500 hidden">No ongoing cash advance.</p>
+                            <input type="text" name="check_number" id="check_number" readonly value="{{ old('check_number') }}" placeholder="" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
                             <label for="granted_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Granted Amount</label>
-                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly value="{{ old('granted_amount') }}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
-                            <p id="granted_amount_error" class="text-xs text-red-500 hidden">No ongoing cash advance.</p>
+                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly value="{{ old('granted_amount') }}" placeholder="" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
@@ -79,7 +77,7 @@
                             </div>
                         </div>
                     </div>
-                                        
+
                     <div id="refund-fields" style="display: none;">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
@@ -90,6 +88,26 @@
                                 <label for="or_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">OR Date</label>
                                 <input type="date" name="or_date" id="or_date" value="{{ old('or_date') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="pre_auditors" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-Auditor(s)</label>
+
+                        <button type="button" id="toggleAuditors"
+                            class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md w-full text-left hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                            Select Pre-Auditors
+                        </button>
+
+                        <div id="auditorList" class="mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 p-3 hidden max-h-60 overflow-y-auto">
+                            @foreach ($preAuditors as $auditor)
+                                <label class="flex items-center mb-1 text-sm text-gray-800 dark:text-gray-200">
+                                    <input type="checkbox" name="pre_auditors[]" value="{{ $auditor->id }}"
+                                        class="mr-2 rounded border-gray-400 dark:border-gray-600"
+                                        {{ collect(old('pre_auditors'))->contains($auditor->id) ? 'checked' : '' }}>
+                                    {{ $auditor->name }}
+                                </label>
+                            @endforeach
                         </div>
                     </div>
 
@@ -114,12 +132,9 @@
 
             function toggleLiquidationInputs() {
                 const isRefund = liquidationType.value === 'Refund';
-
-                // Toggle fields
                 refundFields.style.display = isRefund ? 'block' : 'none';
                 liquidationFields.style.display = isRefund ? 'none' : 'block';
 
-                // Required attributes
                 orNumber.required = isRefund;
                 orDate.required = isRefund;
                 liqNumber.required = !isRefund;
@@ -127,8 +142,72 @@
             }
 
             liquidationType.addEventListener('change', toggleLiquidationInputs);
-            toggleLiquidationInputs(); // Call on load
+            toggleLiquidationInputs();
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('toggleAuditors');
+            const auditorList = document.getElementById('auditorList');
+
+            toggleBtn.addEventListener('click', function () {
+                auditorList.classList.toggle('hidden');
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sdoSelect = document.getElementById('sdo_id');
+            const cashAdvanceId = document.getElementById('cash_advance_id');
+            const checkNumberInput = document.getElementById('check_number');
+            const grantedAmountInput = document.getElementById('granted_amount');
+
+            sdoSelect.addEventListener('change', function () {
+                const selectedSdoId = this.value;
+
+                if (!selectedSdoId) {
+                    resetInputs();
+                    return;
+                }
+
+                fetch(`/liquidation/sdo/${selectedSdoId}/cash-advance`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'single') {
+                            cashAdvanceId.value = data.data.id;
+                            checkNumberInput.value = data.data.check_number;
+                            grantedAmountInput.value = data.data.granted_amount;
+
+                            checkNumberInput.placeholder = '';
+                            grantedAmountInput.placeholder = '';
+                        } else {
+                            resetInputs();
+
+                            const message = data.status === 'none'
+                                ? "No ongoing cash advance"
+                                : "Multiple ongoing cash advances";
+
+                            checkNumberInput.placeholder = message;
+                            grantedAmountInput.placeholder = message;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching cash advance data:', error);
+                        resetInputs();
+                        checkNumberInput.placeholder = 'Error fetching data';
+                        grantedAmountInput.placeholder = 'Error fetching data';
+                    });
+            });
+
+            function resetInputs() {
+                cashAdvanceId.value = '';
+                checkNumberInput.value = '';
+                grantedAmountInput.value = '';
+                checkNumberInput.placeholder = '';
+                grantedAmountInput.placeholder = '';
+            }
+        });
+    </script>
 </x-app-layout>

@@ -60,7 +60,7 @@
                             <div class="mt-auto flex gap-2">
                                 <button type="submit"
                                         class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md">
-                                    Apply
+                                    Apply Filter
                                 </button>
                                 <a href="{{ route('liquidation.index') }}"
                                    class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-sm px-4 py-2 rounded-md">

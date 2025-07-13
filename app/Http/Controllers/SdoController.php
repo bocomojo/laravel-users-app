@@ -33,6 +33,35 @@ class SdoController extends Controller
         return view('sdo.index', compact('sdoRecords', 'search', 'status', 'sort', 'direction'));
     }
 
+    public function sdoCashAdvance(Request $request)
+{
+    $search    = $request->input('search');
+    $status    = $request->input('employment_status');
+    $sort      = $request->input('sort', 'name');
+    $direction = $request->input('direction', 'asc');
+
+    $sdoRecords = Sdo::with('cashAdvance')
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        })
+        ->when($status, function ($query) use ($status) {
+            return $query->where('employment_status', $status);
+        })
+        ->where(function ($q) {
+            $q->whereHas('cashAdvance', function ($sub) {
+                $sub->where('status', 'Ongoing');
+            })->orWhereDoesntHave('cashAdvance');
+        })
+        ->orderBy($sort, $direction)
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('sdo.cash_advance.index', compact('sdoRecords', 'search', 'status', 'sort', 'direction'));
+}
+
     public function create()
     {
         return view('sdo.create');

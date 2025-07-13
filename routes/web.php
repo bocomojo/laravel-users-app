@@ -48,6 +48,9 @@ Route::get('/liquidation/check/{check_number}', [LiquidationController::class, '
 Route::post('/liquidation/update-inline/{id}', [LiquidationController::class, 'inlineUpdate']);
 Route::resource('pre-auditors', PreAuditorController::class);
 Route::post('/pre-auditors/import', [PreAuditorController::class, 'import'])->name('pre-auditors.import');
+Route::get('/sdo/cash_advance/index', [SdoController::class, 'sdoCashAdvance'])->name('sdo.cash.advance');
+Route::get('/liquidation/sdo/{sdoId}/cash-advance', [LiquidationController::class, 'getOngoingCashAdvance']);
+
 
 
 // ============= LIQUIDATION ==============

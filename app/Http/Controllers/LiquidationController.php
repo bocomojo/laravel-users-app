@@ -126,12 +126,13 @@ class LiquidationController extends Controller
     {
         $cashAdvance = null;
         $sdoList = Sdo::orderBy('name')->get();
+        $preAuditors = \App\Models\PreAuditor::orderBy('name')->get(); // Fetch pre-auditors
 
         if ($request->has('cash_advance_id')) {
             $cashAdvance = CashAdvance::with('sdo')->findOrFail($request->get('cash_advance_id'));
         }
 
-        return view('liquidation.create', compact('cashAdvance', 'sdoList'));
+        return view('liquidation.create', compact('cashAdvance', 'sdoList', 'preAuditors'));
     }
 
     public function store(Request $request)
@@ -173,6 +174,32 @@ class LiquidationController extends Controller
 
         return redirect()->route('liquidation.index')->with('success', 'Liquidation added successfully.');
     }
+
+    public function getOngoingCashAdvance($sdoId)
+{
+    $cashAdvances = CashAdvance::where('sdo_id', $sdoId)
+        ->where('status', 'Ongoing')
+        ->get();
+
+    if ($cashAdvances->isEmpty()) {
+        return response()->json(['status' => 'none']);
+    }
+
+    if ($cashAdvances->count() > 1) {
+        return response()->json(['status' => 'multiple']);
+    }
+
+    $cashAdvance = $cashAdvances->first();
+
+    return response()->json([
+        'status' => 'single',
+        'data' => [
+            'id' => $cashAdvance->id,
+            'check_number' => $cashAdvance->check_number,
+            'granted_amount' => $cashAdvance->granted_amount,
+        ]
+    ]);
+}
 
     public function edit($id)
     {
