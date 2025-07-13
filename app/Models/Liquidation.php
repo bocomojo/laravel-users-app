@@ -25,11 +25,17 @@ class Liquidation extends Model
     'or_date',
     'for_compliance_amount',
     'pre_audited_amount',
-    'pre_auditor_id',
+    'pre_auditor',
 ];
+
 public function cashAdvance()
 {
     return $this->belongsTo(\App\Models\CashAdvance::class, 'cash_advance_id');
+}
+
+public function preAuditors()
+{
+    return $this->belongsToMany(PreAuditor::class, 'pre_auditor_liquidation', 'liquidation_id', 'pre_auditor_id')->withTimestamps();
 }
 
 

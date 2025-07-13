@@ -30,8 +30,7 @@
                             <select name="sdo_id" id="sdo_id" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
                                 <option value="">-- Select SDO --</option>
                                 @foreach ($sdoList as $sdo)
-                                    <option value="{{ $sdo->id }}" 
-                                        {{ old('sdo_id', $cashAdvance?->sdo_id) == $sdo->id ? 'selected' : '' }}>
+                                    <option value="{{ $sdo->id }}" {{ old('sdo_id', $cashAdvance?->sdo_id) == $sdo->id ? 'selected' : '' }}>
                                         {{ $sdo->name }}
                                     </option>
                                 @endforeach
@@ -40,15 +39,15 @@
 
                         <div>
                             <label for="check_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Check Number</label>
-                            <input type="text" name="check_number" id="check_number" readonly 
-                                value="{{ old('check_number', $cashAdvance?->check_number) }}" 
+                            <input type="text" name="check_number" id="check_number" readonly
+                                value="{{ old('check_number', $cashAdvance?->check_number) }}"
                                 class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
                             <label for="granted_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Granted Amount</label>
-                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly 
-                                value="{{ old('granted_amount', $cashAdvance?->granted_amount) }}" 
+                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly
+                                value="{{ old('granted_amount', $cashAdvance?->granted_amount) }}"
                                 class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
@@ -148,8 +147,6 @@
             liquidationType.addEventListener('change', toggleLiquidationInputs);
             toggleLiquidationInputs();
         });
-
-        document.getElementById('sdo_id').dispatchEvent(new Event('change'));
     </script>
 
     <script>
@@ -214,6 +211,8 @@
                 checkNumberInput.placeholder = '';
                 grantedAmountInput.placeholder = '';
             }
+
+            document.getElementById('sdo_id').dispatchEvent(new Event('change'));
         });
     </script>
 </x-app-layout>

@@ -160,9 +160,13 @@
                         : (isset($liquidation) ? $liquidation->for_liquidation_amount : 0);
                 @endphp
 
+                @php
+                    $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
+                @endphp
+
                 <p class="text-gray-700 dark:text-gray-300">
                     <span class="font-semibold">Remaining Balance:</span>
-                    ₱{{ number_format($cashAdvance->granted_amount - $liquidatedTotal, 2) }}
+                    ₱{{ number_format($cashAdvance->granted_amount - $totalPreAudited, 2) }}
                 </p>
             </div>
         </div>

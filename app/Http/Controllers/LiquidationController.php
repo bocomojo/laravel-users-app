@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Sdo;
 use App\Models\CashAdvance;
 use App\Models\Liquidation;
+use App\Models\PreAuditor;
 use App\Exports\LiquidationsExport;
 use App\Exports\CondensedLiquidationExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -14,7 +15,7 @@ class LiquidationController extends Controller
 {
     public function condensedExport(Request $request)
     {
-        $query = \App\Models\Liquidation::query();
+        $query = Liquidation::query();
 
         if ($request->filled('type')) {
             $query->where('liquidation_type', $request->type);
@@ -28,18 +29,16 @@ class LiquidationController extends Controller
             $query->whereDate('liq_date', '<=', $request->date_to);
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('liq_date_recieved', '>=', $request->received_date_from);
+        if ($request->filled('received_date_from')) {
+            $query->whereDate('liq_date_received', '>=', $request->received_date_from);
         }
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('liq_date_recieved', '<=', $request->received_date_to);
+        if ($request->filled('received_date_to')) {
+            $query->whereDate('liq_date_received', '<=', $request->received_date_to);
         }
 
         if ($request->filled('sdo_name')) {
-            $query->whereHas('cashAdvance.sdo', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->sdo_name . '%');
-            });
+            $query->where('sdo_name', 'like', '%' . $request->sdo_name . '%');
         }
 
         if ($request->filled('number')) {
@@ -61,7 +60,7 @@ class LiquidationController extends Controller
 
     public function index(Request $request)
     {
-        $query = \App\Models\Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap']);
+        $query = Liquidation::with(['cashAdvance', 'cashAdvance.sdo', 'cashAdvance.pap']);
 
         if ($request->filled('type')) {
             $query->where('liquidation_type', $request->type);
@@ -85,7 +84,7 @@ class LiquidationController extends Controller
         }
 
         $liquidations = $query->latest()->paginate(15)->appends($request->query());
-        $sdos = \App\Models\Sdo::orderBy('name')->get();
+        $sdos = Sdo::orderBy('name')->get();
 
         return view('liquidation.index', compact('liquidations', 'sdos'));
     }
@@ -121,7 +120,7 @@ class LiquidationController extends Controller
     public function create(Request $request)
     {
         $cashAdvance = null;
-        $preAuditors = \App\Models\PreAuditor::orderBy('name')->get();
+        $preAuditors = PreAuditor::orderBy('name')->get();
 
         if ($request->has('cash_advance_id')) {
             $cashAdvance = CashAdvance::with('sdo')->findOrFail($request->get('cash_advance_id'));
@@ -159,14 +158,28 @@ class LiquidationController extends Controller
             $validated['or_date'] = null;
         }
 
-        Liquidation::create($validated);
+        $sdo = Sdo::findOrFail($validated['sdo_id']);
+        $validated['sdo_name'] = $sdo->name;
+        $validated['pre_audited_amount'] = $validated['for_liquidation_amount'];
+
+        if ($request->has('pre_auditors')) {
+            $names = PreAuditor::whereIn('id', $request->pre_auditors)->pluck('name')->toArray();
+            $validated['pre_auditor'] = implode(', ', $names);
+        } else {
+            $validated['pre_auditor'] = null;
+        }
+
+        $liquidation = Liquidation::create($validated);
+
+        if ($request->has('pre_auditors')) {
+            $liquidation->preAuditors()->sync($request->pre_auditors);
+        }
 
         if ($validated['cash_advance_id']) {
             $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
-            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
-            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+            $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
 
-            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
             $cashAdvance->save();
         }
 
@@ -234,14 +247,21 @@ class LiquidationController extends Controller
 
         $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] - $validated['for_compliance_amount'];
 
+        if ($request->has('pre_auditors')) {
+            $names = PreAuditor::whereIn('id', $request->pre_auditors)->pluck('name')->toArray();
+            $validated['pre_auditor'] = implode(', ', $names);
+            $liquidation->preAuditors()->sync($request->pre_auditors);
+        } else {
+            $validated['pre_auditor'] = null;
+        }
+
         $liquidation->update($validated);
 
         if ($liquidation->cash_advance_id) {
             $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
-            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
-            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+            $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
 
-            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
             $cashAdvance->save();
         }
 
@@ -257,10 +277,9 @@ class LiquidationController extends Controller
 
         if ($cashAdvanceId) {
             $cashAdvance = CashAdvance::with('liquidation')->find($cashAdvanceId);
-            $totalLiquidated = $cashAdvance->liquidation->sum('for_liquidation_amount');
-            $remaining = $cashAdvance->granted_amount - $totalLiquidated;
+            $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
 
-            $cashAdvance->status = $remaining <= 0 ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
             $cashAdvance->save();
         }
 
