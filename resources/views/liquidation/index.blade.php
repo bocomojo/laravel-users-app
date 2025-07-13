@@ -109,8 +109,8 @@
                                             {{ $liq->check_number }}
                                         </a>
                                     </td>
-                                    <td class="px-6 py-3">₱{{ number_format($liq->granted_amount, 2) }}</td>
-                                    <td class="px-6 py-3">₱{{ number_format($liq->for_liquidation_amount, 2) }}</td>
+                                    <td class="px-6 py-3">{{ number_format($liq->granted_amount, 2) }}</td>
+                                    <td class="px-6 py-3">{{ number_format($liq->pre_audited_amount, 2) }}</td>
                                     <td class="px-6 py-3">{{ $liq->liquidation_type }}</td>
                                     <td class="px-6 py-3">{{ $liq->liq_date_received ?? '—' }}</td>
 

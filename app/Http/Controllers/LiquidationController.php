@@ -160,7 +160,8 @@ class LiquidationController extends Controller
 
         $sdo = Sdo::findOrFail($validated['sdo_id']);
         $validated['sdo_name'] = $sdo->name;
-        $validated['pre_audited_amount'] = $validated['for_liquidation_amount'];
+        $validated['for_liquidation_amount'] = -abs($validated['for_liquidation_amount']);
+        $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] + $request->input('for_compliance_amount', 0);
 
         if ($request->has('pre_auditors')) {
             $names = PreAuditor::whereIn('id', $request->pre_auditors)->pluck('name')->toArray();

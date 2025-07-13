@@ -225,9 +225,9 @@
                             </td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">₱{{ number_format($liquidation->for_liquidation_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">₱{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">₱{{ number_format($liquidation->pre_audited_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ number_format($liquidation->for_liquidation_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ number_format($liquidation->pre_audited_amount, 2) }}</td>
                             <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->pre_auditor }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 @if (empty($liquidation->jev_no))
