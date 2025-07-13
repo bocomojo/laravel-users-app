@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 12, 2025 at 07:24 PM
+-- Generation Time: Jul 13, 2025 at 02:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -101,9 +101,9 @@ CREATE TABLE `cash_advance` (
 --
 
 INSERT INTO `cash_advance` (`id`, `sdo_id`, `check_number`, `check_date`, `dv_number`, `dv_date`, `ors_number`, `ors_date`, `particulars`, `transaction_type`, `pap`, `granted_amount`, `payout_start`, `payout_end`, `status`, `demand_letter_sent_at`, `created_at`, `updated_at`) VALUES
-(1, 1, '25-01-00001', '2025-07-02', '25-01-00001', '2025-07-02', '25-01-00001', '2025-07-02', 'TESTING', 'Cash Advance', 1, 5000.00, NULL, '2025-05-30', 'Ongoing', '2025-07-08 18:07:14', '2025-07-01 23:42:36', '2025-07-08 19:19:05'),
-(2, 2, '25-02-00002', '2025-07-02', '25-02-00002', '2025-07-02', '25-02-00002', '2025-07-02', 'TESTING 2', 'Cash Advance', 6, 20000000.00, '2025-05-13', '2025-05-26', 'Ongoing', NULL, '2025-07-02 00:00:15', '2025-07-08 19:28:02'),
-(3, 2, '25-25-252525', '2025-07-07', '25-25-252525', '2025-07-07', '25-25-252525', '2025-07-07', 'asdasd', 'Cash Advance', 2, 20000000.00, '2025-07-12', '2025-07-22', 'Fully Liquidated', NULL, '2025-07-07 03:10:14', '2025-07-12 01:47:36');
+(5, 3, '923456781', '2025-07-14', '25-01-00002', '2025-07-14', '25-01-00003', '2025-07-14', 'Sample 2', 'Cash Advance', 1, 15000000.00, '2025-07-23', '2025-07-25', 'Ongoing', NULL, '2025-07-12 23:33:46', '2025-07-12 23:33:46'),
+(6, 7, '934567812', '2025-07-13', '25-01-00003', '2025-07-13', '25-01-00006', '2025-07-13', 'Sample 3', 'Cash Advance', 5, 12000000.00, '2025-08-06', '2025-08-08', 'Ongoing', NULL, '2025-07-12 23:34:57', '2025-07-12 23:34:57'),
+(7, 2, '912345678', '2025-07-13', '25-02-00024', '2025-07-13', '25-03-02345', '2025-07-13', 'Sample 1', 'Cash Advance', 1, 20000000.00, '2025-07-21', '2025-07-23', 'Ongoing', NULL, '2025-07-13 02:47:10', '2025-07-13 02:47:10');
 
 -- --------------------------------------------------------
 
@@ -230,11 +230,7 @@ CREATE TABLE `liquidation` (
 --
 
 INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `for_compliance_amount`, `pre_audited_amount`, `pre_auditor`, `jev_no`, `created_at`, `updated_at`) VALUES
-(1, 2, 'Nicky Palero', '25-02-00002', 20000000.00, 200000.00, 'Liquidation', '2025-07-02', 'LIQ-01-00001', '2025-07-02', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-02 00:09:05', '2025-07-08 06:52:38'),
-(2, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 100000.00, 'Refund', '2025-07-07', '', '0000-00-00', '25-25-25252', '2025-07-07', NULL, NULL, NULL, NULL, '2025-07-07 04:26:24', '2025-07-07 04:26:24'),
-(3, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 10000000.00, 'Liquidation', '2025-07-07', '25-25-25252', '2025-07-07', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-07 04:27:04', '2025-07-08 19:09:20'),
-(4, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 900000.00, 'Liquidation', '2025-07-09', '25-18-12312', '2025-07-09', NULL, NULL, 100000.00, NULL, NULL, NULL, '2025-07-08 19:05:28', '2025-07-12 08:32:29'),
-(5, 3, 'Nicky Palero', '25-25-252525', 20000000.00, 9000000.00, 'Liquidation', '2025-07-09', '25-25-010101', '2025-07-09', NULL, NULL, 100000.00, 8900000.00, NULL, '', '2025-07-08 19:09:57', '2025-07-12 08:36:55');
+(20, 7, 'Nicky Palero', '912345678', 20000000.00, -200000.00, 'Liquidation', '2025-07-13', 'LR-01-00011', '2025-07-13', NULL, NULL, NULL, -200000.00, 'alexis', NULL, '2025-07-13 04:13:05', '2025-07-13 04:13:05');
 
 -- --------------------------------------------------------
 
@@ -271,7 +267,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (17, '2025_07_09_074133_create_bonded_officials_table', 10),
 (18, '2025_07_09_0741333_create_bonded_officials_table', 11),
 (19, '2025_07_12_060041_add_compliance_and_audit_fields_to_liquidations_table', 12),
-(20, '2025_07_12_105206_create_pre_auditors_table', 13);
+(20, '2025_07_12_105206_create_pre_auditors_table', 13),
+(21, '2025_07_13_031500_create_pre_auditor_liquidation_table', 14);
 
 -- --------------------------------------------------------
 
@@ -455,7 +452,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('r2w0ZIjWPgtc9y3qKVlQZfJt1F438uR2ASGojqRA', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiM2h5ZnUwOVcyeEZvZm1BMnBLRHU0YXVZTUdNUmVxcHBmQ1VtVWJycyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzU6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9saXF1aWRhdGlvbi8yIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9', 1752340888);
+('4unolsI5xh4KnQNjS7w7iO70kVyjmXSFfSo1P6Ko', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiSFN2Y3hnYVdzVDlsdzZ5Qk9OYWtVcXUzRGo1VmF1bTRUN0tsRU4zTSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9saXF1aWRhdGlvbi9jcmVhdGUiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=', 1752411468);
 
 -- --------------------------------------------------------
 
@@ -652,7 +649,7 @@ ALTER TABLE `bonded_officials`
 -- AUTO_INCREMENT for table `cash_advance`
 --
 ALTER TABLE `cash_advance`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `compliance_files`
@@ -688,13 +685,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `liquidation`
 --
 ALTER TABLE `liquidation`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `pap`
