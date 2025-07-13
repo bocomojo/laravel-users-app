@@ -50,7 +50,7 @@ Route::resource('pre-auditors', PreAuditorController::class);
 Route::post('/pre-auditors/import', [PreAuditorController::class, 'import'])->name('pre-auditors.import');
 Route::get('/sdo/cash_advance/index', [SdoController::class, 'sdoCashAdvance'])->name('sdo.cash.advance');
 Route::get('/liquidation/sdo/{sdoId}/cash-advance', [LiquidationController::class, 'getOngoingCashAdvance']);
-
+Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
 
 
 // ============= LIQUIDATION ==============

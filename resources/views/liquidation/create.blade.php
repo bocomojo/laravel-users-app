@@ -23,26 +23,33 @@
                     @csrf
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="hidden" name="cash_advance_id" id="cash_advance_id" value="{{ old('cash_advance_id') }}">
+                        <input type="hidden" name="cash_advance_id" id="cash_advance_id" value="{{ old('cash_advance_id', $cashAdvance?->id) }}">
 
                         <div>
                             <label for="sdo_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SDO Name</label>
                             <select name="sdo_id" id="sdo_id" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
                                 <option value="">-- Select SDO --</option>
                                 @foreach ($sdoList as $sdo)
-                                    <option value="{{ $sdo->id }}" {{ old('sdo_id') == $sdo->id ? 'selected' : '' }}>{{ $sdo->name }}</option>
+                                    <option value="{{ $sdo->id }}" 
+                                        {{ old('sdo_id', $cashAdvance?->sdo_id) == $sdo->id ? 'selected' : '' }}>
+                                        {{ $sdo->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div>
                             <label for="check_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Check Number</label>
-                            <input type="text" name="check_number" id="check_number" readonly value="{{ old('check_number') }}" placeholder="" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
+                            <input type="text" name="check_number" id="check_number" readonly 
+                                value="{{ old('check_number', $cashAdvance?->check_number) }}" 
+                                class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
                             <label for="granted_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Granted Amount</label>
-                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly value="{{ old('granted_amount') }}" placeholder="" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
+                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly 
+                                value="{{ old('granted_amount', $cashAdvance?->granted_amount) }}" 
+                                class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
                         </div>
 
                         <div>
@@ -94,10 +101,7 @@
                     <div class="mt-4">
                         <label for="pre_auditors" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-Auditor(s)</label>
 
-                        <button type="button" id="toggleAuditors"
-                            class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md w-full text-left hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                            Select Pre-Auditors
-                        </button>
+                        <button type="button" id="toggleAuditors" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md w-full text-left hover:bg-gray-300 dark:hover:bg-gray-600 transition">Select Pre-Auditors</button>
 
                         <div id="auditorList" class="mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 p-3 hidden max-h-60 overflow-y-auto">
                             @foreach ($preAuditors as $auditor)
@@ -144,6 +148,8 @@
             liquidationType.addEventListener('change', toggleLiquidationInputs);
             toggleLiquidationInputs();
         });
+
+        document.getElementById('sdo_id').dispatchEvent(new Event('change'));
     </script>
 
     <script>
