@@ -51,6 +51,10 @@ Route::post('/pre-auditors/import', [PreAuditorController::class, 'import'])->na
 Route::get('/sdo/cash_advance/index', [SdoController::class, 'sdoCashAdvance'])->name('sdo.cash.advance');
 Route::get('/liquidation/sdo/{sdoId}/cash-advance', [LiquidationController::class, 'getOngoingCashAdvance']);
 Route::get('/liquidation/create', [LiquidationController::class, 'create'])->name('liquidation.create');
+Route::resource('liquidated_reports', \App\Http\Controllers\LiquidatedReportController::class);
+Route::patch('/liquidation/{id}/approve', [LiquidationController::class, 'approve'])->name('liquidation.approve');
+Route::get('/sdo/cash-advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
+Route::get('/sdo/{sdo_id?}/cash-advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
 
 
 // ============= LIQUIDATION ==============

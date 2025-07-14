@@ -6,120 +6,105 @@
     </x-slot>
 
     <div class="py-12">
-    
         <div class="max-w-full mx-auto px-4 lg:px-8 mb-4 flex justify-between items-center">
-            <!-- Export Button -->
             <a href="{{ route('liquidation.export', $cashAdvance->id) }}"
-            class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
+               class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
                 ↓ Export to Excel
             </a>
-
-            <!-- Return Button -->
             <a href="{{ url()->previous() }}"
-            class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+               class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                 ← Return to Recent Page
             </a>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">
-
-            <!-- Left container: Cash Advance Summary -->
             <div class="w-full lg:w-1/3" x-data="{ editDates: false }">
-                    <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
-    <div>
-        <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
-            Cash Advance Details
-            <button @click="editDates = true" class="text-sm text-blue-400 hover:underline" title="Edit Payout Dates">
-                ✎ Edit
-            </button>
-        </h3>
+                <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
+                            Cash Advance Details
+                            <button @click="editDates = true" class="text-sm text-blue-400 hover:underline" title="Edit Payout Dates">
+                                ✎ Edit
+                            </button>
+                        </h3>
+                        <div class="mb-4">
+                            <p class="text-medium text-gray-300">
+                                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
+                            </p>
+                            <p class="font-medium text-white">Particulars:</p>
+                            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
+                        </div>
+                        <div class="mb-4 space-y-1 text-sm text-white">
+                            <p>
+                                <span class="font-medium text-white">PAP:</span>
+                                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
+                            </p>
+                            <p>
+                                <span class="font-medium text-white">Start of Payout:</span>
+                                <span class="text-gray-300">
+                                    {{ $cashAdvance->payout_start ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') : '—' }}
+                                </span>
+                            </p>
+                            <p>
+                                <span class="font-medium text-white">End of Payout:</span>
+                                <span class="text-gray-300">
+                                    {{ $cashAdvance->payout_end ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') : '—' }}
+                                </span>
+                            </p>
+                            <p>
+                                <span class="font-medium text-white">Due Date:</span>
+                                <span class="text-gray-300">
+                                    {{ $cashAdvance->payout_end ? \Carbon\Carbon::parse($cashAdvance->payout_end)->addDays(31)->format('F j, Y') : '—' }}
+                                </span>
+                            </p>
+                        </div>
+                        <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
+                                    <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
+                                    <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- Granted Amount -->
+                        <div class="flex justify-between text-sm text-white border-t border-gray-600 pt-4">
+                            <span class="font-semibold">Granted Amount:</span>
+                            <span>{{ number_format($cashAdvance->granted_amount, 2) }}</span>
+                        </div>
+                        <!-- Total Liq. received -->
+                        <div class="flex justify-between text-sm text-white pt-4">
+                            <span class="font-semibold">Total Liquidation Received:</span>
+                            <span>
+                                {{ number_format($liquidations->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount'), 2) }}
+                            </span>
+                        </div>
 
-        <!-- Name -->
-        <div class="mb-4">
-            <p class="text-medium text-gray-300">
-                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
-            </p>
-        <!-- </div> -->
+                        <!-- Total Pre-Audited -->
+                        <div class="flex justify-between text-sm text-white pt-4">
+                            <span class="font-semibold">Total Pre-Audited:</span>
+                            <span>
+                                {{ number_format($liquidations->where('liquidation_type', 'Liquidation')->sum('pre_audited_amount'), 2) }}
+                            </span>
+                        </div>
 
-        <!-- Particulars -->
-        <!-- <div class="mb-4"> -->
-            <p class="font-medium text-white">Particulars:</p>
-            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
-        </div>
+                        <!-- Total For Compliance -->
+                        <div class="flex justify-between text-sm text-white pt-4">
+                            <span class="font-semibold">Total Unsubmitted & For Compliance:</span>
+                            <span>
+                                {{ number_format($liquidations->sum('for_compliance_amount'), 2) }}
+                            </span>
+                        </div>
 
-        <!-- PAP + Payout Dates -->
-        <div class="mb-4 space-y-1 text-sm text-white">
-            <p>
-                <span class="font-medium text-white">PAP:</span>
-                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
-            </p>
-            <p>
-                <span class="font-medium text-white">Start of Payout:</span>
-                <span class="text-gray-300">
-                    {{ $cashAdvance->payout_start 
-                        ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') 
-                        : '—' }}
-                </span>
-            </p>
-            <p>
-                <span class="font-medium text-white">End of Payout:</span>
-                <span class="text-gray-300">
-                    {{ $cashAdvance->payout_end 
-                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') 
-                        : '—' }}
-                </span>
-            </p>
-            <p>
-                <span class="font-medium text-white">Due Date:</span>
-                <span class="text-gray-300">
-                    {{ $cashAdvance->payout_end 
-                        ? \Carbon\Carbon::parse($cashAdvance->payout_end)->addDays(31)->format('F j, Y') 
-                        : '—' }}
-                </span>
-            </p>
-        </div>
-
-            <!-- Table: Check, DV, ORS -->
-            <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
-                <tbody>
-                    <tr>
-                        <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
-                        <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
-                        <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Granted Amount -->
-            <div class="flex justify-between text-sm text-white border-t border-gray-600 pt-4">
-                <span class="font-semibold">Granted Amount:</span>
-                <span>₱{{ number_format($cashAdvance->granted_amount, 2) }}</span>
-            </div>
-            <!-- Total Liq. received -->
-            <div class="flex justify-between text-sm text-white pt-4">
-                <span class="font-semibold">Total Liquidation Received:</span>
-                <span>
-                    ₱{{ number_format($cashAdvance->liquidation->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount'), 2) }}
-                </span>
-            </div>
-            <!-- Total For Compliance -->
-            <div class="flex justify-between text-sm text-white pt-4">
-                <span class="font-semibold">Total Unsubmitted & For Compliance:</span>
-                <span>
-                    ₱{{ number_format($cashAdvance->liquidation->sum('for_compliance_amount'), 2) }}
-                </span>
-            </div>
-            <!-- Total Refund -->
-            <div class="flex justify-between text-sm text-white pt-4">
-                <span class="font-semibold">Total Refund:</span>
-                <span>
-                    ₱{{ number_format($cashAdvance->liquidation->where('liquidation_type', 'Refund')->sum('for_liquidation_amount'), 2) }}
-                </span>
-            </div>
-        </div>
-    </div>
-
-
+                        <!-- Total Refund -->
+                        <div class="flex justify-between text-sm text-white pt-4">
+                            <span class="font-semibold">Total Refund:</span>
+                            <span>
+                                {{ number_format($liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount'), 2) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
                 <!-- Edit Modal -->
                 <div x-show="editDates" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -146,133 +131,143 @@
 
             <!-- Right container: Liquidation Table -->
             <div x-data="{ showModal: false, deleteId: null }" class="w-full lg:w-2/3">
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 overflow-x-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Related Liquidations</h3>
-            <div class="text-sm text-right space-y-1">
-                <p class="text-gray-700 dark:text-gray-300">
-                    <span class="font-semibold">Starting Balance:</span>
-                    ₱{{ number_format($cashAdvance->granted_amount, 2) }}
-                </p>
-                @php
-                    $liquidatedTotal = isset($liquidations)
-                        ? $liquidations->sum('for_liquidation_amount')
-                        : (isset($liquidation) ? $liquidation->for_liquidation_amount : 0);
-                @endphp
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 overflow-x-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Related Liquidations</h3>
+                        <div class="text-sm text-right space-y-1">
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <span class="font-semibold">Starting Balance:</span>
+                                {{ number_format($cashAdvance->granted_amount, 2) }}
+                            </p>
 
-                @php
-                    $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
-                @endphp
+                            @php
+                                $totalPreAudited = $liquidations->sum('pre_audited_amount');
+                                $remainingBalance = $cashAdvance->granted_amount +  $totalPreAudited;
+                            @endphp
 
-                <p class="text-gray-700 dark:text-gray-300">
-                    <span class="font-semibold">Remaining Balance:</span>
-                    ₱{{ number_format($cashAdvance->granted_amount - $totalPreAudited, 2) }}
-                </p>
-            </div>
-        </div>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <span class="font-semibold">Remaining Balance:</span>
+                                {{ number_format($remainingBalance, 2) }}
+                            </p>
+                        </div>
+                    </div>
 
-        <!-- Sorting & Filtering -->
-        <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
-            <div>
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort:</label>
-                <select name="sort" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
-                    <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Newest First</option>
-                    <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>Oldest First</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter:</label>
-                <select name="type" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
-                    <option value="">All</option>
-                    <option value="Liquidation" {{ request('type') == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
-                    <option value="Refund" {{ request('type') == 'Refund' ? 'selected' : '' }}>Refund</option>
-                </select>
-            </div>
-        </form>
-
-        <div class="overflow-y-auto max-h-[500px]">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 sticky top-0 z-10">
-            <thead class="bg-gray-50 dark:bg-gray-700 ">
-                <tr>
-                    <!-- <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider bg-gray-50 dark:bg-gray-700"> -->
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Transaction Type</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference (LR/OR)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received/Paid</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Reviewed</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount Received</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount for Compliance</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Audited Amount</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Auditor</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">JEV No.</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
-                </tr>
-            </thead>
-            @if ($liquidations->isEmpty())
-                <p class="text-gray-600 dark:text-gray-400">No liquidations found for this cash advance.</p>
-            @else
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach ($liquidations as $liquidation)
-                        <tr>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                @if ($liquidation->liquidation_type === 'Refund')
-                                    {{ $liquidation->or_number ?? '—' }}
-                                @elseif ($liquidation->liquidation_type === 'Liquidation')
-                                    {{ $liquidation->liq_number ?? '—' }}
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ number_format($liquidation->for_liquidation_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ number_format($liquidation->pre_audited_amount, 2) }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $liquidation->pre_auditor }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                @if (empty($liquidation->jev_no))
-                                    <input
-                                        type="text"
-                                        placeholder="Enter JEV"
-                                        onchange="confirmInlineUpdate(this, '{{ $liquidation->id }}')"
-                                        class="w-24 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring focus:ring-blue-300 dark:focus:ring-blue-700"
-                                    />
-                                @else
-                                    {{ $liquidation->jev_no }}
-                                @endif
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
-                                <div class="flex flex-col items-start space-y-1">
-                                    <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                    <button @click="showModal = true; deleteId = {{ $liquidation->id }}" class="text-red-600 hover:underline">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            @endif
-        </table>
-
-        <!-- Delete Confirmation Modal -->
-        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Confirm Deletion</h2>
-                <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this liquidation record? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button @click="showModal = false" type="button" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">Cancel</button>
-                    <form :action="`/liquidation/${deleteId}`" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                    <!-- Sorting & Filtering -->
+                    <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort:</label>
+                            <select name="sort" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                                <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Newest First</option>
+                                <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>Oldest First</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter:</label>
+                            <select name="type" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                                <option value="">All</option>
+                                <option value="Liquidation" {{ request('type') == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
+                                <option value="Refund" {{ request('type') == 'Refund' ? 'selected' : '' }}>Refund</option>
+                            </select>
+                        </div>
                     </form>
+
+                    <div class="overflow-y-auto max-h-[500px]">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 sticky top-0 z-10">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Transaction Type</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference (LR/OR)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received/Paid</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Reviewed</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount Received</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount for Compliance</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Audited Amount</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Auditor</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">JEV No.</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    @if ($liquidations->isEmpty())
+                                        <tr>
+                                            <td colspan="10" class="px-4 py-4 text-center text-gray-600 dark:text-gray-400">
+                                                No liquidations found for this cash advance.
+                                            </td>
+                                        </tr>
+                                    @else
+                                        @foreach ($liquidations as $liquidation)
+                                            <tr>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                    @if ($liquidation->liquidation_type === 'Refund')
+                                                        {{ $liquidation->or_number ?? '—' }}
+                                                    @elseif ($liquidation->liquidation_type === 'Liquidation')
+                                                        {{ $liquidation->liq_number ?? '—' }}
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                    {{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                    {{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                    {{ $liquidation->for_liquidation_amount < 0
+                                                        ? '(' . number_format(abs($liquidation->for_liquidation_amount), 2) . ')'
+                                                        : number_format($liquidation->for_liquidation_amount, 2) }}
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">
+                                                    {{ $liquidation->pre_audited_amount < 0
+                                                        ? '(' . number_format(abs($liquidation->pre_audited_amount), 2) . ')'
+                                                        : number_format($liquidation->pre_audited_amount, 2) }}
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{{ $liquidation->pre_auditor }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                    @if (empty($liquidation->jev_no))
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Enter JEV"
+                                                            onchange="confirmInlineUpdate(this, '{{ $liquidation->id }}')"
+                                                            class="w-24 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring focus:ring-blue-300 dark:focus:ring-blue-700"
+                                                        />
+                                                    @else
+                                                        {{ $liquidation->jev_no }}
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
+                                                    <div class="flex flex-col items-start space-y-1">
+                                                        <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
+                                                        <button @click="showModal = true; deleteId = {{ $liquidation->id }}" class="text-red-600 hover:underline">Delete</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                </tbody>
+                            </table>
+
+                        <!-- Delete Confirmation Modal -->
+                        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                            <div class="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Confirm Deletion</h2>
+                                <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this liquidation record? This action cannot be undone.</p>
+                                <div class="flex justify-end space-x-4">
+                                    <button @click="showModal = false" type="button" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">Cancel</button>
+                                    <form :action="`/liquidation/${deleteId}`" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-        </div>
-    </div>
     <script>
 function confirmInlineUpdate(input, id) {
     const value = input.value;

@@ -77,10 +77,6 @@
                                 <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">LR Number</label>
                                 <input type="text" name="liq_number" id="liq_number" value="{{ old('liq_number') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                             </div>
-                            <div>
-                                <label for="liq_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">LR Date</label>
-                                <input type="date" name="liq_date" id="liq_date" value="{{ old('liq_date') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                            </div>
                         </div>
                     </div>
 
@@ -141,7 +137,7 @@
                 orNumber.required = isRefund;
                 orDate.required = isRefund;
                 liqNumber.required = !isRefund;
-                liqDate.required = !isRefund;
+                // liqDate.required = !isRefund;
             }
 
             liquidationType.addEventListener('change', toggleLiquidationInputs);

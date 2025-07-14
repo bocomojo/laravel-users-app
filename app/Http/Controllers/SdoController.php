@@ -8,25 +8,23 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SdoExport;
 use App\Imports\SdoImport;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\HeadingRowImport;
-use Maatwebsite\Excel\Validators\ValidationException;
 
 class SdoController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $status = $request->input('employment_status');
-        $sort = $request->input('sort', 'name');
+        $search    = $request->input('search');
+        $status    = $request->input('employment_status');
+        $sort      = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
 
         $sdoRecords = Sdo::when($search, function ($query) use ($search) {
-                return $query->where('name', 'like', "%{$search}%")
-                             ->orWhere('email', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
             })
-            ->when($status, function ($query) use ($status) {
-                return $query->where('employment_status', $status);
-            })
+            ->when($status, fn($q) => $q->where('employment_status', $status))
             ->orderBy($sort, $direction)
             ->paginate(10);
 
@@ -34,33 +32,30 @@ class SdoController extends Controller
     }
 
     public function sdoCashAdvance(Request $request)
-{
-    $search    = $request->input('search');
-    $status    = $request->input('employment_status');
-    $sort      = $request->input('sort', 'name');
-    $direction = $request->input('direction', 'asc');
+    {
+        $search    = $request->input('search');
+        $status    = $request->input('employment_status');
+        $sort      = $request->input('sort', 'name');
+        $direction = $request->input('direction', 'asc');
 
-    $sdoRecords = Sdo::with('cashAdvance')
-        ->when($search, function ($query) use ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        })
-        ->when($status, function ($query) use ($status) {
-            return $query->where('employment_status', $status);
-        })
-        ->where(function ($q) {
-            $q->whereHas('cashAdvance', function ($sub) {
-                $sub->where('status', 'Ongoing');
-            })->orWhereDoesntHave('cashAdvance');
-        })
-        ->orderBy($sort, $direction)
-        ->paginate(10)
-        ->withQueryString();
+        $sdoRecords = Sdo::with('cashAdvance')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($status, fn($q) => $q->where('employment_status', $status))
+            ->where(function ($q) {
+                $q->whereHas('cashAdvance', fn($sub) => $sub->where('status', 'Ongoing'))
+                  ->orWhereDoesntHave('cashAdvance');
+            })
+            ->orderBy($sort, $direction)
+            ->paginate(10)
+            ->withQueryString();
 
-    return view('sdo.cash_advance.index', compact('sdoRecords', 'search', 'status', 'sort', 'direction'));
-}
+        return view('sdo.cash_advance.index', compact('sdoRecords', 'search', 'status', 'sort', 'direction'));
+    }
 
     public function create()
     {
@@ -71,10 +66,9 @@ class SdoController extends Controller
     {
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
-            'ppower_name'       => 'nullable|string|max:255',
-            'email'             => 'required|email|unique:sdo,email',
+            'email'             => 'nullable|email|unique:sdo,email',
             'corporate_email'   => 'nullable|email|max:255',
-            'contact_number'    => 'required|string|max:20',
+            'contact_number'    => 'nullable|string|max:20',
             'position'          => 'nullable|string|max:255',
             'official_station'  => 'nullable|string|max:255',
             'employment_status' => 'nullable|string|max:255',
@@ -95,7 +89,7 @@ class SdoController extends Controller
     {
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
-            'ppower_name'       => 'nullable|string|max:255',
+            'ppower_name'       => 'nullable|string|max:255', // Is this intentional?
             'email'             => 'required|email|unique:sdo,email,' . $id,
             'corporate_email'   => 'nullable|email|max:255',
             'contact_number'    => 'required|string|max:20',
@@ -110,32 +104,6 @@ class SdoController extends Controller
         return redirect()->route('sdo.index')->with('success', 'SDO record updated successfully.');
     }
 
-    public function export()
-    {
-        return Excel::download(new SdoExport, 'sdo-records.xlsx');
-    }
-
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:2048',
-        ]);
-
-        try {
-            Excel::import($import = new SdoImport, $request->file('file'));
-
-            $duplicates = count($import->failures());
-
-            if ($duplicates > 0) {
-                return redirect()->route('sdo.index')->with('warning', "$duplicates duplicate or invalid rows skipped.");
-            }
-
-            return redirect()->route('sdo.index')->with('success', 'SDO records imported successfully.');
-        } catch (\Exception $e) {
-            return redirect()->route('sdo.index')->with('error', 'Import failed. Please check your file format.');
-        }
-    }
-
     public function destroy($id)
     {
         $record = Sdo::findOrFail($id);
@@ -144,11 +112,43 @@ class SdoController extends Controller
         return redirect()->route('sdo.index')->with('success', 'SDO record deleted successfully.');
     }
 
-    // ✅ NEW: Manual liquidation form route (without cash advance)
+    public function export()
+    {
+        return Excel::download(new SdoExport, 'sdo-records.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:12048',
+        ]);
+
+        try {
+            $import = new SdoImport;
+            Excel::import($import, $request->file('file'));
+
+            $skipped = count($import->failures());
+
+            if ($skipped > 0) {
+                return redirect()->route('sdo.index')
+                    ->with('warning', "$skipped duplicate or invalid rows were skipped.");
+            }
+
+            return redirect()->route('sdo.index')
+                ->with('success', 'SDO records imported successfully.');
+        } catch (ValidationException $e) {
+            return redirect()->route('sdo.index')
+                ->with('error', 'Validation failed: check the data format.');
+        } catch (\Exception $e) {
+            Log::error('SDO Import Error: ' . $e->getMessage());
+            return redirect()->route('sdo.index')
+                ->with('error', 'Import failed. Please check your file and try again.');
+        }
+    }
+
     public function createForLiquidation()
     {
         $sdos = Sdo::orderBy('name')->get();
         return view('liquidation.create', compact('sdos'))->with('cashAdvance', null);
     }
 }
-    

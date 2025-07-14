@@ -16,7 +16,8 @@
     </a>
 
     <div class="py-6" x-data="{ openExportModal: false }">
-        <div class="max-w-7xl mx-auto">
+    <div class="mx-8"> <!-- Add horizontal margin here -->
+        <div class="w-full px-4 mx-auto">
             <div class="bg-white dark:bg-gray-800 shadow-md rounded-md overflow-hidden">
 
                 {{-- Export Button above filters --}}
@@ -91,12 +92,15 @@
                             <tr>
                                 <th class="px-6 py-3">SDO</th>
                                 <th class="px-6 py-3">Check #</th>
-                                <th class="px-6 py-3">Granted</th>
-                                <th class="px-6 py-3">Liquidated</th>
+                                <th class="px-6 py-3">Liq Amount Received</th>
+                                <th class="px-6 py-3">Amount for Compliance</th>
+                                <th class="px-6 py-3">Pre-Audited Amount</th>
+                                <th class="px-6 py-3">Status</th>
                                 <th class="px-6 py-3">Type</th>
                                 <th class="px-6 py-3">Received</th>
                                 <th class="px-6 py-3">Reference (LR/OR)</th>
                                 <th class="px-6 py-3">LR/OR Date</th>
+                                <th class="px-6 py-3">Pre-Auditor</th>
                                 <th class="px-6 py-3 text-center">Action</th>
                             </tr>
                         </thead>
@@ -109,8 +113,29 @@
                                             {{ $liq->check_number }}
                                         </a>
                                     </td>
-                                    <td class="px-6 py-3">{{ number_format($liq->granted_amount, 2) }}</td>
-                                    <td class="px-6 py-3">{{ number_format($liq->pre_audited_amount, 2) }}</td>
+                                    <td class="px-6 py-3">₱{{ number_format(abs($liq->for_liquidation_amount), 2) }}</td>
+                                    <td class="px-6 py-3">₱{{ number_format($liq->for_compliance_amount ?? 0, 2) }}</td>
+                                    <td class="px-6 py-3">₱{{ number_format($liq->pre_audited_amount ?? 0, 2) }}</td>
+                                    <td class="px-6 py-3">
+                                        @switch($liq->status)
+                                            @case('For Checking')
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded-full">
+                                                    For Checking
+                                                </span>
+                                                @break
+
+                                            @case('Approved')
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                                                    Approved
+                                                </span>
+                                                @break
+
+                                            @default
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full">
+                                                    {{ $liq->status ?? '—' }}
+                                                </span>
+                                        @endswitch
+                                    </td>
                                     <td class="px-6 py-3">{{ $liq->liquidation_type }}</td>
                                     <td class="px-6 py-3">{{ $liq->liq_date_received ?? '—' }}</td>
 
@@ -135,18 +160,31 @@
                                             —
                                         @endif
                                     </td>
-
+                                    <td class="px-6 py-3 text-center">{{ $liq->pre_auditor }}</td>
                                     {{-- Actions --}}
                                     <td class="px-6 py-3 text-center">
-                                        <a href="{{ route('liquidation.edit', $liq->id) }}"
-                                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                            Edit
-                                        </a>
+                                        <div class="flex justify-center gap-6">
+                                            <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                Edit
+                                            </a>
+
+                                            @if ($liq->status === 'For Checking')
+                                                <form action="{{ route('liquidation.approve', $liq->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
+                                                        Approve
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center px-6 py-6 text-gray-500 dark:text-gray-400">
+                                    <td colspan="12" class="text-center px-6 py-6 text-gray-500 dark:text-gray-400">
                                         No liquidation records found.
                                     </td>
                                 </tr>

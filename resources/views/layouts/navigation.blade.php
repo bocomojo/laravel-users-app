@@ -15,11 +15,19 @@
                         $modules = [
                             [
                                 'label' => 'Liquidation Module',
-                                'submenu' => [
-                                    'label' => 'Liquidation Report',
-                                    'routes' => [
-                                        ['label' => 'Add', 'route' => 'liquidation.create'],
-                                        ['label' => 'View', 'route' => 'liquidation.index'],
+                                'submenus' => [
+                                    [
+                                        'label' => 'Liquidation Report',
+                                        'routes' => [
+                                            ['label' => 'Add', 'route' => 'liquidation.create'],
+                                            ['label' => 'View', 'route' => 'liquidation.index'],
+                                        ]
+                                    ],
+                                    [
+                                        'label' => 'Liquidated Reports',
+                                        'routes' => [
+                                            ['label' => 'View', 'route' => 'liquidated_reports.index'],
+                                        ]
                                     ]
                                 ]
                             ],

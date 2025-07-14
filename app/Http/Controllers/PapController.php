@@ -30,16 +30,24 @@ class PapController extends Controller
 
     // Store new PAP in database
     public function store(Request $request)
-    {
-        $request->validate([
-            'pap_name' => 'required|string|max:255',
-            'pap_code' => 'required|string|max:255',
-        ]);
+{
+    $request->validate([
+        'pap_name' => 'required|string|max:255',
+        'pap_code' => 'required|string|max:255',
+    ]);
 
-        Pap::create($request->only('pap_name', 'pap_code'));
+    // Check if pap_name already exists
+    $exists = Pap::where('pap_name', $request->pap_name)->exists();
 
-        return redirect()->route('pap.index')->with('success', 'PAP created successfully.');
+    if ($exists) {
+        return redirect()->route('pap.index')->with('error', 'PAP name already exists. Skipped.');
     }
+
+    Pap::create($request->only('pap_name', 'pap_code'));
+
+    return redirect()->route('pap.index')->with('success', 'PAP created successfully.');
+}
+
 
     // Show form to edit existing PAP
     public function edit(Pap $pap)

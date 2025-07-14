@@ -7,10 +7,11 @@ use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class SdoImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
+class SdoImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, WithChunkReading
 {
     use SkipsFailures;
 
@@ -35,8 +36,12 @@ class SdoImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailu
     {
         return [
             '*.name' => ['required', 'string'],
-            '*.email' => ['required', 'email'],
-            '*.contact_number' => ['required'],
+            // '*.email' => ['required', 'email'],
         ];
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 }
