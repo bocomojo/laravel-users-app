@@ -2,15 +2,16 @@
 
     namespace App\Http\Controllers;
 
+    use App\Models\Liquidation;
     use Illuminate\Http\Request;
     use App\Models\Sdo;
     use App\Models\CashAdvance;
-    use App\Models\Liquidation;
     use App\Models\PreAuditor;
     use App\Exports\LiquidationsExport;
     use App\Exports\CondensedLiquidationExport;
     use App\Models\LiquidatedReport;
     use Maatwebsite\Excel\Facades\Excel;
+    use App\Imports\LiquidationImport;
 
     class LiquidationController extends Controller
     {
@@ -108,6 +109,27 @@
                 'sortOrder' => $request->get('sort', 'desc'),
                 'filterType' => $request->get('type'),
             ]);
+        }
+
+        public function massApprove()
+{
+    $updated = \App\Models\Liquidation::where('status', 'For Checking')->update(['status' => 'Approved']);
+
+    return redirect()->route('liquidation.index')->with('success', "$updated record(s) approved successfully.");
+}
+
+        public function import(Request $request)
+        {
+            $request->validate([
+                'import_file' => 'required|file|mimes:xlsx,xls',
+            ]);
+
+            try {
+                Excel::import(new LiquidationImport, $request->file('import_file'));
+                return redirect()->route('liquidation.index')->with('success', 'Liquidations imported successfully.');
+            } catch (\Exception $e) {
+                return back()->withErrors(['import_error' => 'Import failed: ' . $e->getMessage()]);
+            }
         }
 
         public function approve($id)
@@ -245,9 +267,10 @@
         public function edit($id)
         {
             $liquidation = Liquidation::findOrFail($id);
-            $sdoList = Sdo::orderBy('name')->get();
+            $sdo = Sdo::where('name', $liquidation->sdo_name)->first(); // optional, if you need full SDO object
+            $preAuditors = PreAuditor::orderBy('name')->get();
 
-            return view('liquidation.edit', compact('liquidation', 'sdoList'));
+            return view('liquidation.edit', compact('liquidation', 'sdo', 'preAuditors'));
         }
 
         public function update(Request $request, $id)
@@ -293,7 +316,7 @@
                 $cashAdvance->save();
             }
 
-            return redirect()->route('liquidation.show', $liquidation->cash_advance_id)
+            return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
                             ->with('success', 'Liquidation updated successfully.');
         }
 

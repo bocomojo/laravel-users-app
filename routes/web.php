@@ -55,6 +55,9 @@ Route::resource('liquidated_reports', \App\Http\Controllers\LiquidatedReportCont
 Route::patch('/liquidation/{id}/approve', [LiquidationController::class, 'approve'])->name('liquidation.approve');
 Route::get('/sdo/cash-advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
 Route::get('/sdo/{sdo_id?}/cash-advance/create', [CashAdvanceController::class, 'create'])->name('sdo.cash_advance.create');
+Route::post('/sdo/cash-advance/import', [CashAdvanceController::class, 'import'])->name('sdo.cash_advance.import');
+Route::post('/liquidation/import', [LiquidationController::class, 'import'])->name('liquidation.import');
+Route::patch('/liquidation/mass-approve', [LiquidationController::class, 'massApprove'])->name('liquidation.massApprove');
 
 
 // ============= LIQUIDATION ==============

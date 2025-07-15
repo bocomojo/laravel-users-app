@@ -18,6 +18,17 @@
                         </ul>
                     </div>
                 @endif
+                <!-- Import Cash Advances -->
+                <form method="POST" action="{{ route('sdo.cash_advance.import') }}" enctype="multipart/form-data" class="mb-8">
+                    @csrf
+                    <div class="flex items-center gap-4">
+                        <input type="file" name="import_file" accept=".xlsx" required
+                            class="block w-full text-sm text-gray-700 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                            Import
+                        </button>
+                    </div>
+                </form>
 
                 <form method="POST" action="{{ route('sdo.cash_advance.store') }}">
                     @csrf

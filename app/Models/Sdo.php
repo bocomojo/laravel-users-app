@@ -9,23 +9,22 @@ class Sdo extends Model
 {
     use HasFactory;
 
-    // Specify the table name if it's different from the default
+    // If your table name is not 'sdos', keep this line:
     protected $table = 'sdo';
 
-    // Allow mass assignment for these fields
     protected $fillable = [
-        'name',
-        'ppower_name',
-        'email',
-        'corporate_email',
-        'contact_number',
-        'position',
-        'official_station',
-        'employment_status',
-    ];
+    'name',
+    'email',
+    'corporate_email',
+    'contact_number',
+    'position',
+    'official_station',
+    'employment_status',
+];
 
     public function cashAdvance()
     {
+        // This assumes each SDO can have one latest ongoing cash advance
         return $this->hasOne(CashAdvance::class)->latestOfMany();
     }
 }

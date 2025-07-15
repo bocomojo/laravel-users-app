@@ -19,6 +19,16 @@
                     </div>
                 @endif
 
+                <form action="{{ route('liquidation.import') }}" method="POST" enctype="multipart/form-data" class="mb-4">
+                    @csrf
+                    <div class="flex items-center gap-4">
+                        <input type="file" name="import_file" required
+                            class="block w-full text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 shadow-sm" />
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Import</button>
+                    </div>
+                </form>
+
                 <form method="POST" action="{{ route('liquidation.store') }}">
                     @csrf
 

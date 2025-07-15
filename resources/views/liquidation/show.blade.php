@@ -171,22 +171,44 @@
                         </div>
                     </form>
 
-                    <div class="overflow-y-auto max-h-[500px]">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 sticky top-0 z-10">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Transaction Type</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference (LR/OR)</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Received/Paid</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Reviewed</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Liq Amount Received</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount for Compliance</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Audited Amount</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pre-Auditor</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">JEV No.</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
-                                    </tr>
-                                </thead>
+                    <div class="overflow-y-auto max-h-[500px] relative">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Transaction Type
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Reference (LR/OR)
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Date Received
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Date Reviewed
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Liq Amount Received
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Amount for Compliance
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Pre-Audited Amount
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Pre-Auditor
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        JEV No.
+                                    </th>
+                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <!-- tbody below -->
+
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @if ($liquidations->isEmpty())
                                         <tr>

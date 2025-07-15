@@ -28,6 +28,16 @@
                     </button>
                 </div>
 
+                <form action="{{ route('liquidation.massApprove') }}" method="POST" onsubmit="return confirm('Are you sure you want to approve all For Checking records?');">
+    @csrf
+    @method('PATCH')
+    <button type="submit"
+        class="ml-6 mb-4 bg-green-700 hover:bg-green-800 text-white text-sm px-4 py-2 rounded-md">
+        Approve All
+    </button>
+</form>
+    
+
                 {{-- Filters & Search --}}
                 <form method="GET" class="px-6 py-4 border-b dark:border-gray-700">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">

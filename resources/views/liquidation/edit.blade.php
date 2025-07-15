@@ -26,16 +26,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="hidden" name="cash_advance_id" id="cash_advance_id" value="{{ old('cash_advance_id', $liquidation->cash_advance_id) }}">
 
-                        <div>
-                            <label for="sdo_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SDO Name</label>
-                            <select name="sdo_id" id="sdo_id" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                                <option value="">-- Select SDO --</option>
-                                @foreach ($sdoList as $sdo)
-                                    <option value="{{ $sdo->id }}" {{ old('sdo_id', $liquidation->sdo_id) == $sdo->id ? 'selected' : '' }}>
-                                        {{ $sdo->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <!-- Fixed SDO display -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SDO Name</label>
+                            <input type="text" value="{{ $liquidation->sdo_name }}" disabled
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm cursor-not-allowed">
                         </div>
 
                         <div>

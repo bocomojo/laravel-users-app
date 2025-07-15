@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Sdo;
 use App\Models\CashAdvance;
 use App\Models\Pap;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\CashAdvanceImport;
 
 class CashAdvanceController extends Controller
 {
@@ -20,6 +22,20 @@ class CashAdvanceController extends Controller
         })->paginate(10);
 
         return view('sdo.cash_advance.index', compact('sdoRecords', 'search'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls'
+        ]);
+
+        try {
+            Excel::import(new CashAdvanceImport, $request->file('import_file'));
+            return back()->with('success', 'Cash advances imported successfully.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['import_error' => 'Import failed: ' . $e->getMessage()]);
+        }
     }
 
     public function create(Request $request)

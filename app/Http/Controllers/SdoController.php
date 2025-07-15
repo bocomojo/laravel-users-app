@@ -89,7 +89,6 @@ class SdoController extends Controller
     {
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
-            'ppower_name'       => 'nullable|string|max:255', // Is this intentional?
             'email'             => 'required|email|unique:sdo,email,' . $id,
             'corporate_email'   => 'nullable|email|max:255',
             'contact_number'    => 'required|string|max:20',
@@ -129,20 +128,11 @@ class SdoController extends Controller
 
             $skipped = count($import->failures());
 
-            if ($skipped > 0) {
-                return redirect()->route('sdo.index')
-                    ->with('warning', "$skipped duplicate or invalid rows were skipped.");
-            }
-
             return redirect()->route('sdo.index')
-                ->with('success', 'SDO records imported successfully.');
-        } catch (ValidationException $e) {
-            return redirect()->route('sdo.index')
-                ->with('error', 'Validation failed: check the data format.');
+                ->with('success', 'SDO records imported successfully. Skipped: ' . $skipped);
         } catch (\Exception $e) {
-            Log::error('SDO Import Error: ' . $e->getMessage());
             return redirect()->route('sdo.index')
-                ->with('error', 'Import failed. Please check your file and try again.');
+                ->with('error', 'Import failed: ' . $e->getMessage());
         }
     }
 
