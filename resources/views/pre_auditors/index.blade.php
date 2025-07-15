@@ -33,7 +33,10 @@
                                 @forelse ($preAuditors as $auditor)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t dark:border-gray-600">
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">
+                                            <a href="{{ route('pre-auditors.liquidations', $auditor) }}"
+                                            class="text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
                                             {{ $auditor->name }}
+                                            </a>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
                                             <a href="{{ route('pre-auditors.edit', $auditor) }}"

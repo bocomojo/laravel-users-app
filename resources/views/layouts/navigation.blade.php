@@ -43,6 +43,16 @@
                                 ]
                             ],
                             [
+                                'label' => 'Pre-Auditor Module',
+                                'submenu' => [
+                                    'label' => 'Pre-Auditor',
+                                    'routes' => [
+                                        ['label' => 'Add', 'route' => 'sdo.cash_advance.create'],
+                                        ['label' => 'View', 'route' => 'pre-auditors.index'],
+                                    ]
+                                ]
+                            ],
+                            [
                                 'label' => 'SDO Module',
                                 'submenus' => [
                                     [

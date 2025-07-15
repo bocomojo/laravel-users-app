@@ -58,6 +58,9 @@ Route::get('/sdo/{sdo_id?}/cash-advance/create', [CashAdvanceController::class, 
 Route::post('/sdo/cash-advance/import', [CashAdvanceController::class, 'import'])->name('sdo.cash_advance.import');
 Route::post('/liquidation/import', [LiquidationController::class, 'import'])->name('liquidation.import');
 Route::patch('/liquidation/mass-approve', [LiquidationController::class, 'massApprove'])->name('liquidation.massApprove');
+Route::get('/pre-auditors/{auditor}/liquidations', [App\Http\Controllers\PreAuditorController::class, 'showLiquidations'])->name('pre-auditors.liquidations');
+Route::patch('/liquidations/{liquidation}/complete', [\App\Http\Controllers\LiquidationController::class, 'markComplete'])
+    ->name('liquidation.complete');
 
 
 // ============= LIQUIDATION ==============

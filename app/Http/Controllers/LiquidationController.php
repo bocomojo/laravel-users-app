@@ -132,6 +132,12 @@
             }
         }
 
+        public function markComplete(Liquidation $liquidation)
+        {
+            $liquidation->update(['status' => 'Completed']);
+            return back()->with('success', 'Marked as completed.');
+        }
+
         public function approve($id)
         {
             $liq = Liquidation::findOrFail($id);

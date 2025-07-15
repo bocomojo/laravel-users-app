@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PreAuditor;
+use App\Models\Liquidation;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PreAuditorImport;
@@ -42,6 +43,16 @@ class PreAuditorController extends Controller
     public function edit(PreAuditor $preAuditor)
     {
         return view('pre_auditors.edit', compact('preAuditor'));
+    }
+
+    public function showLiquidations(PreAuditor $auditor)
+    {
+        $liquidations = $auditor->liquidations()->latest()->paginate(15); // assuming a `liquidations()` relationship exists
+
+        return view('pre_auditors.liquidations', [
+        'auditor' => $auditor,
+        'liquidations' => $liquidations
+        ]);
     }
 
     public function update(Request $request, PreAuditor $preAuditor)
