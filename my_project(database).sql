@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 13, 2025 at 02:58 PM
+-- Generation Time: Jul 16, 2025 at 07:18 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -101,9 +101,9 @@ CREATE TABLE `cash_advance` (
 --
 
 INSERT INTO `cash_advance` (`id`, `sdo_id`, `check_number`, `check_date`, `dv_number`, `dv_date`, `ors_number`, `ors_date`, `particulars`, `transaction_type`, `pap`, `granted_amount`, `payout_start`, `payout_end`, `status`, `demand_letter_sent_at`, `created_at`, `updated_at`) VALUES
-(5, 3, '923456781', '2025-07-14', '25-01-00002', '2025-07-14', '25-01-00003', '2025-07-14', 'Sample 2', 'Cash Advance', 1, 15000000.00, '2025-07-23', '2025-07-25', 'Ongoing', NULL, '2025-07-12 23:33:46', '2025-07-12 23:33:46'),
-(6, 7, '934567812', '2025-07-13', '25-01-00003', '2025-07-13', '25-01-00006', '2025-07-13', 'Sample 3', 'Cash Advance', 5, 12000000.00, '2025-08-06', '2025-08-08', 'Ongoing', NULL, '2025-07-12 23:34:57', '2025-07-12 23:34:57'),
-(7, 2, '912345678', '2025-07-13', '25-02-00024', '2025-07-13', '25-03-02345', '2025-07-13', 'Sample 1', 'Cash Advance', 1, 20000000.00, '2025-07-21', '2025-07-23', 'Ongoing', NULL, '2025-07-13 02:47:10', '2025-07-13 02:47:10');
+(182, 87, '2909169', '1970-01-01', '25-04-07280', '1970-01-01', '	25-04-04211', '1970-01-01', 'Payment for financial assistance to AICS in provinces of Region V (APRIL 25-26, 2025) ALBAY', 'Cash Advance', 37, 15000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04'),
+(183, 138, '2910340', '1970-01-01', '25-06-10198', '1970-01-01', '25-06-06248', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 13-July 13, 2025) - Sorsogon', 'Cash Advance', 37, 7000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04'),
+(184, 65, '2910341', '1970-01-01', '25-06-10228', '1970-01-01', '25-06-06249', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 17-July 17, 2025) - Camarines Norte', 'Cash Advance', 37, 10000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04');
 
 -- --------------------------------------------------------
 
@@ -212,14 +212,15 @@ CREATE TABLE `liquidation` (
   `granted_amount` decimal(15,2) NOT NULL,
   `for_liquidation_amount` decimal(15,2) NOT NULL,
   `liquidation_type` varchar(255) NOT NULL,
-  `liq_date_received` date NOT NULL,
-  `liq_number` varchar(255) NOT NULL,
-  `liq_date` date NOT NULL,
+  `liq_date_received` date DEFAULT NULL,
+  `liq_number` varchar(255) DEFAULT NULL,
+  `liq_date` date DEFAULT NULL,
   `or_number` varchar(255) DEFAULT NULL,
   `or_date` date DEFAULT NULL,
   `for_compliance_amount` decimal(15,2) DEFAULT NULL,
   `pre_audited_amount` decimal(15,2) DEFAULT NULL,
   `pre_auditor` varchar(255) DEFAULT NULL,
+  `status` varchar(255) NOT NULL DEFAULT 'For Checking',
   `jev_no` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -229,8 +230,15 @@ CREATE TABLE `liquidation` (
 -- Dumping data for table `liquidation`
 --
 
-INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `for_compliance_amount`, `pre_audited_amount`, `pre_auditor`, `jev_no`, `created_at`, `updated_at`) VALUES
-(20, 7, 'Nicky Palero', '912345678', 20000000.00, -200000.00, 'Liquidation', '2025-07-13', 'LR-01-00011', '2025-07-13', NULL, NULL, NULL, -200000.00, 'alexis', NULL, '2025-07-13 04:13:05', '2025-07-13 04:13:05');
+INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `for_compliance_amount`, `pre_audited_amount`, `pre_auditor`, `status`, `jev_no`, `created_at`, `updated_at`) VALUES
+(3470, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -3000000.00, 'Liquidation', '2025-07-15', 'LR-01-01231', NULL, NULL, NULL, 0.00, 0.00, 'alexis', 'For Checking', NULL, '2025-07-15 00:17:30', '2025-07-16 16:51:00'),
+(3471, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -5000000.00, 'Liquidation', '2025-07-15', 'LR-01-02312', NULL, NULL, NULL, 0.00, 0.00, 'bryan', 'For Checking', NULL, '2025-07-15 00:19:02', '2025-07-16 16:51:00'),
+(3472, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -2000000.00, 'Liquidation', '2025-07-15', 'LR-01-02311', NULL, NULL, NULL, 10131.00, 0.00, 'nicky', 'Processing', NULL, '2025-07-15 00:19:43', '2025-07-16 16:51:00'),
+(3473, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -2000000.00, 'Liquidation', '2025-07-15', 'LR-02-03423', NULL, NULL, NULL, 1000.00, 619033.00, 'alexis', 'Processing', NULL, '2025-07-15 00:20:59', '2025-07-16 16:51:00'),
+(3474, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -250000.00, 'Liquidation', '2025-07-15', 'LR-01-009234', '2025-07-17', NULL, NULL, 15000.00, -235000.00, 'bryan', 'For Approval', NULL, '2025-07-15 00:22:00', '2025-07-16 17:16:05'),
+(3475, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -1000000.00, 'Liquidation', '2025-07-16', 'LR-01-01203', NULL, NULL, NULL, 0.00, 0.00, 'Fernando Bitancur', 'For Checking', NULL, '2025-07-15 22:29:57', '2025-07-16 16:51:00'),
+(3476, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -400000.00, 'Liquidation', '2025-07-16', 'LR-01231', NULL, NULL, NULL, 0.00, 10000.00, 'roseler', 'Processing', NULL, '2025-07-15 22:33:25', '2025-07-16 16:51:00'),
+(3480, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -1500000.00, 'Liquidation', '2025-07-16', 'LR-10123', NULL, NULL, NULL, 0.00, 50000.00, 'Joshua Masarate', 'Processing', NULL, '2025-07-15 23:34:20', '2025-07-16 16:51:00');
 
 -- --------------------------------------------------------
 
@@ -268,7 +276,17 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (18, '2025_07_09_0741333_create_bonded_officials_table', 11),
 (19, '2025_07_12_060041_add_compliance_and_audit_fields_to_liquidations_table', 12),
 (20, '2025_07_12_105206_create_pre_auditors_table', 13),
-(21, '2025_07_13_031500_create_pre_auditor_liquidation_table', 14);
+(21, '2025_07_13_031500_create_pre_auditor_liquidation_table', 14),
+(22, '2025_07_13_160620_make_liq_number_and_date_nullable', 15),
+(23, '2025_07_14_025455_create_liquidated_reports_table', 16),
+(24, '2025_07_14_041835_add_status_to_liquidations_table', 17),
+(25, '2025_07_14_061401_add_liquidation_id_to_liquidated_reports_table', 18),
+(26, 'add_status_liquidated_reports', 19),
+(27, '2025_07_15_014617_make_email_nullable_in_sdo_table', 20),
+(28, '2025_07_15_045745_make_liq_date_received_nullable_in_liquidation_table', 21),
+(29, '2025_07_15_124904_create_pre_auditor_liquidation_entries_table', 22),
+(30, '2025_07_15_151651_add_for_compliance_to_pre_auditor_liquidation_entries_table', 23),
+(31, '2025_07_16_024911_change_for_compliance_column_type_in_pre_auditor_liquidation_entries_table', 24);
 
 -- --------------------------------------------------------
 
@@ -326,19 +344,22 @@ CREATE TABLE `pap` (
 --
 
 INSERT INTO `pap` (`id`, `pap_name`, `pap_code`, `created_at`, `updated_at`) VALUES
-(1, 'AICS', '1010101', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(2, 'AKAP', '1010101', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(3, 'SLP', '1010110', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(4, 'SFP', '1010102', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(5, 'PANTAWID', '1010102', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(6, 'GASS', '1010111', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(7, 'DRRP', '1010103', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(8, 'KALAHI', '1010103', '2025-07-01 23:39:49', '2025-07-01 23:39:49'),
-(11, 'nicky', '1010104', '2025-07-02 18:49:21', '2025-07-02 18:49:21'),
-(12, 'bryan', '1010105', '2025-07-02 18:49:21', '2025-07-02 18:49:21'),
-(13, 'paulo', '1010106', '2025-07-02 18:49:21', '2025-07-02 18:49:21'),
-(14, 'alexis', '1010107', '2025-07-02 18:49:21', '2025-07-02 18:49:21'),
-(15, 'justin', '1010108', '2025-07-02 18:49:21', '2025-07-02 18:49:21');
+(22, 'SLP', '101010', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(23, 'KALAHI', '101012', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(24, 'PANTAWID', '101016', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(25, 'REGULAR', '101017', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(26, 'ESA', '101022', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(27, 'SOCPEN', '101029', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(28, 'DISASTER', '101045', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(29, 'EAICS', '101066', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(30, 'NHTS', '101111', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(31, 'CENTERS', '101208', '2025-07-14 06:15:09', '2025-07-14 06:15:09'),
+(32, 'VARIOUS', '101402', '2025-07-14 06:15:10', '2025-07-14 06:15:10'),
+(33, 'SOCTECH', '101633', '2025-07-14 06:15:10', '2025-07-14 06:15:10'),
+(34, 'UCT', '102043', '2025-07-14 06:15:10', '2025-07-14 06:15:10'),
+(35, 'SFP', '102336', '2025-07-14 06:15:10', '2025-07-14 06:15:10'),
+(36, 'ICTMS', '102359', '2025-07-14 06:15:10', '2025-07-14 06:15:10'),
+(37, 'AICS', '102553', '2025-07-14 06:15:11', '2025-07-14 06:15:11');
 
 -- --------------------------------------------------------
 
@@ -409,7 +430,7 @@ CREATE TABLE `role_has_permissions` (
 CREATE TABLE `sdo` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `corporate_email` varchar(255) DEFAULT NULL,
   `contact_number` varchar(255) NOT NULL,
   `position` varchar(255) DEFAULT NULL,
@@ -424,13 +445,112 @@ CREATE TABLE `sdo` (
 --
 
 INSERT INTO `sdo` (`id`, `name`, `email`, `corporate_email`, `contact_number`, `position`, `official_station`, `employment_status`, `created_at`, `updated_at`) VALUES
-(2, 'Nicky Palero', 'reportermagic@gmail.com', NULL, '1231231', NULL, NULL, NULL, '2025-07-01 23:19:04', '2025-07-01 23:19:04'),
-(3, 'Paulo Maranan', 'ingrownmagic@gmail.com', NULL, '12312312', NULL, NULL, NULL, '2025-07-01 23:19:35', '2025-07-01 23:19:35'),
-(7, 'Roseler N. Boco', 'roselernboco16@gmail.com', 'roselernboco16@gmail.com', '09123896970', 'Administrative Aide IV', 'FO-V', 'Contract of Service', '2025-07-09 03:50:23', '2025-07-09 03:50:23'),
-(16, 'Alexis Bien', 'renegade160501@gmail.com', NULL, '12312312', 'Administrative Aide IV', 'FO-V', 'Contract of Service', '2025-07-09 05:29:29', '2025-07-09 05:29:29'),
-(17, 'Bryan Trinidad', 'roselernboco@gmail.com', NULL, '11111111', 'Administrative Aide IV', 'FO-V', 'Contract of Service', '2025-07-09 05:29:29', '2025-07-09 05:29:29'),
-(18, 'Mark Joey Noel', 'macky@gmail.com', NULL, '123123123', 'Administrative Aide IV', 'FO-V', 'Contract of Service', '2025-07-09 05:29:29', '2025-07-09 05:29:29'),
-(19, 'Rommel Boco', 'rommel@gmail.com', NULL, '12312313', 'Administrative Aide IV', 'FO-V', 'Contract of Service', '2025-07-09 05:29:29', '2025-07-09 05:29:29');
+(48, 'CIRIACO B. ABEJURO JR.', 'donabejuro@gmail.com', 'cbabejurojr.fo5@dswd.gov.ph', '912341234', 'PO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(49, 'RINA E. APUYAN', 'apuyanrina@yahoo.com', 'reapuyan.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'ALBAY', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(50, 'JOSIE JOY T. ARELLANO', 'josiejoytuberon@yahoo.com.ph', 'vmlim.fo5@dswd.gov.ph', '912341234', 'SWO II', 'CAMARINES NORTE', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(51, 'DOMINICA B. BIEN-ATIZADO', 'dbbien.fo5@gmail.com', 'dbbien.fo5@dswd.gov.ph', '912341234', 'AO III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(52, 'GERLIE L. AVILA', 'gerlieavila14@gmail.com', 'glavila.fo5@dswd.gov.ph', '912341234', 'SWO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(53, 'MARY MAY C. BAHOY', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(54, 'DARYL N. BALBASTRO', NULL, NULL, '912341234', 'SWO II', 'CATANDUANES- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(55, 'MAEVEL N. BALDO', 'nhelmaevz@gmail.com', NULL, '912341234', 'PDO II', 'SORSOGON', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(56, 'NICOLE MARIE M. BANDOJO', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(57, 'EVA D. BAÑARES', 'delumeneva@gmail.com', 'edbañares.fo5@dswd.gov.ph', '912341234', 'AO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(58, 'AILEEN MAE B. BARCELA', 'aileenmae.barcela@yahoo.com', 'abbarcela.fo5@dswd.gov.ph', '912341234', 'PDO II', 'SLP RPMO', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(59, 'KATHE GENEVIEVE S. BARCELON', 'keytgen@gmail.com', 'kssabdao.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(60, 'LLOYD DRAZEN B. BAS', 'lloyd.bas@gmail.com', 'lbbas.fo5@dswd.gov.ph', '912341234', 'SAO', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(61, 'MARK GREGORY A. BASILAN', 'basilanmg@yahoo.com', 'mabasilan.fo5@dswd.gov.ph', '912341234', 'AO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(62, 'JOY C. BELEN III', 'joyb_24@yahoo.com', 'jcbelen.fo5@dswd.gov.ph', '912341234', 'PDO IV', 'FO V', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(63, 'MA. CRISTINA S. BELLEN', 'tin_bellen@yahoo.com', 'msbellen.fo5@dswd.gov.ph', '912341234', 'SWO II', 'CAMARINES NORTE', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(64, 'MICHAEL GEROME B. BELLENA', 'mikobellena@gmail.com', 'mbbellena.fo5@dswd.gov.ph', '912341234', 'CAO', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(65, 'SUSAN M. BELLEZA', 'shawee_08@yahoo.com', 'smbelleza.fo5@dswd.gov.ph', '912341234', 'AO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(66, 'MARY ROSANNE P. BIEN', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(67, 'NERICHELLE R. BOBIS', 'nerichellerbobis@gmail.com', 'nrbobis.fo5@dswd.gov.ph', '912341234', 'AO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(68, 'JANET BONAOBRA', NULL, NULL, '912341234', 'PDO II', 'CAMARINES SUR- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(69, 'MELANIE B. BONGAT', NULL, NULL, '912341234', 'PDO II', 'CATANDUANES- SLP', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(70, 'ANJANETTE R. BRITANICO', NULL, NULL, '912341234', 'PDO II', 'CAMARINES SUR- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(71, 'RYAN C. BUENAOBRA', NULL, NULL, '912341234', 'PDO II', 'RPMO- SLP', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(72, 'CYRILL B. CABREDO', NULL, NULL, '912341234', 'SWO III', 'ALBAY- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(73, 'JEROME G. CAÑAVERAL', NULL, NULL, '912341234', 'ITO II', 'FOV- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(74, 'EARL MAXIMILLAN A. CECILIO', 'emacecilio.fo5@dswd.gov.ph', 'eacecilio.fo5@dswd.gov.ph', '912341234', 'PDO III', 'SLP RPMO', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(75, 'BREATHNEY RENEE B. CIELO', NULL, NULL, '912341234', 'PDO II', 'CAMARINES NORTE- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(76, 'SHIERAMAE L. DADO', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(77, 'CYNTHIA G. DE LA CRUZ', NULL, NULL, '912341234', 'SWO III', 'SORSOGON- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(78, 'ANDREA PATRICIA B. DE PANO', 'andrea05.adp@gmail.com', NULL, '912341234', 'SWO II', 'CATANDUANES', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(79, 'MONALIZA V. DIAZ', NULL, NULL, '912341234', 'PDO II', 'CAMARINES NORTE- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(80, 'WILSON A. ECAT', 'waecat.fo5@e-dswd.net', 'waecat.fo5@dswd.gov.ph', '912341234', 'ITO II', 'FO V', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(81, 'IRAH JEANNE B. EGO', 'irahjeanneb@gmail.com', 'ibego.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(82, 'ARLENE C. FABELLARE', 'fabellarearlene@yahoo.com', 'acfabellare.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'CAMARINES SUR', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(83, 'MA. CRISTINA M. FLORENDO', 'tinflorendo010102@gmail.com', 'mmflorendo.fo5@dswd.gov.ph', '912341234', 'ND III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(84, 'EDEN C. FLORES', 'eden_flores124@yahoo.com', 'ecflores.fo5@dswd.gov.ph', '912341234', 'PDO III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(85, 'KAREN B. GARCIA', NULL, NULL, '912341234', 'PDO II', 'CATANDUANES- SLP', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(86, 'VILMA R. GARCIA', 'vilmagarcia518@yahoo.com', 'vrgarcia.fo5@dswd.gov.ph', '912341234', 'SWO II', 'CAMARINES SUR', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(87, 'MELANIE B. GARRIDO', 'mhelgarrido05@gmail.com', 'mbgarrido.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(88, 'AISY B. GOYENA', 'aisybenitez@yahoo.com', 'abgoyena.fo5@dswd.gov.ph', '912341234', 'AA II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(89, 'CHRISTIAN A. JAQUILMO', 'jack31710@yahoo.com', 'cajaquilmo.fo5@dswd.gov.ph', '912341234', 'ITO II', 'FO V', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(90, 'NORMAN S. LAURIO', 'normanlaurio17@gmail.com', 'nslaurio@dswd.gov.ph', '912341234', 'RD', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(91, 'LLOYD S. LARA', 'lloyd.lara79@gmail.com', 'lslara.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(92, 'GLADYS O. LIBROJO', 'librojogladys2018@gmail.com', 'golibrojo.fo5@dswd.gov.ph', '912341234', 'AO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(93, 'AIMEE ROSE A. LOZANO', 'marcialozano0430@gmail.com', NULL, '912341234', 'SWO III', 'CAMARINES SUR', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(94, 'JOHN CLIFFORD E. MACASINAG', 'johncliffordmacasinag@gmail.com', 'jemacasinag.fo5@dswd.gov.ph', '912341234', 'PDO II', 'SORSOGON', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(95, 'MYLENE S. MAGALANG', 'sandigmylene24@gmail.com', 'msmagalang.fo5@dswd.gov.ph', '912341234', 'PDO II', 'MASBATE', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(96, 'BABYLYN L. MADRIDANO', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(97, 'KATRINA G. MANAYA', 'katrinamanaya@gmail.com', 'kgmanaya.fo5@dswd.gov.ph', '912341234', 'PDO II', 'SLP RPMO', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(98, 'ELLAINE M. MANCERA', 'ellainemaancera@gmail.com', NULL, '912341234', 'PDO II', 'SORSOGON', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(99, 'JINKY A. MANGAMPO', 'albaytar_jinky@yahoo.com', 'jamangampo.fo5@dswd.gov.ph', '912341234', 'AO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(100, 'CECILLE G. MAPA', 'cecille_gubot@yahoo.com', 'cgmapa.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'SORSOGON', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(101, 'MARILYN B. MARAÑO', NULL, NULL, '912341234', 'TS III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(102, 'HONEYLET M. MAROLLANO', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(103, 'RONNEL L. MARTILLANA', NULL, NULL, '912341234', 'PDO II', 'SLP RPMO', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(104, 'CHRISTIAN L. MARTINEZ', 'loqui_199@yahoo.com', 'clmartinez.fo5@dswd.gov.ph', '912341234', 'AO III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(105, 'JAYGEE J. MASANQUE', 'jagkidz_co@yahoo.com', 'jjmasanque.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(106, 'JOSIE L. MATOCIÑOS', NULL, NULL, '912341234', 'PDO II', 'CAMARINES NORTE- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(107, 'AGNES M. MAYOR', NULL, NULL, '912341234', 'PDO II', 'SLP RPMO\n', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(108, 'RHODA L. MENDAROS', 'rhodora.x2133@yahoo.com', 'rlmendaros.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(109, 'EMILY D. MENDOZA', 'emilymendozady@gmail.com', 'edmendoza.fo5@dswd.gov.ph', '912341234', 'SWO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(110, 'SAMANTHA MAE Q. MIGUEL', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(111, 'JANETH A. MIRANDA', 'mjaneth12@yahoo.com', 'jamiranda.fo5@dswd.gov.ph', '912341234', 'PDO II', 'CAMARINES NORTE', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(112, 'MARIAN T. MONSALVE', 'mariantmonsalve@gmail.com', 'mtmonsalve.fo5@dswd.gov.ph', '912341234', 'SWO II', 'CAMARINES SUR', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(113, 'LORENA T. MORADO', 'morado_lorena@yahoo.com', 'ltmorado.fo5@dswd.gov.ph', '912341234', 'PDO II', 'ALBAY', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(114, 'SHEREEN MAE R. MORASA', 'shereenmaem@gmail.com', 'srmorasa.fo5@dswd.gov.ph', '912341234', 'PDO II', 'ALBAY', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(115, 'CORA MARIE ANN D. NICOLAS', 'coramarieannnicolas@gmail.com', 'cdnicolas.fo5@dswd.gov.ph', '912341234', 'PDO II', 'CAMARINES SUR', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(116, 'LARAMIE M. OCHARAN', 'lara.ocharan@yahoo.com', 'lmocharan.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'MASBATE', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(117, 'SHIRLY J. OCHOA', 'shirlyjaca@gmail.com', 'sjochoa.fo5@dswd.gov.ph', '912341234', 'TS II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(118, 'MARY GRACE C. OJEDA', NULL, NULL, '912341234', 'SWO III', 'ALBAY- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(119, 'MARIA DIVINA GRACIA G. OLGINA', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(120, 'DONNA M. OSIAL', 'donnaosial2010@gmail.com', 'dmosial.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(121, 'MARISSA M. PAESTE', 'marissapaeste70@gmail.com', 'mmpaeste.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(122, 'JUVY E. PASANO', 'JEPasano.fo5@e-dswd.net', 'jepasano.fo5@dswd.gov.ph', '912341234', 'AO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(123, 'RANULFO C. PASANO', 'buboypasano@yahoo.com', 'rcpasano.fo5@dswd.gov.ph', '912341234', 'AA II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(124, 'MARVIE C. PEDRO', NULL, NULL, '912341234', 'SWO II', ' FO V ', ' PERMANENT ', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(125, 'MYRA JOY D. POBOCAN', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(126, 'JOCELYN A. PRELLIGERA', 'joyariolaprelligera@gmail.com', 'japrelligera.fo5@dswd.gov.ph', '912341234', 'SWO II', 'RSCC', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(127, 'DAN PAUL L. PUSE', 'danpaull@yahoo.com', 'dppuse.fo5@dswd.gov.ph', '912341234', 'PDO II', 'CAMARINES SUR', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(128, 'SHAINA B. QUINTANILLA', NULL, NULL, '912341234', 'PDO II', 'CAMARINES SUR- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(129, 'JESSA MAE C. QUIRAS', NULL, NULL, '912341234', 'PDO II', ' FOV- PANTAWID ', ' CONTRACTUAL ', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(130, 'MARITES L. QUISMORIO', 'maritesquis@yahoo.com', 'mlquismorio.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(131, 'JOANN M. RAMOS', 'joannmramos2021@gmail.com', NULL, '912341234', 'SWO III', 'RSCC', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(132, 'MA. JULIE MAY H. RAMOS', 'juliemayramos@gmail.com', 'mjmhramos.fo5@dswd.gov.ph', '912341234', 'PDO II', 'CAMARINES NORTE', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(133, 'JINDRA M. REFIL', 'jindramingoy@yahoo.com.ph', 'jmrefil.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(134, 'CHERIE ROSE E. REVILLA', NULL, NULL, '912341234', 'SWO III', 'ALBAY- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(135, 'JELLIE ANNE B. REYES', 'jellieannereyes@yahoo.com', 'jbreyes.fo5@dswd.gov.ph', '912341234', 'TS I', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(136, 'LIANE B. RICACHO', NULL, NULL, '912341234', 'PDO II', 'ALBAY- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(137, 'MA. SHIELA V. RICAFRANCA', 'mashie.ricafranca@gmail.com', 'mvricafranca.fo5@dswd.gov.ph', '912341234', 'AO II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(138, 'JESSICA O. RODRIGUEZ', 'jessica_rodriguez68@yahoo.com', 'jorodriguez.fo5@dswd.gov.ph', '912341234', 'SWO II', 'SORSOGON', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(139, 'LEAH P. RODRIGUEZ', NULL, NULL, '912341234', 'SWO III', 'SORSOGON- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(140, 'KATHERINE C. RODRIGUEZ', 'kath.rodriguez25@gmail.com', 'kcrodriguez.fo5@dswd.gov.ph', '912341234', 'SWO II', 'MASBATE', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(141, 'JAIME T. SABALLEGUE', 'jaimetsaballegue@yahoo.com', 'jtsaballegue.fo5@dswd.gov.ph', '912341234', 'PDO II', 'CAMARINES SUR', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(142, 'PRISCILLA C. SALADAGA', 'pcsaladaga@yahoo.com', 'pcsaladaga.fo5@dswd.gov.ph', '912341234', 'PDO V', 'PANTAWID RPMO', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(143, 'MARIA CRISTINA S. SAMSON', 'tin.so.samson27@gmail.com', 'mssamson.fo5@dswd.gov.ph', '912341234', 'SWO III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(144, 'MELCHOR L. SAÑANO', 'sananochoy@gmail.com', 'mlsanano.fo5@dswd.gov.ph', '912341234', 'DIRECTOR III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(145, 'LINNETH R. SEDUTAN', NULL, NULL, '912341234', 'PDO II', 'SORSOGON- AICS', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(146, 'ANALYN D. SIERRA', 'alynsierra@yahoo.com', 'adsierra.fo5@dswd.gov.ph', '912341234', 'AO V', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(147, 'SHEENA C. TAD-O', NULL, NULL, '912341234', 'SWO III', 'CAMARINES NORTE- PANTAWID', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(148, 'VICTORIA C. TAGUM', 'vickytagum50@gmail.com', 'vctagum.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(149, 'JOSEPH L. TESTON', 'joseph.teston@gmail.com', 'jlteston.fo5@dswd.gov.ph', '912341234', 'PO III', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(150, 'EDSEL A. TIANSAY JR.', 'edge_chansai@yahoo.com', 'eatiansayjr.fo5@dswd.gov.ph', '912341234', 'AA II', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(151, 'JOMAR B. VALENZUELA', 'catanduanesdatafocal@gmail.com', NULL, '912341234', 'PDO II', 'CATANDUANES', 'CONTRACTUAL', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(152, 'CLAUDIO A. VILLAREAL JR.', 'claudiovillareal@gmail.com', 'cavillarealjr.fo5@dswd.gov.ph', '912341234', 'SWO IV', 'FO V', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19'),
+(153, 'LYNDRA A. VILLAREAL', NULL, 'lavillareal.fo5@dswd.gov.ph', '912341234', 'SWO III', 'RRCY', 'PERMANENT', '2025-07-14 18:56:19', '2025-07-14 18:56:19');
 
 -- --------------------------------------------------------
 
@@ -452,7 +572,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('4unolsI5xh4KnQNjS7w7iO70kVyjmXSFfSo1P6Ko', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiSFN2Y3hnYVdzVDlsdzZ5Qk9OYWtVcXUzRGo1VmF1bTRUN0tsRU4zTSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9saXF1aWRhdGlvbi9jcmVhdGUiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=', 1752411468);
+('8RL5jfopnmI7Tciyau2SFLcxBO48irPky0j5dVcH', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiU1pwNlJpT0FOOG9Ib3VDUjhYUFQwbXlua1NJb1E0QmpQNHFvZGtQQiI7czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czozODoiaHR0cDovLzEyNy4wLjAuMTo4MDAwL2xpcXVpZGF0aW9uPzE4Mz0iO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1752686167);
 
 -- --------------------------------------------------------
 
@@ -649,7 +769,7 @@ ALTER TABLE `bonded_officials`
 -- AUTO_INCREMENT for table `cash_advance`
 --
 ALTER TABLE `cash_advance`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=188;
 
 --
 -- AUTO_INCREMENT for table `compliance_files`
@@ -685,19 +805,19 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `liquidation`
 --
 ALTER TABLE `liquidation`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3481;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `pap`
 --
 ALTER TABLE `pap`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -715,7 +835,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `sdo`
 --
 ALTER TABLE `sdo`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
 
 --
 -- AUTO_INCREMENT for table `users`
