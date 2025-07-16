@@ -69,6 +69,8 @@ Route::get('/pre-auditors/{id}/liquidations', [PreAuditorController::class, 'sho
     ->name('pre-auditor.show');
 Route::patch('/liquidations/{liquidation}/set-draft', [\App\Http\Controllers\LiquidationController::class, 'setAsDraft'])
     ->name('liquidation.set-draft');
+    Route::patch('/liquidation/{id}/mark-for-approval', [LiquidationController::class, 'markForApproval'])->name('liquidation.markForApproval');
+
 
 
 // ============= LIQUIDATION ==============

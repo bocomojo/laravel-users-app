@@ -176,10 +176,19 @@
                                        <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
                                             @if ($liq->status === 'Draft')
                                                 <a href="{{ route('liquidation.edit', $liq->id) }}"
-                                                onclick="event.stopPropagation()"
-                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                    onclick="event.stopPropagation()"
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
                                                     Edit
                                                 </a>
+
+                                                <form action="{{ route('liquidation.markForApproval', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs">
+                                                        Done
+                                                    </button>
+                                                </form>
                                             @endif
 
                                             @if (in_array($liq->status, ['For Checking', 'Processing']))
@@ -190,7 +199,7 @@
                                                 </button>
                                             @endif
 
-                                            @if (in_array($liq->status, ['For Approval','Draft']))
+                                            @if ($liq->status === 'For Approval')    
                                                 <form action="{{ route('liquidation.approve', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
                                                     @csrf
                                                     @method('PATCH')

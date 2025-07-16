@@ -164,6 +164,18 @@ class LiquidationController extends Controller
         return back()->with('success', 'Marked as completed.');
     }
 
+    public function markForApproval($id)
+    {
+        $liq = Liquidation::findOrFail($id);
+
+        if ($liq->status === 'Draft') {
+            $liq->status = 'For Approval';
+            $liq->save();
+        }
+
+        return redirect()->back()->with('success', 'Marked as For Approval.');
+    }
+
     public function approve($id)
     {
         $liq = Liquidation::findOrFail($id);
@@ -317,10 +329,9 @@ class LiquidationController extends Controller
         public function edit($id)
         {
             $liquidation = Liquidation::findOrFail($id);
-            $sdo = Sdo::where('name', $liquidation->sdo_name)->first(); // optional, if you need full SDO object
-            // $preAuditors = PreAuditor::orderBy('name')->get();
+            $sdo = Sdo::where('name', $liquidation->sdo_name)->first();
 
-            return view('liquidation.edit', compact('liquidation', 'sdo', 'preAuditors'));
+            return view('liquidation.edit', compact('liquidation', 'sdo'));
         }
 
         public function update(Request $request, $id)
