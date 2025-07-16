@@ -61,6 +61,14 @@ Route::patch('/liquidation/mass-approve', [LiquidationController::class, 'massAp
 Route::get('/pre-auditors/{auditor}/liquidations', [App\Http\Controllers\PreAuditorController::class, 'showLiquidations'])->name('pre-auditors.liquidations');
 Route::patch('/liquidations/{liquidation}/complete', [\App\Http\Controllers\LiquidationController::class, 'markComplete'])
     ->name('liquidation.complete');
+Route::post('/pre-auditor/liquidations/add-entry', [PreAuditorController::class, 'storeEntry'])
+    ->name('pre-auditor.liquidations.add-entry');
+Route::post('/pre-auditor/liquidations/add-entry', [PreAuditorController::class, 'addEntry'])
+    ->name('pre-auditor.liquidations.add-entry');
+Route::get('/pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])
+    ->name('pre-auditor.show');
+
+    
 
 
 // ============= LIQUIDATION ==============

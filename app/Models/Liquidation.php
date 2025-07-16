@@ -9,7 +9,7 @@ class Liquidation extends Model
 {
     use HasFactory;
 
-    protected $table = 'liquidation'; // explicitly specify table name
+    protected $table = 'liquidation';
 
     protected $fillable = [
     'cash_advance_id',
@@ -37,6 +37,12 @@ public function preAuditors()
 {
     return $this->belongsToMany(PreAuditor::class, 'pre_auditor_liquidation', 'liquidation_id', 'pre_auditor_id')->withTimestamps();
 }
+
+public function preAuditEntries()
+{
+    return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class);
+}
+
 
 
 }

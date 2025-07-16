@@ -28,7 +28,7 @@
                     </button>
                 </div>
 
-                <form action="{{ route('liquidation.massApprove') }}" method="POST" onsubmit="return confirm('Are you sure you want to approve all For Checking records?');">
+                <!-- <form action="{{ route('liquidation.massApprove') }}" method="POST" onsubmit="return confirm('Are you sure you want to approve all For Checking records?');">
     @csrf
     @method('PATCH')
     <button type="submit"
@@ -36,7 +36,7 @@
         Approve All
     </button>
 </form>
-    
+     -->
 
                 {{-- Filters & Search --}}
                 <form method="GET" class="px-6 py-4 border-b dark:border-gray-700">
@@ -109,7 +109,7 @@
                                 <th class="px-6 py-3">Type</th>
                                 <th class="px-6 py-3">Received</th>
                                 <th class="px-6 py-3">Reference (LR/OR)</th>
-                                <th class="px-6 py-3">LR/OR Date</th>
+                                <th class="px-6 py-3">Reviewed Date</th>
                                 <th class="px-6 py-3">Pre-Auditor</th>
                                 <th class="px-6 py-3 text-center">Action</th>
                             </tr>

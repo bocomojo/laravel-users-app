@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PreAuditor;
-use App\Models\Liquidation;
+use App\Models\{PreAuditor, Liquidation, PreAuditorLiquidationEntry};
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PreAuditorImport;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class PreAuditorController extends Controller
 {
@@ -28,14 +29,11 @@ class PreAuditorController extends Controller
             return back()->with('success', 'Pre-Auditors imported successfully.');
         }
 
-        // Fallback: single name
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        PreAuditor::create([
-            'name' => $request->name,
-        ]);
+        PreAuditor::create(['name' => $request->name]);
 
         return back()->with('success', 'Pre-Auditor added successfully.');
     }
@@ -45,23 +43,98 @@ class PreAuditorController extends Controller
         return view('pre_auditors.edit', compact('preAuditor'));
     }
 
-    public function showLiquidations(PreAuditor $auditor)
+    public function showLiquidations($id)
     {
-        $liquidations = $auditor->liquidations()->latest()->paginate(15); // assuming a `liquidations()` relationship exists
+        $auditor = PreAuditor::findOrFail($id);
 
-        return view('pre_auditors.liquidations', [
-        'auditor' => $auditor,
-        'liquidations' => $liquidations
+        $liquidations = $auditor->liquidation()
+            ->orderByRaw("CASE WHEN status = 'Completed' THEN 1 ELSE 0 END ASC")
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Time frames
+        $yesterday = Carbon::yesterday();
+        $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+
+        $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
+        $endOfLastMonth = Carbon::now()->subMonth()->endOfMonth();
+
+        // Fixed period totals
+        $yesterdayTotal = $auditor->preAuditEntries()
+            ->whereDate('created_at', $yesterday)
+            ->sum(DB::raw('amount + for_compliance'));
+
+        $lastWeekTotal = $auditor->preAuditEntries()
+            ->whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
+            ->sum(DB::raw('amount + for_compliance'));
+
+        $lastMonthTotal = $auditor->preAuditEntries()
+            ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+            ->sum(DB::raw('amount + for_compliance'));
+
+        // Optional custom range summary
+        $customTotal = null;
+
+        if (request()->filled('custom_date')) {
+            $customDate = Carbon::parse(request('custom_date'))->startOfDay();
+            $customTotal = $auditor->preAuditEntries()
+                ->whereDate('created_at', $customDate)
+                ->sum(DB::raw('amount + for_compliance'));
+
+        } elseif (request()->filled('custom_month')) {
+            $customMonth = Carbon::parse(request('custom_month'));
+            $startOfCustomMonth = $customMonth->startOfMonth();
+            $endOfCustomMonth = $customMonth->endOfMonth();
+
+            $customTotal = $auditor->preAuditEntries()
+                ->whereBetween('created_at', [$startOfCustomMonth, $endOfCustomMonth])
+                ->sum(DB::raw('amount + for_compliance'));
+        }
+
+        $totalAssigned = $liquidations->count();
+        $totalCompleted = $liquidations->where('status', 'Completed')->count();
+        $totalForChecking = $liquidations->where('status', 'For Checking')->count();
+
+        return view('pre_auditors.liquidations', compact(
+            'auditor',
+            'liquidations',
+            'yesterdayTotal',
+            'lastWeekTotal',
+            'lastMonthTotal',
+            'customTotal',
+            'totalAssigned',
+            'totalCompleted',
+            'totalForChecking'
+        ));
+    }
+
+    public function addEntry(Request $request)
+    {
+        $request->validate([
+            'pre_auditor_id'   => 'required|exists:pre_auditors,id',
+            'liquidation_id'   => 'required|exists:liquidation,id',
+            'amount'           => 'required|numeric|min:0.01',
+            'for_compliance'   => 'required|boolean',
         ]);
+
+        $entryData = [
+            'pre_auditor_id' => $request->pre_auditor_id,
+            'liquidation_id' => $request->liquidation_id,
+            'amount'         => $request->for_compliance ? 0 : $request->amount,
+            'for_compliance' => $request->for_compliance ? $request->amount : 0,
+        ];
+
+        PreAuditorLiquidationEntry::create($entryData);
+
+        return back()->with('success', 'Pre-audit entry added successfully.');
     }
 
     public function update(Request $request, PreAuditor $preAuditor)
     {
-        $request->validate([
-            'name' => 'required|string|max:255'
-        ]);
-
+        $request->validate(['name' => 'required|string|max:255']);
         $preAuditor->update($request->only('name'));
+
         return redirect()->route('pre-auditors.index')->with('success', 'Pre-Auditor updated.');
     }
 

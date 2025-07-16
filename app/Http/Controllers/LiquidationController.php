@@ -12,6 +12,7 @@
     use App\Models\LiquidatedReport;
     use Maatwebsite\Excel\Facades\Excel;
     use App\Imports\LiquidationImport;
+    use Illuminate\Support\Facades\DB;
 
     class LiquidationController extends Controller
     {
@@ -171,7 +172,14 @@
         public function create(Request $request)
         {
             $cashAdvance = null;
-            $preAuditors = PreAuditor::orderBy('name')->get();
+
+            $preAuditors = \App\Models\PreAuditor::withSum(['liquidation' => function ($query) {
+                $query->where('status', 'For Checking');
+            }], 'for_liquidation_amount')
+            ->get()
+            ->sortBy(function ($auditor) {
+                return abs($auditor->liquidation_sum_for_liquidation_amount ?? 0);
+            });
 
             if ($request->has('cash_advance_id')) {
                 $cashAdvance = CashAdvance::with('sdo')->findOrFail($request->get('cash_advance_id'));
@@ -220,17 +228,17 @@
             $validated['for_liquidation_amount'] = -abs($validated['for_liquidation_amount']);
             $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] + $request->input('for_compliance_amount', 0);
 
-            if ($request->has('pre_auditors')) {
-                $names = PreAuditor::whereIn('id', $request->pre_auditors)->pluck('name')->toArray();
-                $validated['pre_auditor'] = implode(', ', $names);
+            if ($request->has('pre_auditor')) {
+                $auditor = PreAuditor::find($request->pre_auditor);
+                $validated['pre_auditor'] = $auditor?->name ?? null;
             } else {
                 $validated['pre_auditor'] = null;
             }
 
             $liquidation = Liquidation::create($validated);
 
-            if ($request->has('pre_auditors')) {
-                $liquidation->preAuditors()->sync($request->pre_auditors);
+            if ($request->filled('pre_auditor')) {
+                $liquidation->preAuditors()->sync([$request->pre_auditor]);
             }
 
             if ($validated['cash_advance_id']) {
