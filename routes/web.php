@@ -67,8 +67,8 @@ Route::post('/pre-auditor/liquidations/add-entry', [PreAuditorController::class,
     ->name('pre-auditor.liquidations.add-entry');
 Route::get('/pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])
     ->name('pre-auditor.show');
-
-    
+Route::patch('/liquidations/{liquidation}/set-draft', [\App\Http\Controllers\LiquidationController::class, 'setAsDraft'])
+    ->name('liquidation.set-draft');
 
 
 // ============= LIQUIDATION ==============

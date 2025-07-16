@@ -129,15 +129,4 @@
         });
     </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const toggleBtn = document.getElementById('toggleAuditors');
-            const auditorList = document.getElementById('auditorList');
-
-            toggleBtn.addEventListener('click', function () {
-                auditorList.classList.toggle('hidden');
-            });
-        });
-    </script>
-
 </x-app-layout>

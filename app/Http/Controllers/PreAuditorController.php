@@ -109,26 +109,56 @@ class PreAuditorController extends Controller
         ));
     }
 
-    public function addEntry(Request $request)
-    {
-        $request->validate([
-            'pre_auditor_id'   => 'required|exists:pre_auditors,id',
-            'liquidation_id'   => 'required|exists:liquidation,id',
-            'amount'           => 'required|numeric|min:0.01',
-            'for_compliance'   => 'required|boolean',
+public function addEntry(Request $request)
+{
+    $request->validate([
+        'liquidation_id'   => 'required|exists:liquidation,id',
+        'amount'           => 'required|numeric|min:0.01',
+        'for_compliance'   => 'required|boolean',
+    ]);
+
+    // Get pre_auditor_id from pivot
+    $preAuditorId = DB::table('pre_auditor_liquidation')
+        ->where('liquidation_id', $request->liquidation_id)
+        ->value('pre_auditor_id');
+
+    if (!$preAuditorId) {
+        return back()->withErrors([
+            'pre_auditor_id' => 'No assigned pre-auditor found for this liquidation.'
         ]);
-
-        $entryData = [
-            'pre_auditor_id' => $request->pre_auditor_id,
-            'liquidation_id' => $request->liquidation_id,
-            'amount'         => $request->for_compliance ? 0 : $request->amount,
-            'for_compliance' => $request->for_compliance ? $request->amount : 0,
-        ];
-
-        PreAuditorLiquidationEntry::create($entryData);
-
-        return back()->with('success', 'Pre-audit entry added successfully.');
     }
+
+    // Create new entry
+    PreAuditorLiquidationEntry::create([
+        'pre_auditor_id' => $preAuditorId,
+        'liquidation_id' => $request->liquidation_id,
+        'amount'         => $request->for_compliance ? 0 : $request->amount,
+        'for_compliance' => $request->for_compliance ? $request->amount : 0,
+    ]);
+
+    // Recalculate and update liquidation
+    $liquidation = Liquidation::findOrFail($request->liquidation_id);
+    $entries = $liquidation->preAuditEntries;
+
+    $totalComplied   = $entries->sum('amount');
+    $totalCompliance = $entries->sum('for_compliance');
+    $totalCombined   = $totalComplied + $totalCompliance;
+
+    $liquidation->pre_audited_amount    = $totalComplied;
+    $liquidation->for_compliance_amount = $totalCompliance;
+
+    if ($entries->isNotEmpty()) {
+        $liquidation->status = 'Processing';
+    }
+
+    if (round($totalCombined, 2) === round(abs($liquidation->for_liquidation_amount), 2)) {
+        $liquidation->status = 'For Approval';
+    }
+
+    $liquidation->save();
+
+    return back()->with('success', 'Pre-audit entry added and totals updated.');
+}
 
     public function update(Request $request, PreAuditor $preAuditor)
     {

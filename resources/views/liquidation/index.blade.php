@@ -28,16 +28,6 @@
                     </button>
                 </div>
 
-                <!-- <form action="{{ route('liquidation.massApprove') }}" method="POST" onsubmit="return confirm('Are you sure you want to approve all For Checking records?');">
-    @csrf
-    @method('PATCH')
-    <button type="submit"
-        class="ml-6 mb-4 bg-green-700 hover:bg-green-800 text-white text-sm px-4 py-2 rounded-md">
-        Approve All
-    </button>
-</form>
-     -->
-
                 {{-- Filters & Search --}}
                 <form method="GET" class="px-6 py-4 border-b dark:border-gray-700">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -116,10 +106,23 @@
                         </thead>
                         <tbody>
                             @forelse ($liquidations as $liq)
-                                <tr class="{{ $loop->odd ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700' }} hover:bg-blue-50 dark:hover:bg-gray-600 transition">
+                            @php
+                                    $entries = $liq->preAuditEntries
+                                        ->where('pre_auditor_id', optional($liq->preAuditors->first())->id)
+                                        ->sortByDesc('created_at');
+
+                                    $totalPreAudited = $entries->sum(function ($entry) {
+                                        return ($entry->amount ?? 0) + ($entry->for_compliance ?? 0);
+                                    });
+
+                                    $hasComplianceEntry = $entries->where('for_compliance', '>', 0)->count() > 0;
+
+                                    $isComplete = ($liq->for_liquidation_amount - $totalPreAudited) == 0 && $hasComplianceEntry;
+                                @endphp
+                                <tr class="{{ $loop->odd ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700' }} hover:bg-blue-50 dark:hover:bg-gray-600 transition" onclick="toggleEntry({{ $liq->id }})">
                                     <td class="px-6 py-3">{{ $liq->sdo_name }}</td>
                                     <td class="px-6 py-3">
-                                        <a href="{{ route('liquidation.show', $liq->cash_advance_id) }}" class="text-blue-600 hover:underline">
+                                        <a href="{{ route('liquidation.show', $liq->cash_advance_id) }}" onclick="event.stopPropagation()" class="text-blue-600 hover:underline">
                                             {{ $liq->check_number }}
                                         </a>
                                     </td>
@@ -127,25 +130,21 @@
                                     <td class="px-6 py-3">₱{{ number_format($liq->for_compliance_amount ?? 0, 2) }}</td>
                                     <td class="px-6 py-3">₱{{ number_format($liq->pre_audited_amount ?? 0, 2) }}</td>
                                     <td class="px-6 py-3">
-                                        @switch($liq->status)
-                                            @case('For Checking')
-                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-yellow-200 text-yellow-800 rounded-full">
-                                                    For Checking
-                                                </span>
-                                                @break
+                                            @php
+                                                $status = $liq->status;
+                                                $statusStyles = [
+                                                    'For Checking' => 'bg-yellow-200 text-yellow-800',
+                                                    'Processing'   => 'bg-orange-200 text-orange-800',
+                                                    'Approved'     => 'bg-green-100 text-green-800',
+                                                    'For Approval' => 'bg-blue-200 text-blue-800',
+                                                    'Completed'    => 'bg-gray-300 text-gray-900',
+                                                ];
+                                            @endphp
 
-                                            @case('Approved')
-                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
-                                                    Approved
-                                                </span>
-                                                @break
-
-                                            @default
-                                                <span class="inline-block px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full">
-                                                    {{ $liq->status ?? '—' }}
-                                                </span>
-                                        @endswitch
-                                    </td>
+                                            <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full {{ $statusStyles[$status] ?? 'bg-gray-100 text-gray-800' }}">
+                                                {{ $status ?? '—' }}
+                                            </span>
+                                        </td>
                                     <td class="px-6 py-3">{{ $liq->liquidation_type }}</td>
                                     <td class="px-6 py-3">{{ $liq->liq_date_received ?? '—' }}</td>
 
@@ -156,7 +155,7 @@
                                         @elseif ($liq->liquidation_type === 'Liquidation')
                                             {{ $liq->liq_number ?? '—' }}
                                         @else
-                                            —
+                                            — 
                                         @endif
                                     </td>
 
@@ -167,20 +166,32 @@
                                         @elseif ($liq->liquidation_type === 'Liquidation')
                                             {{ $liq->liq_date ? \Carbon\Carbon::parse($liq->liq_date)->format('F d, Y') : '—' }}
                                         @else
-                                            —
+                                            — 
                                         @endif
                                     </td>
                                     <td class="px-6 py-3 text-center">{{ $liq->pre_auditor }}</td>
-                                    {{-- Actions --}}
-                                    <td class="px-6 py-3 text-center">
-                                        <div class="flex justify-center gap-6">
-                                            <a href="{{ route('liquidation.edit', $liq->id) }}"
-                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                                Edit
-                                            </a>
 
-                                            @if ($liq->status === 'For Checking')
-                                                <form action="{{ route('liquidation.approve', $liq->id) }}" method="POST">
+                                    {{-- Actions --}}
+                                    <td class="px-4 py-2 text-center space-y-2">
+                                       <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
+                                            @if ($liq->status === 'Draft')
+                                                <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                                onclick="event.stopPropagation()"
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                    Edit
+                                                </a>
+                                            @endif
+
+                                            @if (in_array($liq->status, ['For Checking', 'Processing']))
+                                                <button 
+                                                    onclick="event.stopPropagation(); document.getElementById('modal-{{ $liq->id }}').classList.remove('hidden')" 
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
+                                                    Add Pre-Audited
+                                                </button>
+                                            @endif
+
+                                            @if (in_array($liq->status, ['For Approval','Draft']))
+                                                <form action="{{ route('liquidation.approve', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit"
@@ -189,9 +200,113 @@
                                                     </button>
                                                 </form>
                                             @endif
+
+                                            @if ($liq->status === 'Approved')
+                                                <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
+                                                        Set as Draft
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
+                                <!-- Add Pre-Audited Modal -->
+                                <div id="modal-{{ $liq->id }}" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+                                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+                                        <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                                            Add Pre-Audited Entry — {{ $liq->liq_number ?? $liq->check_number }}
+                                        </h2>
+
+                                        @if ($errors->any())
+                                            <div class="mb-4 bg-red-100 text-red-700 px-4 py-2 rounded">
+                                                <ul class="text-sm list-disc pl-5">
+                                                    @foreach ($errors->all() as $error)
+                                                        <li>{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+
+                                        <form method="POST" action="{{ route('pre-auditor.liquidations.add-entry') }}">
+                                            @csrf
+
+                                            {{-- Hidden liquidation ID --}}
+                                            <input type="hidden" name="liquidation_id" value="{{ $liq->id }}">
+
+                                            {{-- Amount Field --}}
+                                            <div class="mb-4">
+                                                <label class="block text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+                                                <input type="number" name="amount" step="0.01" placeholder="₱0.00"
+                                                    class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white" required>
+                                            </div>
+
+                                            {{-- Entry Type --}}
+                                            <div class="mb-4">
+                                                <label class="block text-gray-700 dark:text-gray-300 mb-1">Entry Type</label>
+                                                <select name="for_compliance" class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white" required>
+                                                    <option value="0">Complied</option>
+                                                    <option value="1">For Compliance</option>
+                                                </select>
+                                            </div>
+
+                                            {{-- Modal Actions --}}
+                                            <div class="flex justify-end space-x-2">
+                                                <button type="button"
+                                                    onclick="document.getElementById('modal-{{ $liq->id }}').classList.add('hidden')" 
+                                                    class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded">
+                                                    Cancel
+                                                </button>
+                                                <button type="submit"
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                                                    Save
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Entry Table -->
+                                @if($entries->count())
+                                    <tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-700">
+                                        <td colspan="9" class="px-4 py-2">
+                                            <table class="w-full text-xs text-left">
+                                                <thead>
+                                                    <tr class="text-gray-600 dark:text-gray-300">
+                                                        <th class="py-1 px-2">Amount</th>
+                                                        <th class="py-1 px-2">Type</th>
+                                                        <th class="py-1 px-2">Date Submitted</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($entries as $entry)
+                                                        @php
+                                                            $isCompliance = $entry->for_compliance > 0;
+                                                            $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
+                                                            $typeLabel = $isCompliance ? 'For Compliance' : 'Complied';
+                                                            $textColor = $isCompliance ? 'text-yellow-600' : 'text-green-600';
+                                                        @endphp
+
+                                                        @if($displayAmount > 0)
+                                                            <tr class="border-t border-gray-300 dark:border-gray-600">
+                                                                <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
+                                                                <td class="py-1 px-2">
+                                                                    <span class="text-xs font-semibold {{ $textColor }}">
+                                                                        {{ $typeLabel }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                @endif
                             @empty
                                 <tr>
                                     <td colspan="12" class="text-center px-6 py-6 text-gray-500 dark:text-gray-400">
@@ -209,85 +324,100 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- Export Modal --}}
-        <div x-show="openExportModal" x-cloak class="fixed inset-0 flex items-center justify-center z-50">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="openExportModal = false"></div>
-            <form method="GET" action="{{ route('liquidation.condensed.export') }}"
-                class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-md w-full max-w-lg z-50 space-y-4">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Condensed Export Filters</h2>
+    {{-- Export Modal --}}
+    <div x-show="openExportModal" x-cloak class="fixed inset-0 flex items-center justify-center z-50">
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="openExportModal = false"></div>
+        <form method="GET" action="{{ route('liquidation.condensed.export') }}"
+            class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-md w-full max-w-lg z-50 space-y-4">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Condensed Export Filters</h2>
 
-                {{-- Liquidation Date Range --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date From</label>
-                        <input type="date" name="liq_date_from"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date To</label>
-                        <input type="date" name="liq_date_to"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                    </div>
-                </div>
-
-                {{-- Received Date Range --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-sm text-gray-700 dark:text-gray-300">Received Date From</label>
-                        <input type="date" name="received_date_from"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-sm text-gray-700 dark:text-gray-300">Received Date To</label>
-                        <input type="date" name="received_date_to"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                    </div>
-                </div>
-
-                {{-- Type --}}
+            {{-- Liquidation Date Range --}}
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-sm text-gray-700 dark:text-gray-300">Type</label>
-                    <select name="type"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">All</option>
-                        <option value="Liquidation">Liquidation</option>
-                        <option value="Refund">Refund</option>
-                    </select>
-                </div>
-
-                {{-- SDO Name --}}
-                <div>
-                    <label class="text-sm text-gray-700 dark:text-gray-300">SDO Name</label>
-                    <select name="sdo_name"
-                            class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">All</option>
-                        @foreach($sdos as $sdo)
-                            <option value="{{ $sdo->name }}">{{ $sdo->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Number --}}
-                <div>
-                    <label class="text-sm text-gray-700 dark:text-gray-300">Check or Liq Number</label>
-                    <input type="text" name="number"
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date From</label>
+                    <input type="date" name="liq_date_from"
                         class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
-
-                {{-- Actions --}}
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="openExportModal = false"
-                            class="px-4 py-2 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded">
-                        Export
-                    </button>
+                <div>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Liq Date To</label>
+                    <input type="date" name="liq_date_to"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
-            </form>
-        </div>
+            </div>
 
+            {{-- Received Date Range --}}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Received Date From</label>
+                    <input type="date" name="received_date_from"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Received Date To</label>
+                    <input type="date" name="received_date_to"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                </div>
+            </div>
+
+            {{-- Type --}}
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Type</label>
+                <select name="type"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <option value="">All</option>
+                    <option value="Liquidation">Liquidation</option>
+                    <option value="Refund">Refund</option>
+                </select>
+            </div>
+
+            {{-- SDO Name --}}
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">SDO Name</label>
+                <select name="sdo_name"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <option value="">All</option>
+                    @foreach($sdos as $sdo)
+                        <option value="{{ $sdo->name }}">{{ $sdo->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Number --}}
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Check or Liq Number</label>
+                <input type="text" name="number"
+                    class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+
+            {{-- Actions --}}
+            <div class="flex justify-end gap-2">
+                <button type="button" @click="openExportModal = false"
+                        class="px-4 py-2 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded">
+                    Export
+                </button>
+            </div>
+        </form>
     </div>
+<script>
+    function toggleEntry(id) {
+        const target = document.getElementById(`entries-${id}`);
+        const isHidden = target.classList.contains('hidden');
+
+        // Close all
+        document.querySelectorAll('[id^="entries-"]').forEach(el => el.classList.add('hidden'));
+
+        // Only open if it was previously hidden
+        if (isHidden) {
+            target.classList.remove('hidden');
+        }
+    }
+</script>
+
+
 </x-app-layout>
