@@ -43,6 +43,11 @@ class Liquidation extends Model
         )->withTimestamps();
     }
 
+    public function preAuditor()
+    {
+        return $this->belongsTo(PreAuditor::class, 'pre_auditor');
+    }
+
     public function preAuditEntries()
     {
         return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class);

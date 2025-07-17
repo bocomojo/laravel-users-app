@@ -120,17 +120,57 @@
                                     <td class="px-4 py-2">{{ $liq->status ?? '—' }}</td>
                                     <td class="px-4 py-2">{{ $liq->liq_date_received ?? '—' }}</td>
                                     <td class="px-4 py-2 text-center space-y-2">
-                                        @if($isComplete)
-                                            <button class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded cursor-default">
-                                                Complete
-                                            </button>
-                                        @else
-                                            <button 
-                                                onclick="event.stopPropagation(); document.getElementById('modal-{{ $liq->id }}').classList.remove('hidden')" 
-                                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
-                                                Add Pre-Audited
-                                            </button>
-                                        @endif
+                                        <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
+                                            @if ($liq->status === 'Draft')
+                                                <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                    Edit
+                                                </a>
+                                                <form action="{{ route('liquidation.markForApproval', $liq->id) }}" method="POST" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs">
+                                                        Done
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if (in_array($liq->status, ['For Checking', 'Processing']))
+                                                <button onclick="event.stopPropagation(); document.getElementById('modal-{{ $liq->id }}').classList.remove('hidden')"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
+                                                    Add Pre-Audit
+                                                </button>
+                                            @endif
+
+                                            @if ($liq->status === 'For Approval')
+                                                <form action="{{ route('liquidation.approve', $liq->id) }}" method="POST" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
+                                                        Approve
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if ($liq->status === 'Approved')
+                                                <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                        class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
+                                                        Set as Draft
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if ($isComplete)
+                                                <button class="bg-gray-500 text-white text-xs px-3 py-1 rounded cursor-default" disabled>
+                                                    Complete
+                                                </button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
 

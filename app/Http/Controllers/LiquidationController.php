@@ -63,59 +63,64 @@ class LiquidationController extends Controller
     }
 
     public function index(Request $request)
-{
-    $query = Liquidation::with([
-        'cashAdvance',
-        'cashAdvance.sdo',
-        'cashAdvance.pap',
-        'preAuditEntries',
-    ]);
+    {
+        $query = Liquidation::with([
+            'cashAdvance',
+            'cashAdvance.sdo',
+            'cashAdvance.pap',
+            'preAuditEntries',
+            'preAuditor',
+        ]);
 
-    if ($request->filled('type')) {
-        $query->where('liquidation_type', $request->type);
-    }
+        if ($request->filled('type')) {
+            $query->where('liquidation_type', $request->type);
+        }
 
-    if ($request->filled('date_from')) {
-        $query->whereDate('liq_date', '>=', $request->date_from);
-    }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-    if ($request->filled('date_to')) {
-        $query->whereDate('liq_date', '<=', $request->date_to);
-    }
+        if ($request->filled('date_from')) {
+            $query->whereDate('liq_date', '>=', $request->date_from);
+        }
 
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('sdo_name', 'like', "%{$search}%")
-                ->orWhere('liq_number', 'like', "%{$search}%")
-                ->orWhere('liq_date_received', 'like', "%{$search}%")
-                ->orWhere('check_number', 'like', "%{$search}%");
-        });
-    }
+        if ($request->filled('date_to')) {
+            $query->whereDate('liq_date', '<=', $request->date_to);
+        }
 
-    $liquidations = $query->latest()->paginate(15)->appends($request->query());
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('sdo_name', 'like', "%{$search}%")
+                    ->orWhere('liq_number', 'like', "%{$search}%")
+                    ->orWhere('liq_date_received', 'like', "%{$search}%")
+                    ->orWhere('check_number', 'like', "%{$search}%");
+            });
+        }
 
-    // ✅ Override status ONLY IF it's still in progress (not already Approved or Completed)
-    foreach ($liquidations as $liq) {
-        if (in_array($liq->status, ['For Checking', 'Processing'])) {
-            if ($liq->status === 'For Checking' && $liq->preAuditEntries->isNotEmpty()) {
-                $liq->status = 'Processing';
-            }
+        $liquidations = $query->latest()->paginate(15)->appends($request->query());
 
-            $totalPreAudit = $liq->preAuditEntries->sum('amount');
-            $expectedTotal = abs($liq->for_liquidation_amount);
-            $complianceAmount = $liq->for_compliance_amount ?? 0;
+        // ✅ Override status ONLY IF it's still in progress (not already Approved or Completed)
+        foreach ($liquidations as $liq) {
+            if (in_array($liq->status, ['For Checking', 'Processing'])) {
+                if ($liq->status === 'For Checking' && $liq->preAuditEntries->isNotEmpty()) {
+                    $liq->status = 'Processing';
+                }
 
-            if (abs($totalPreAudit + $complianceAmount - $expectedTotal) < 0.01) {
-                $liq->status = 'For Approval';
+                $totalPreAudit = $liq->preAuditEntries->sum('amount');
+                $expectedTotal = abs($liq->for_liquidation_amount);
+                $complianceAmount = $liq->for_compliance_amount ?? 0;
+
+                if (abs($totalPreAudit + $complianceAmount - $expectedTotal) < 0.01) {
+                    $liq->status = 'For Approval';
+                }
             }
         }
+
+        $sdos = Sdo::orderBy('name')->get();
+
+        return view('liquidation.index', compact('liquidations', 'sdos'));
     }
-
-    $sdos = Sdo::orderBy('name')->get();
-
-    return view('liquidation.index', compact('liquidations', 'sdos'));
-}
 
     public function show($id, Request $request)
     {
@@ -179,9 +184,13 @@ class LiquidationController extends Controller
     public function approve($id)
     {
         $liq = Liquidation::findOrFail($id);
+
+        // Set status and current date
         $liq->status = 'Approved';
+        $liq->liq_date = now()->toDateString(); // Set current date
         $liq->save();
 
+        // Create report with the updated liq_date
         LiquidatedReport::create([
             'liquidation_id' => $liq->id,
             'cash_advance_id' => $liq->cash_advance_id,
@@ -195,7 +204,7 @@ class LiquidationController extends Controller
             'status' => $liq->status,
             'liq_date_received' => $liq->liq_date_received,
             'liq_number' => $liq->liq_number,
-            'liq_date' => $liq->liq_date,
+            'liq_date' => $liq->liq_date, // now set to today's date
             'or_number' => $liq->or_number,
             'or_date' => $liq->or_date,
             'pre_auditor' => $liq->pre_auditor,
@@ -335,51 +344,52 @@ class LiquidationController extends Controller
         }
 
         public function update(Request $request, $id)
-        {
-            $liquidation = Liquidation::findOrFail($id);
+{
+    $liquidation = Liquidation::findOrFail($id);
 
-            $rules = [
-                'for_liquidation_amount' => 'required|numeric',
-                'for_compliance_amount' => 'nullable|numeric|min:0',
-                'liquidation_type' => 'required|string|max:255',
-                'liq_date_received' => 'required|date',
-            ];
+    $rules = [
+        'for_liquidation_amount' => 'required|numeric',
+        'for_compliance_amount' => 'nullable|numeric|min:0',
+        'liquidation_type' => 'required|string|max:255',
+        'liq_date_received' => 'required|date',
+    ];
 
-            if ($request->input('liquidation_type') === 'Refund') {
-                $rules['or_number'] = 'required|string|max:255';
-                $rules['or_date'] = 'required|date';
-                $rules['liq_number'] = 'nullable|string|max:255';
-                $rules['liq_date'] = 'nullable|date';
-            } else {
-                $rules['liq_number'] = 'required|string|max:255';
-                $rules['liq_date'] = 'required|date';
-            }
+    if ($request->input('liquidation_type') === 'Refund') {
+        $rules['or_number'] = 'required|string|max:255';
+        $rules['or_date'] = 'required|date';
+        $rules['liq_number'] = 'nullable|string|max:255';
+        $rules['liq_date'] = 'nullable|date';
+    } else {
+        $rules['liq_number'] = 'required|string|max:255';
+        $rules['liq_date'] = 'required|date';
+    }
 
-            $validated = $request->validate($rules);
+    $validated = $request->validate($rules);
 
-            if ($validated['liquidation_type'] === 'Refund') {
-                $validated['liq_number'] = null;
-                $validated['liq_date'] = null;
-            } else {
-                $validated['or_number'] = null;
-                $validated['or_date'] = null;
-            }
+    if ($validated['liquidation_type'] === 'Refund') {
+        $validated['liq_number'] = null;
+        $validated['liq_date'] = null;
+    } else {
+        $validated['or_number'] = null;
+        $validated['or_date'] = null;
+    }
 
-            $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] + ($validated['for_compliance_amount'] ?? 0);
+    // ⛔ Manually entered values only — no syncing with pre-audit entries
+    $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] + ($validated['for_compliance_amount'] ?? 0);
 
-            $liquidation->update($validated);
+    $liquidation->update($validated);
 
-            if ($liquidation->cash_advance_id) {
-                $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
-                $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
+    if ($liquidation->cash_advance_id) {
+        $cashAdvance = CashAdvance::with('liquidation')->find($liquidation->cash_advance_id);
+        $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
 
-                $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
-                $cashAdvance->save();
-            }
+        $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
+        $cashAdvance->save();
+    }
 
-            return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
-                            ->with('success', 'Liquidation updated successfully.');
-        }
+    return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
+                     ->with('success', 'Liquidation updated successfully.');
+}
 
         public function destroy($id)
         {

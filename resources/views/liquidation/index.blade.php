@@ -20,7 +20,7 @@
         <div class="w-full px-4 mx-auto">
             <div class="bg-white dark:bg-gray-800 shadow-md rounded-md overflow-hidden">
 
-                {{-- Export Button above filters --}}
+                {{-- Export Button --}}
                 <div class="px-6 pt-6 flex justify-end">
                     <button type="button" @click="openExportModal = true"
                             class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md">
@@ -43,18 +43,33 @@
                                 </select>
                             </div>
 
+                            {{-- Status Filter --}}
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                                <select name="status" id="status"
+                                        class="mt-1 block w-44 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="">All</option>
+                                    <option value="For Checking" {{ request('status') == 'For Checking' ? 'selected' : '' }}>For Checking</option>
+                                    <option value="Processing" {{ request('status') == 'Processing' ? 'selected' : '' }}>Processing</option>
+                                    <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="For Approval" {{ request('status') == 'For Approval' ? 'selected' : '' }}>For Approval</option>
+                                    <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
+                                </select>
+                            </div>
+
                             {{-- Date From --}}
                             <div>
                                 <label for="date_from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
                                 <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
-                                       class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
+                                    class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
                             </div>
 
                             {{-- Date To --}}
                             <div>
                                 <label for="date_to" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
                                 <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}"
-                                       class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
+                                    class="mt-1 block w-36 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" />
                             </div>
 
                             {{-- Apply + Clear --}}
@@ -64,7 +79,7 @@
                                     Apply Filter
                                 </button>
                                 <a href="{{ route('liquidation.index') }}"
-                                   class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-sm px-4 py-2 rounded-md">
+                                class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white text-sm px-4 py-2 rounded-md">
                                     Clear
                                 </a>
                             </div>
@@ -169,7 +184,14 @@
                                             — 
                                         @endif
                                     </td>
-                                    <td class="px-6 py-3 text-center">{{ $liq->pre_auditor }}</td>
+                                    <td class="px-6 py-3 text-center">
+                                        @foreach ($liq->preAuditors as $auditor)
+                                            <a href="{{ route('pre-auditors.liquidations', $auditor->id) }}"
+                                                class="text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
+                                                {{ $auditor->name }}
+                                            </a>
+                                        @endforeach
+                                    </td>
 
                                     {{-- Actions --}}
                                     <td class="px-4 py-2 text-center space-y-2">
@@ -195,7 +217,7 @@
                                                 <button 
                                                     onclick="event.stopPropagation(); document.getElementById('modal-{{ $liq->id }}').classList.remove('hidden')" 
                                                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
-                                                    Add Pre-Audited
+                                                    Add Pre-Audit
                                                 </button>
                                             @endif
 

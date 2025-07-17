@@ -90,7 +90,7 @@
 
                     <div class="mt-4">
                         <label for="for_compliance_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount For Compliance</label>
-                        <input type="number" step="0.01" name="for_compliance_amount" id="for_compliance_amount" value="{{ old('for_compliance_amount', $liquidation->for_compliance_amount) }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                        <input type="number" name="for_compliance_amount" id="for_compliance_amount" value="{{ old('for_compliance_amount', $liquidation->for_compliance_amount) }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                     </div>
 
                     <div class="flex justify-between items-center mt-6">
@@ -126,6 +126,20 @@
 
             liquidationType.addEventListener('change', toggleFields);
             toggleFields();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const complianceInput = document.getElementById('for_compliance_amount');
+            const liquidationInput = document.getElementById('for_liquidation_amount');
+
+            // Set base amount, e.g., from backend or hardcoded for now
+            let originalAmount = parseFloat("{{ $liquidation->for_liquidation_amount ?? 0 }}");
+
+            complianceInput.addEventListener('input', function () {
+                const compliance = parseFloat(complianceInput.value) || 0;
+                liquidationInput.value = (originalAmount - compliance).toFixed(2);
+            });
         });
     </script>
 

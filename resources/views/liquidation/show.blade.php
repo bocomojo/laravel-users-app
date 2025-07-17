@@ -142,7 +142,7 @@
 
                             @php
                                 $totalPreAudited = $liquidations->sum('pre_audited_amount');
-                                $remainingBalance = $cashAdvance->granted_amount +  $totalPreAudited;
+                                $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited;
                             @endphp
 
                             <p class="text-gray-700 dark:text-gray-300">
