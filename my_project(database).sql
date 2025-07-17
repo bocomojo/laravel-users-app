@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 16, 2025 at 07:18 PM
+-- Generation Time: Jul 17, 2025 at 11:31 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -101,9 +101,9 @@ CREATE TABLE `cash_advance` (
 --
 
 INSERT INTO `cash_advance` (`id`, `sdo_id`, `check_number`, `check_date`, `dv_number`, `dv_date`, `ors_number`, `ors_date`, `particulars`, `transaction_type`, `pap`, `granted_amount`, `payout_start`, `payout_end`, `status`, `demand_letter_sent_at`, `created_at`, `updated_at`) VALUES
-(182, 87, '2909169', '1970-01-01', '25-04-07280', '1970-01-01', '	25-04-04211', '1970-01-01', 'Payment for financial assistance to AICS in provinces of Region V (APRIL 25-26, 2025) ALBAY', 'Cash Advance', 37, 15000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04'),
-(183, 138, '2910340', '1970-01-01', '25-06-10198', '1970-01-01', '25-06-06248', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 13-July 13, 2025) - Sorsogon', 'Cash Advance', 37, 7000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04'),
-(184, 65, '2910341', '1970-01-01', '25-06-10228', '1970-01-01', '25-06-06249', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 17-July 17, 2025) - Camarines Norte', 'Cash Advance', 37, 10000000.00, '1970-01-01', '1970-01-01', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-15 00:14:04');
+(182, 87, '2909169', '1970-01-01', '25-04-07280', '1970-01-01', '	25-04-04211', '1970-01-01', 'Payment for financial assistance to AICS in provinces of Region V (APRIL 25-26, 2025) ALBAY', 'Cash Advance', 37, 15000000.00, '2025-07-09', '2025-07-13', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-17 08:22:59'),
+(183, 138, '2910340', '1970-01-01', '25-06-10198', '1970-01-01', '25-06-06248', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 13-July 13, 2025) - Sorsogon', 'Cash Advance', 37, 7000000.00, '2025-06-11', '2025-06-17', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-17 08:23:56'),
+(184, 65, '2910341', '1970-01-01', '25-06-10228', '1970-01-01', '25-06-06249', '1970-01-01', 'Payment for Financial Assistance to AICS in Provinces of Region V (June 17-July 17, 2025) - Camarines Norte', 'Cash Advance', 37, 10000000.00, '2025-07-24', '2025-07-26', 'Ongoing', NULL, '2025-07-15 00:14:04', '2025-07-17 08:28:41');
 
 -- --------------------------------------------------------
 
@@ -221,6 +221,7 @@ CREATE TABLE `liquidation` (
   `pre_audited_amount` decimal(15,2) DEFAULT NULL,
   `pre_auditor` varchar(255) DEFAULT NULL,
   `status` varchar(255) NOT NULL DEFAULT 'For Checking',
+  `manual_override` tinyint(1) NOT NULL DEFAULT 0,
   `jev_no` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -230,15 +231,13 @@ CREATE TABLE `liquidation` (
 -- Dumping data for table `liquidation`
 --
 
-INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `for_compliance_amount`, `pre_audited_amount`, `pre_auditor`, `status`, `jev_no`, `created_at`, `updated_at`) VALUES
-(3470, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -3000000.00, 'Liquidation', '2025-07-15', 'LR-01-01231', NULL, NULL, NULL, 0.00, 0.00, 'alexis', 'For Checking', NULL, '2025-07-15 00:17:30', '2025-07-16 16:51:00'),
-(3471, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -5000000.00, 'Liquidation', '2025-07-15', 'LR-01-02312', NULL, NULL, NULL, 0.00, 0.00, 'bryan', 'For Checking', NULL, '2025-07-15 00:19:02', '2025-07-16 16:51:00'),
-(3472, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -2000000.00, 'Liquidation', '2025-07-15', 'LR-01-02311', NULL, NULL, NULL, 10131.00, 0.00, 'nicky', 'Processing', NULL, '2025-07-15 00:19:43', '2025-07-16 16:51:00'),
-(3473, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -2000000.00, 'Liquidation', '2025-07-15', 'LR-02-03423', NULL, NULL, NULL, 1000.00, 619033.00, 'alexis', 'Processing', NULL, '2025-07-15 00:20:59', '2025-07-16 16:51:00'),
-(3474, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -250000.00, 'Liquidation', '2025-07-15', 'LR-01-009234', '2025-07-17', NULL, NULL, 15000.00, -235000.00, 'bryan', 'For Approval', NULL, '2025-07-15 00:22:00', '2025-07-16 17:16:05'),
-(3475, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -1000000.00, 'Liquidation', '2025-07-16', 'LR-01-01203', NULL, NULL, NULL, 0.00, 0.00, 'Fernando Bitancur', 'For Checking', NULL, '2025-07-15 22:29:57', '2025-07-16 16:51:00'),
-(3476, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -400000.00, 'Liquidation', '2025-07-16', 'LR-01231', NULL, NULL, NULL, 0.00, 10000.00, 'roseler', 'Processing', NULL, '2025-07-15 22:33:25', '2025-07-16 16:51:00'),
-(3480, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -1500000.00, 'Liquidation', '2025-07-16', 'LR-10123', NULL, NULL, NULL, 0.00, 50000.00, 'Joshua Masarate', 'Processing', NULL, '2025-07-15 23:34:20', '2025-07-16 16:51:00');
+INSERT INTO `liquidation` (`id`, `cash_advance_id`, `sdo_name`, `check_number`, `granted_amount`, `for_liquidation_amount`, `liquidation_type`, `liq_date_received`, `liq_number`, `liq_date`, `or_number`, `or_date`, `for_compliance_amount`, `pre_audited_amount`, `pre_auditor`, `status`, `manual_override`, `jev_no`, `created_at`, `updated_at`) VALUES
+(3470, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -3000000.00, 'Liquidation', '2025-07-15', 'LR-01-01231', NULL, NULL, NULL, 0.00, 0.00, 'alexis', 'For Checking', 0, NULL, '2025-07-15 00:17:30', '2025-07-17 01:33:47'),
+(3471, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -5000000.00, 'Liquidation', '2025-07-15', 'LR-01-02312', NULL, NULL, NULL, 0.00, 0.00, 'bryan', 'For Checking', 0, NULL, '2025-07-15 00:19:02', '2025-07-17 01:33:47'),
+(3472, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -2000000.00, 'Liquidation', '2025-07-15', 'LR-01-02311', '2025-07-17', NULL, NULL, 50000.00, 1950000.00, 'nicky', 'Approved', 0, NULL, '2025-07-15 00:19:43', '2025-07-17 03:15:21'),
+(3473, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -2100000.00, 'Liquidation', '2025-07-15', 'LR-02-03423', '2025-07-17', NULL, NULL, 100000.00, -2000000.00, 'alexis', 'Approved', 0, NULL, '2025-07-15 00:20:59', '2025-07-17 08:34:29'),
+(3476, 183, 'JESSICA O. RODRIGUEZ', '2910340', 7000000.00, -400000.00, 'Liquidation', '2025-07-16', 'LR-01231', NULL, NULL, NULL, 0.00, 400000.00, 'roseler', 'Approved', 0, NULL, '2025-07-15 22:33:25', '2025-07-17 01:47:59'),
+(3480, 182, 'MELANIE B. GARRIDO', '2909169', 15000000.00, -1500000.00, 'Liquidation', '2025-07-16', 'LR-10123', '2025-07-17', NULL, NULL, 0.00, 1500000.00, 'Joshua Masarate', 'Approved', 0, NULL, '2025-07-15 23:34:20', '2025-07-17 03:20:34');
 
 -- --------------------------------------------------------
 
@@ -286,7 +285,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (28, '2025_07_15_045745_make_liq_date_received_nullable_in_liquidation_table', 21),
 (29, '2025_07_15_124904_create_pre_auditor_liquidation_entries_table', 22),
 (30, '2025_07_15_151651_add_for_compliance_to_pre_auditor_liquidation_entries_table', 23),
-(31, '2025_07_16_024911_change_for_compliance_column_type_in_pre_auditor_liquidation_entries_table', 24);
+(31, '2025_07_16_024911_change_for_compliance_column_type_in_pre_auditor_liquidation_entries_table', 24),
+(32, '2025_07_17_090743_add_manual_override_to_liquidations_table', 25);
 
 -- --------------------------------------------------------
 
@@ -572,7 +572,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('8RL5jfopnmI7Tciyau2SFLcxBO48irPky0j5dVcH', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiU1pwNlJpT0FOOG9Ib3VDUjhYUFQwbXlua1NJb1E0QmpQNHFvZGtQQiI7czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czozODoiaHR0cDovLzEyNy4wLjAuMTo4MDAwL2xpcXVpZGF0aW9uPzE4Mz0iO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1752686167);
+('i7s7Y4yRpIw9xOEJAeNpdPkHqamz1BorZSpeRRss', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiQWRyeXVnMko0cHRtYUhwWlMxUW1MSGk1NGJ5c3RCdEloVDEwMmhKOSI7czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czo0MzoiaHR0cDovLzEyNy4wLjAuMTo4MDAwL3Nkby9jYXNoLWFkdmFuY2VzL2FsbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752744674);
 
 -- --------------------------------------------------------
 
@@ -811,7 +811,7 @@ ALTER TABLE `liquidation`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `pap`

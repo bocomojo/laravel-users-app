@@ -35,28 +35,6 @@
                     </ul>
                 </div>
 
-                <!-- Filter by Date or Month -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b pb-1 mb-2">Custom Range</h4>
-                    <form method="GET" action="{{ route('pre-auditors.show', $auditor->id) }}" class="space-y-2">
-                        <div class="flex flex-col space-y-2">
-                            <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Select Date</label>
-                                <input type="date" name="date" class="w-full text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Select Month</label>
-                                <input type="month" name="month" class="w-full text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
-                            </div>
-                        </div>
-                        <div class="flex justify-end pt-2">
-                            <button type="submit" class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded">
-                                View
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
                 <!-- Liquidations Summary -->
                 <div>
                     <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b pb-1 mb-2">Liquidations</h4>

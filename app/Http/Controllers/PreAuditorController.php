@@ -108,6 +108,7 @@ class PreAuditorController extends Controller
             'totalForChecking'
         ));
     }
+    
 
 public function addEntry(Request $request)
 {

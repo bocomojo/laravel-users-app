@@ -186,7 +186,7 @@
                                     </td>
                                     <td class="px-6 py-3 text-center">
                                         @foreach ($liq->preAuditors as $auditor)
-                                            <a href="{{ route('pre-auditors.liquidations', $auditor->id) }}"
+                                            <a href="{{ route('pre-auditors.liquidations', $auditor->id) }}" onclick="event.stopPropagation()"
                                                 class="text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
                                                 {{ $auditor->name }}
                                             </a>
