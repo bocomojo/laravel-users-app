@@ -89,14 +89,14 @@ class CondensedLiquidationExport implements FromCollection, WithHeadings, WithEv
                 $highestRow = $sheet->getHighestRow();
 
                 // Currency columns: H (Amount), I (Compliance), J (Audited)
-                foreach (['H', 'I', 'J'] as $col) {
+                foreach (['H', 'I', 'J', 'K'] as $col) {
                     $sheet->getStyle("{$col}4:{$col}{$highestRow}")
                         ->getNumberFormat()
                         ->setFormatCode('#,##0.00');
                 }
 
-                // Date columns: A, E, G, K, M
-                foreach (['A', 'E', 'G', 'K', 'M'] as $col) {
+                // Date columns: A, E, G, K
+                foreach (['A', 'E', 'G'] as $col) {
                     $sheet->getStyle("{$col}4:{$col}{$highestRow}")
                         ->getNumberFormat()
                         ->setFormatCode('yyyy-mm-dd');
@@ -109,7 +109,7 @@ class CondensedLiquidationExport implements FromCollection, WithHeadings, WithEv
                       ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
                 // Autosize all columns A–M
-                foreach (range('A', 'M') as $col) {
+                foreach (range('A', 'L') as $col) {
                     $sheet->getColumnDimension($col)->setAutoSize(true);
                 }
             },
