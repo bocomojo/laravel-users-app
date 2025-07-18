@@ -415,6 +415,20 @@
                 </select>
             </div>
 
+            {{-- Status --}}
+            <div>
+                <label class="text-sm text-gray-700 dark:text-gray-300">Status</label>
+                <select name="status"
+                        class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <option value="">All</option>
+                    <option value="For Checking">For Checking</option>
+                    <option value="For Approval">For Approval</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Processing">Processing</option>
+                </select>
+            </div>
+
             {{-- SDO Name --}}
             <div>
                 <label class="text-sm text-gray-700 dark:text-gray-300">SDO Name</label>

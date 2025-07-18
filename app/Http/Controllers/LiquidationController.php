@@ -24,6 +24,10 @@ class LiquidationController extends Controller
         if ($request->filled('type')) {
             $query->where('liquidation_type', $request->type);
         }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         if ($request->filled('date_from')) {
             $query->whereDate('liq_date', '>=', $request->date_from);

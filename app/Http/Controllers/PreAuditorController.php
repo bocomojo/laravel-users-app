@@ -134,23 +134,37 @@ public function addEntry(Request $request)
 
     $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])->findOrFail($request->liquidation_id);
 
-    $existingAmount = $liquidation->preAuditEntries->sum('amount');
-    $existingCompliance = $liquidation->preAuditEntries->sum('for_compliance');
-    $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
+// Sum all previous amounts marked for compliance
+$existingCompliance = $liquidation->preAuditEntries
+    ->where('for_compliance', true)
+    ->sum('amount');
 
-    if (!$request->for_compliance) {
-        if (($existingAmount + $request->amount) > $forLiquidationAmount) {
-            return back()->withErrors([
-                'amount' => 'Total pre-audited amount exceeds the liquidation amount.'
-            ])->withInput();
-        }
-    } else {
-        if (($existingCompliance + $request->amount) > $forLiquidationAmount) {
-            return back()->withErrors([
-                'amount' => 'Total for-compliance amount exceeds the liquidation amount.'
-            ])->withInput();
-        }
+// Sum all previous amounts not for compliance
+$existingNonCompliance = $liquidation->preAuditEntries
+    ->where('for_compliance', false)
+    ->sum('amount');
+
+$forLiquidationAmount = abs($liquidation->for_liquidation_amount);
+
+// If current entry is for compliance, check against total compliance + new amount
+if ($request->for_compliance) {
+    $total = $existingCompliance + $request->amount;
+
+    if ($total > $forLiquidationAmount) {
+        return back()->withErrors([
+            'amount' => 'Total for-compliance amount exceeds the liquidation amount.'
+        ])->withInput();
     }
+} else {
+    $total = $existingNonCompliance + $request->amount;
+
+    if ($total > $forLiquidationAmount) {
+        return back()->withErrors([
+            'amount' => 'Total pre-audited amount exceeds the liquidation amount.'
+        ])->withInput();
+    }
+}
+
 
     // Handle file upload if for compliance
     $filePath = null;
