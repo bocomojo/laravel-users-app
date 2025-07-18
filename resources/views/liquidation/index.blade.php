@@ -252,6 +252,7 @@
                                             Add Pre-Audited Entry — {{ $liq->liq_number ?? $liq->check_number }}
                                         </h2>
 
+                                        {{-- Show form errors --}}
                                         @if ($errors->any())
                                             <div class="mb-4 bg-red-100 text-red-700 px-4 py-2 rounded">
                                                 <ul class="text-sm list-disc pl-5">
@@ -262,37 +263,48 @@
                                             </div>
                                         @endif
 
-                                        <form method="POST" action="{{ route('pre-auditor.liquidations.add-entry') }}">
+                                        <form method="POST" action="{{ route('pre-auditor.liquidations.add-entry') }}"
+                                            enctype="multipart/form-data" id="entry-form-{{ $liq->id }}">
                                             @csrf
 
-                                            {{-- Hidden liquidation ID --}}
                                             <input type="hidden" name="liquidation_id" value="{{ $liq->id }}">
 
-                                            {{-- Amount Field --}}
+                                            {{-- Amount --}}
                                             <div class="mb-4">
                                                 <label class="block text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-                                                <input type="number" name="amount" step="0.01" placeholder="₱0.00"
-                                                    class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white" required>
+                                                <input type="number" name="amount" step="0.01" placeholder="₱0.00" required
+                                                    class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white">
                                             </div>
 
                                             {{-- Entry Type --}}
                                             <div class="mb-4">
                                                 <label class="block text-gray-700 dark:text-gray-300 mb-1">Entry Type</label>
-                                                <select name="for_compliance" class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white" required>
+                                                <select name="for_compliance" required
+                                                        class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                        onchange="toggleFileInput(this, '{{ $liq->id }}')">
                                                     <option value="0">Complied</option>
                                                     <option value="1">For Compliance</option>
                                                 </select>
                                             </div>
 
-                                            {{-- Modal Actions --}}
+                                            {{-- Supporting File --}}
+                                            <div class="mb-4 hidden" id="file-input-container-{{ $liq->id }}">
+                                                <label class="block text-gray-700 dark:text-gray-300 mb-1">Supporting File (PDF, JPG, PNG)</label>
+                                                <input type="file" name="supporting_file" accept=".pdf,.jpg,.jpeg,.png"
+                                                    class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                    id="supporting-file-{{ $liq->id }}">
+                                            </div>
+
+                                            {{-- Actions --}}
                                             <div class="flex justify-end space-x-2">
                                                 <button type="button"
-                                                    onclick="document.getElementById('modal-{{ $liq->id }}').classList.add('hidden')" 
+                                                    onclick="document.getElementById('modal-{{ $liq->id }}').classList.add('hidden')"
                                                     class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded">
                                                     Cancel
                                                 </button>
                                                 <button type="submit"
-                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                                                    onclick="return validateFileInput('{{ $liq->id }}')">
                                                     Save
                                                 </button>
                                             </div>
@@ -449,6 +461,29 @@
         }
     }
 </script>
+<script>
+    function toggleFileInput(select, id) {
+        const container = document.getElementById('file-input-container-' + id);
+        const input = document.getElementById('supporting-file-' + id);
+        if (select.value === '1') {
+            container.classList.remove('hidden');
+            input.required = true;
+        } else {
+            container.classList.add('hidden');
+            input.required = false;
+        }
+    }
 
+    function validateFileInput(id) {
+        const select = document.querySelector(`#entry-form-${id} select[name="for_compliance"]`);
+        const fileInput = document.getElementById('supporting-file-' + id);
+
+        if (select.value === '1' && !fileInput.value) {
+            alert('Please attach a supporting file for compliance.');
+            return false;
+        }
+        return true;
+    }
+</script>
 
 </x-app-layout>

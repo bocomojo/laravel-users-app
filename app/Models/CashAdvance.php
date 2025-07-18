@@ -59,4 +59,10 @@ class CashAdvance extends Model
         return $this->belongsTo(Pap::class, 'pap', 'id');
     }
 
+    public function payoutDateHistories()
+    {
+        return $this->hasMany(PayoutDateHistory::class);
+    }
+
+
 }

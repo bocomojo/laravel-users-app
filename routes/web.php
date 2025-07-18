@@ -174,6 +174,7 @@ Route::middleware('auth')->get('/api/latest-ongoing-cash-advance/{sdoId}', funct
         : response()->json(['message' => 'No ongoing cash advance found.'], 404);
 });
 
+
 // ---------------------
 // Auth Routes
 // ---------------------

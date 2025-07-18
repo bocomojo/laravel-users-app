@@ -39,7 +39,7 @@
                             </select> -->
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
                                 class="px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white">
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Filter</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Search</button>
                         </form>
                     </div>
 

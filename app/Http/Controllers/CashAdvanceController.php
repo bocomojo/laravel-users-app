@@ -8,6 +8,8 @@ use App\Models\CashAdvance;
 use App\Models\Pap;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CashAdvanceImport;
+use App\Models\PayoutDateHistory;
+
 
 class CashAdvanceController extends Controller
 {
@@ -68,20 +70,40 @@ class CashAdvanceController extends Controller
         return view('sdo.cash_advance.cash_advances', compact('cashAdvances'));
     }
 
-    public function updateDates(Request $request, $id)
-    {
-        $request->validate([
-            'payout_start' => 'required|date',
-            'payout_end' => 'required|date|after_or_equal:payout_start',
-        ]);
 
-        $cashAdvance = CashAdvance::findOrFail($id);
-        $cashAdvance->payout_start = $request->payout_start;
-        $cashAdvance->payout_end = $request->payout_end;
-        $cashAdvance->save();
+public function updateDates(Request $request, $id)
+{
+    $request->validate([
+        'payout_start' => 'required|date',
+        'payout_end'   => 'required|date|after_or_equal:payout_start',
+        'attachment'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10048',
+    ]);
 
-        return redirect()->back()->with('success', 'Payout dates updated successfully.');
+    $cashAdvance = CashAdvance::findOrFail($id);
+
+    // Log the old dates
+    PayoutDateHistory::create([
+        'cash_advance_id' => $cashAdvance->id,
+        'old_start'       => $cashAdvance->payout_start,
+        'old_end'         => $cashAdvance->payout_end,
+        'new_start'       => $request->payout_start,
+        'new_end'         => $request->payout_end,
+    ]);
+
+    // Update dates
+    $cashAdvance->payout_start = $request->payout_start;
+    $cashAdvance->payout_end   = $request->payout_end;
+
+    // Handle file upload
+    if ($request->hasFile('attachment')) {
+        $filePath = $request->file('attachment')->store('payout_date_required_attachment', 'public');
+        $cashAdvance->payout_attachment = $filePath;
     }
+
+    $cashAdvance->save();
+
+    return redirect()->back()->with('success', 'Payout dates updated and history recorded.');
+}
 
     public function store(Request $request)
 {

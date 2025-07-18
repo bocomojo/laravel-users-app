@@ -8,6 +8,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PreAuditorImport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use App\Mail\ComplianceFileSubmitted;
 
 class PreAuditorController extends Controller
 {
@@ -113,12 +116,12 @@ class PreAuditorController extends Controller
 public function addEntry(Request $request)
 {
     $request->validate([
-        'liquidation_id' => 'required|exists:liquidation,id',
-        'amount' => 'required|numeric|min:0.01',
-        'for_compliance' => 'required|boolean',
+        'liquidation_id'   => 'required|exists:liquidation,id',
+        'amount'           => 'required|numeric|min:0.01',
+        'for_compliance'   => 'required|boolean',
+        'supporting_file'  => 'required_if:for_compliance,1|file|mimes:pdf,jpg,png|max:10048',
     ]);
 
-    // Get pre_auditor_id from pivot
     $preAuditorId = DB::table('pre_auditor_liquidation')
         ->where('liquidation_id', $request->liquidation_id)
         ->value('pre_auditor_id');
@@ -129,13 +132,12 @@ public function addEntry(Request $request)
         ]);
     }
 
-    $liquidation = Liquidation::with('preAuditEntries')->findOrFail($request->liquidation_id);
+    $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])->findOrFail($request->liquidation_id);
 
     $existingAmount = $liquidation->preAuditEntries->sum('amount');
     $existingCompliance = $liquidation->preAuditEntries->sum('for_compliance');
     $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
 
-    // Validation based on type
     if (!$request->for_compliance) {
         if (($existingAmount + $request->amount) > $forLiquidationAmount) {
             return back()->withErrors([
@@ -150,15 +152,23 @@ public function addEntry(Request $request)
         }
     }
 
-    // Create new entry
+    // Handle file upload if for compliance
+    $filePath = null;
+    if ($request->for_compliance && $request->hasFile('supporting_file')) {
+        $file = $request->file('supporting_file');
+        $filePath = $file->store('supporting_files', 'public');
+    }
+
+    // Create the pre-audit entry
     PreAuditorLiquidationEntry::create([
-        'pre_auditor_id' => $preAuditorId,
-        'liquidation_id' => $request->liquidation_id,
-        'amount' => $request->for_compliance ? 0 : $request->amount,
-        'for_compliance' => $request->for_compliance ? $request->amount : 0,
+        'pre_auditor_id'   => $preAuditorId,
+        'liquidation_id'   => $request->liquidation_id,
+        'amount'           => $request->for_compliance ? 0 : $request->amount,
+        'for_compliance'   => $request->for_compliance ? $request->amount : 0,
+        'supporting_file'  => $filePath,
     ]);
 
-    // 🔄 Reload updated entries
+    // Reload and update liquidation totals
     $liquidation->load('preAuditEntries');
     $entries = $liquidation->preAuditEntries;
 
@@ -166,7 +176,6 @@ public function addEntry(Request $request)
     $totalCompliance = $entries->sum('for_compliance');
     $totalCombined = $totalComplied + $totalCompliance;
 
-    // Update liquidation status/fields
     $liquidation->pre_audited_amount = $totalComplied;
     $liquidation->for_compliance_amount = $totalCompliance;
 
@@ -180,9 +189,20 @@ public function addEntry(Request $request)
 
     $liquidation->save();
 
+    // Email the SDO if for compliance and email is available
+    if ($request->for_compliance && $filePath) {
+    $sdoEmail = optional($liquidation->cashAdvance->sdo)->email;
+
+        if ($sdoEmail) {
+            Mail::to($sdoEmail)->send(new ComplianceFileSubmitted($liquidation, $filePath));
+        } else {
+            // Optional: log it or alert admins
+            \Log::warning("No email found for SDO of Liquidation ID {$liquidation->id}.");
+        }
+    }
+
     return back()->with('success', 'Pre-audit entry added and totals updated.');
-}
-    
+} 
 
     public function update(Request $request, PreAuditor $preAuditor)
     {

@@ -95,7 +95,7 @@
                                 </svg>
                             </div>
 
-                            <div x-show="open" x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+                            <div x-show="open" x-cloak x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                                 @if (isset($mod['submenu']))
                                     <div @mouseenter="submenuOpen = '{{ $modOpen }}'" @mouseleave="submenuOpen = ''" class="relative">
                                         <div class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -104,7 +104,7 @@
                                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                                             </svg>
                                         </div>
-                                        <div x-show="submenuOpen === '{{ $modOpen }}'" class="absolute top-0 left-full w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+                                        <div x-show="submenuOpen === '{{ $modOpen }}'" x-cloak class="absolute top-0 left-full w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                                             @foreach ($mod['submenu']['routes'] as $link)
                                                 <a href="{{ route($link['route']) }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     {{ __($link['label']) }}
@@ -122,7 +122,7 @@
                                                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                                                 </svg>
                                             </div>
-                                            <div x-show="submenuOpen === '{{ $subKey }}'" class="absolute top-0 left-full w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+                                            <div x-show="submenuOpen === '{{ $subKey }}'" x-cloak class="absolute top-0 left-full w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                                                 @foreach ($sub['routes'] as $link)
                                                     <a href="{{ route($link['route']) }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                         {{ __($link['label']) }}
@@ -144,7 +144,7 @@
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <div x-show="open" x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+                        <div x-show="open" x-cloak x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                             <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Users') }}</a>
                             <a href="{{ route('pap.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('PAP') }}</a>
                             <a href="{{ route('pre-auditors.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Pre-Auditors') }}</a>
