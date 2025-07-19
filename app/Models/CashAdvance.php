@@ -45,7 +45,9 @@ class CashAdvance extends Model
 
     public function liquidation()
     {
-        return $this->hasMany(\App\Models\Liquidation::class);
+        
+        return $this->hasMany(Liquidation::class);
+
     }
     
     public function papData()
@@ -62,6 +64,11 @@ class CashAdvance extends Model
     public function payoutDateHistories()
     {
         return $this->hasMany(PayoutDateHistory::class);
+    }
+    
+    public function liquidations()
+    {
+        return $this->hasMany(Liquidation::class);
     }
 
 

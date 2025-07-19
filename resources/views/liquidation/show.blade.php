@@ -227,7 +227,7 @@
                             </p>
 
                             @php
-                                $totalPreAudited = $liquidations->sum('pre_audited_amount');
+                                $totalPreAudited = $liquidations->where('liquidation_type', 'Liquidation')->sum('pre_audited_amount');
                                 $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited;
                             @endphp
 

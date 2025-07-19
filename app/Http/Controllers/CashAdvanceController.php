@@ -8,6 +8,7 @@ use App\Models\CashAdvance;
 use App\Models\Pap;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CashAdvanceImport;
+use App\Models\Liquidation;
 use App\Models\PayoutDateHistory;
 
 
@@ -65,7 +66,7 @@ class CashAdvanceController extends Controller
 
     public function cashAdvances()
     {
-        $cashAdvances = CashAdvance::with('sdo', 'pap')->paginate(15);
+        $cashAdvances = CashAdvance::with(['sdo', 'pap', 'liquidations'])->paginate(15);
 
         return view('sdo.cash_advance.cash_advances', compact('cashAdvances'));
     }

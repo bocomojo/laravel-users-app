@@ -97,6 +97,8 @@ Route::prefix('sdo')->name('sdo.')->group(function () {
     Route::get('cash_advance/index', [SdoController::class, 'sdoCashAdvance'])->name('cash.advance');
     Route::get('bonded/create', [BondedOfficialController::class, 'create'])->name('bonded.create');
     Route::get('bonded_officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
+
+    // Route::get('bonded-officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
     Route::get('export', [SdoController::class, 'export'])->name('export');
     Route::post('import', [SdoController::class, 'import'])->name('import');
 });

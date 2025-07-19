@@ -43,9 +43,13 @@
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($cashAdvances as $advance)
                                 @php
-                                    $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
-                                    $remainingBalance = $advance->granted_amount - $totalLiquidated;
+                                    $relatedLiquidations = $advance->liquidations
+                                        ->where('status', 'Approved');
+                                        
+                                    $totalPreAudited = $relatedLiquidations->sum('pre_audited_amount');
+                                    $remainingBalance = $advance->granted_amount - $totalPreAudited;
                                 @endphp
+
                                 <tr>
                                     <td class="px-6 py-4">{{ $advance->sdo->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4">{{ $advance->papData->pap_name ?? 'N/A' }}</td>

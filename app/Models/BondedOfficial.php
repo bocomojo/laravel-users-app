@@ -3,29 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BondedOfficial extends Model
 {
     protected $fillable = [
         'sdo_id',
-        'status',
+        'bond_status',
         'approved_bond_amount',
-        'max_cash_accountability',
-        'effectivity_date',
+        'max_cash',
+        'effective_date',
         'expiration_date',
-        'remarks',
-        'unfor_liquidation_amount',
-        'received_in_accounting',
-        'remarks_status',
+        'aging',
+        'unliquidated_amount',
+        'date_received_accounting',
         'date_complied',
-        'compliance_returned',
+        'compliance_date_returned',
     ];
 
-    /**
-     * Get the associated SDO (official).
-     */
-    public function sdo(): BelongsTo
+    public function sdo()
     {
         return $this->belongsTo(Sdo::class);
     }

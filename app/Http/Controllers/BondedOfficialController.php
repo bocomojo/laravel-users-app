@@ -11,7 +11,8 @@ class BondedOfficialController extends Controller
     public function index()
     {
         $officials = BondedOfficial::with('sdo')->paginate(10);
-        return view('sdo.bonded_officials.index', compact('officials'));
+
+        return view('sdo.bonded_officials.index', compact('bondedOfficials'));
     }
 
     public function create()

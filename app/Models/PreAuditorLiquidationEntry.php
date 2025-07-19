@@ -25,4 +25,10 @@ class PreAuditorLiquidationEntry extends Model
     {
         return $this->belongsTo(Liquidation::class);
     }
+
+    public function bondedOfficial()
+    {
+        return $this->hasOne(BondedOfficial::class);
+    }
+
 }

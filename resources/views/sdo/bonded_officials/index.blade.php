@@ -9,66 +9,50 @@
         <div class="w-full px-4">
             <div class="bg-white dark:bg-gray-800 overflow-auto shadow-sm sm:rounded-lg">
                 <div class="p-4 text-gray-900 dark:text-gray-100">
-                    <table class="w-full table-auto divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                        <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
+                    <table class="table-auto w-full">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-2">NAME</th>
-                                <th class="px-4 py-2">POSITION</th>
-                                <th class="px-4 py-2">OFFICIAL STATION</th>
-                                <th class="px-4 py-2">EMPLOYMENT STATUS</th>
-                                <th class="px-4 py-2">STATUS</th>
-                                <th class="px-4 py-2">APPROVED AMOUNT OF BOND</th>
-                                <th class="px-4 py-2">MAX CASH ACCOUNTABILITY (SDO)</th>
-                                <th class="px-4 py-2">EFFECTIVITY DATE</th>
-                                <th class="px-4 py-2">EXPIRATION DATE</th>
-                                <th class="px-4 py-2">REMARKS</th>
-                                <th class="px-4 py-2">DAYS BEFORE EXPIRATION</th>
-                                <th class="px-4 py-2">UNLIQUIDATED AMOUNT</th>
-                                <th class="px-4 py-2">EMAIL</th>
-                                <th class="px-4 py-2">CORPORATE EMAIL</th>
-                                <th class="px-4 py-2">DATE RECEIVED IN ACCOUNTING</th>
-                                <th class="px-4 py-2">REMARKS/STATUS</th>
-                                <th class="px-4 py-2">DATE COMPLIED</th>
-                                <th class="px-4 py-2">COMPLIANCE (DATE RETURNED)</th>
+                                <th>NAME</th>
+                                <th>POSITION</th>
+                                <th>OFFICIAL STATION</th>
+                                <th>EMPLOYMENT STATUS</th>
+                                <th>STATUS</th>
+                                <th>APPROVED AMOUNT OF BOND</th>
+                                <th>MAX CASH ACCOUNTABILITY</th>
+                                <th>EFFECTIVITY DATE</th>
+                                <th>EXPIRATION DATE</th>
+                                <th>DAYS BEFORE EXPIRATION</th>
+                                <th>UNLIQUIDATED AMOUNT</th>
+                                <th>EMAIL</th>
+                                <th>CORPORATE EMAIL</th>
+                                <th>DATE RECEIVED IN ACCOUNTING</th>
+                                <th>DATE COMPLIED</th>
+                                <th>COMPLIANCE (DATE RETURNED)</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse ($officials as $official)
+                        <tbody>
+                            @foreach (officials as $bonded)
                                 <tr>
-                                    <td class="px-4 py-2">{{ $official->name }}</td>
-                                    <td class="px-4 py-2">{{ $official->position }}</td>
-                                    <td class="px-4 py-2">{{ $official->official_station }}</td>
-                                    <td class="px-4 py-2">{{ $official->employment_status }}</td>
-                                    <td class="px-4 py-2">{{ $official->status }}</td>
-                                    <td class="px-4 py-2">₱{{ number_format($official->approved_bond_amount, 2) }}</td>
-                                    <td class="px-4 py-2">₱{{ number_format($official->max_cash_accountability, 2) }}</td>
-                                    <td class="px-4 py-2">{{ $official->effectivity_date }}</td>
-                                    <td class="px-4 py-2">{{ $official->expiration_date }}</td>
-                                    <td class="px-4 py-2">{{ $official->remarks }}</td>
-                                    <td class="px-4 py-2">
-                                        @php
-                                            $daysLeft = \Carbon\Carbon::parse($official->expiration_date)->diffInDays(now(), false);
-                                        @endphp
-                                        {{ $daysLeft > 0 ? $daysLeft . ' days left' : 'Expired ' . abs($daysLeft) . ' days ago' }}
-                                    </td>
-                                    <td class="px-4 py-2">₱{{ number_format($official->unfor_liquidation_amount, 2) }}</td>
-                                    <td class="px-4 py-2">{{ $official->email }}</td>
-                                    <td class="px-4 py-2">{{ $official->corporate_email }}</td>
-                                    <td class="px-4 py-2">{{ $official->received_in_accounting }}</td>
-                                    <td class="px-4 py-2">{{ $official->remarks_status }}</td>
-                                    <td class="px-4 py-2">{{ $official->date_complied }}</td>
-                                    <td class="px-4 py-2">{{ $official->compliance_returned }}</td>
+                                    <td>{{ $bonded->sdo->name }}</td>
+                                    <td>{{ $bonded->sdo->position }}</td>
+                                    <td>{{ $bonded->sdo->official_station }}</td>
+                                    <td>{{ $bonded->sdo->employment_status }}</td>
+                                    <td>{{ $bonded->bond_status }}</td>
+                                    <td>{{ number_format($bonded->approved_bond_amount, 2) }}</td>
+                                    <td>{{ number_format($bonded->max_cash, 2) }}</td>
+                                    <td>{{ $bonded->effective_date }}</td>
+                                    <td>{{ $bonded->expiration_date }}</td>
+                                    <td>{{ $bonded->aging }}</td>
+                                    <td>{{ number_format($bonded->unliquidated_amount, 2) }}</td>
+                                    <td>{{ $bonded->sdo->email }}</td>
+                                    <td>{{ $bonded->sdo->corporate_email }}</td>
+                                    <td>{{ $bonded->date_received_accounting }}</td>
+                                    <td>{{ $bonded->date_complied }}</td>
+                                    <td>{{ $bonded->compliance_date_returned }}</td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="19" class="px-4 py-2 text-center text-gray-500 dark:text-gray-400">
-                                        No bonded officials found.
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
-
                     <div class="mt-4">
                         {{ $officials->links() }}
                     </div>
