@@ -39,6 +39,7 @@
                                 'submenu' => [
                                     'label' => 'Pre-Auditor',
                                     'routes' => [
+                                        ['label' => 'Dashboard', 'route' => 'preaudit.dashboard'],
                                         ['label' => 'Add', 'route' => 'sdo.cash_advance.create'],
                                         ['label' => 'View', 'route' => 'pre-auditors.index'],
                                     ]

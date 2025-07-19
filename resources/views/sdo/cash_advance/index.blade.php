@@ -12,7 +12,7 @@
 
                     <!-- Search -->
                     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-                        <form method="GET" action="{{ route('sdo.cash.advance') }}" class="flex items-center gap-2 ml-auto">
+                        <form method="GET" action="{{ route('sdo.cash_advance.index') }}" class="flex items-center gap-2 ml-auto">
                             <input
                                 type="text"
                                 name="search"

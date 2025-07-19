@@ -136,6 +136,12 @@ class SdoController extends Controller
         }
     }
 
+    public function show($id)
+{
+    $sdo = Sdo::findOrFail($id);
+    return view('sdo.show', compact('sdo')); // adjust view path as needed
+}
+
     public function createForLiquidation()
     {
         $sdos = Sdo::orderBy('name')->get();

@@ -174,6 +174,8 @@ Route::middleware('auth')->get('/api/latest-ongoing-cash-advance/{sdoId}', funct
         : response()->json(['message' => 'No ongoing cash advance found.'], 404);
 });
 
+Route::get('/pre-audit/dashboard', [PreAuditorController::class, 'dashboard'])->name('preaudit.dashboard');
+
 
 // ---------------------
 // Auth Routes

@@ -219,6 +219,15 @@
                                                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
                                                     Add Pre-Audit
                                                 </button>
+
+                                                <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
+                                                        Set as Draft
+                                                    </button>
+                                                </form>
                                             @endif
 
                                             @if ($liq->status === 'For Approval')    
@@ -228,6 +237,15 @@
                                                     <button type="submit"
                                                             class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
                                                         Approve
+                                                    </button>
+                                                </form>
+
+                                                <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
+                                                        Set as Draft
                                                     </button>
                                                 </form>
                                             @endif

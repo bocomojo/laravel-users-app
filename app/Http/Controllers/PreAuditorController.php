@@ -218,6 +218,13 @@ if ($request->for_compliance) {
     return back()->with('success', 'Pre-audit entry added and totals updated.');
 } 
 
+public function dashboard()
+{
+    $preAuditors = PreAuditor::with(['preAuditEntries', 'liquidation'])->get();
+
+    return view('pre_auditors.dashboard', compact('preAuditors'));
+}
+
     public function update(Request $request, PreAuditor $preAuditor)
     {
         $request->validate(['name' => 'required|string|max:255']);
