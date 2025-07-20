@@ -15,7 +15,6 @@ use App\Http\Controllers\{
     PreAuditorController,
     ProfileController,
     SdoController,
-    StaffController,
     TestMailController,
     UserController,
     UserFileController,
@@ -98,7 +97,6 @@ Route::prefix('sdo')->name('sdo.')->group(function () {
     Route::get('bonded/create', [BondedOfficialController::class, 'create'])->name('bonded.create');
     Route::get('bonded_officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
 
-    // Route::get('bonded-officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
     Route::get('export', [SdoController::class, 'export'])->name('export');
     Route::post('import', [SdoController::class, 'import'])->name('import');
 });
@@ -106,6 +104,8 @@ Route::resource('sdo', SdoController::class);
 
 // Specific update route
 Route::put('/cash-advance/{id}/update-dates', [CashAdvanceController::class, 'updateDates'])->name('cash-advance.update-dates');
+Route::put('sdo/bonded-officials/{id}', [BondedOfficialController::class, 'update'])
+    ->name('sdo.bonded-officials.update');
 
 // ---------------------
 // Users
@@ -153,9 +153,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // ---------------------
 // Staff Section
 // ---------------------
-Route::middleware(['auth', 'role:admin,staff'])->group(function () {
-    Route::get('/staff-section', [StaffController::class, 'index'])->name('staff.section');
-});
+// Route::middleware(['auth', 'role:admin,staff'])->group(function () {
+//     Route::get('/staff-section', [StaffController::class, 'index'])->name('staff.section');
+// });
 
 // ---------------------
 // Miscellaneous

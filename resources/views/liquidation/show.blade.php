@@ -227,7 +227,7 @@
                             </p>
 
                             @php
-                                $totalPreAudited = $liquidations->where('liquidation_type', 'Liquidation')->sum('pre_audited_amount');
+                                $totalPreAudited = $liquidations->sum('pre_audited_amount');
                                 $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited;
                             @endphp
 
@@ -257,7 +257,7 @@
                         </div>
                     </form>
 
-                    <div class="overflow-y-auto max-h-[500px] relative">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[500px] relative">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -346,10 +346,10 @@
                                                     @endif
                                                 </td>
                                                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
-                                                    <div class="flex flex-col items-start space-y-1">
+                                                    <!-- <div class="flex flex-col items-start space-y-1">
                                                         <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
                                                         <button @click="showModal = true; deleteId = {{ $liquidation->id }}" class="text-red-600 hover:underline">Delete</button>
-                                                    </div>
+                                                    </div> -->
                                                 </td>
                                             </tr>
                                         @endforeach

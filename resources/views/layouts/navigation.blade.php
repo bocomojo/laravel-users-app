@@ -58,7 +58,6 @@
                                     [
                                         'label' => 'Bonded Officials',
                                         'routes' => [
-                                            ['label' => 'Add', 'route' => 'sdo.bonded.create'],
                                             ['label' => 'View', 'route' => 'sdo.bonded.index'],
                                         ]
                                     ]

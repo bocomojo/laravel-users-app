@@ -71,5 +71,10 @@ class CashAdvance extends Model
         return $this->hasMany(Liquidation::class);
     }
 
+    public function preAuditEntries()
+    {
+        return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class, 'cash_advance_id');
+    }
+
 
 }

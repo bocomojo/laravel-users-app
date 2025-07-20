@@ -196,7 +196,7 @@
                                     {{-- Actions --}}
                                     <td class="px-4 py-2 text-center space-y-2">
                                        <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
-                                            @if ($liq->status === 'Draft')
+                                            <!-- @if ($liq->status === 'Draft')
                                                 <a href="{{ route('liquidation.edit', $liq->id) }}"
                                                     onclick="event.stopPropagation()"
                                                     class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
@@ -211,7 +211,7 @@
                                                         Done
                                                     </button>
                                                 </form>
-                                            @endif
+                                            @endif -->
 
                                             @if (in_array($liq->status, ['For Checking', 'Processing']))
                                                 <button 
@@ -226,6 +226,23 @@
                                                     <button type="submit"
                                                             class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
                                                         Set as Draft
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if ($liq->status === 'Draft' && $liq->liquidation_type === 'Refund')
+                                                <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                                    onclick="event.stopPropagation()"
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                    Edit
+                                                </a>
+
+                                                <form action="{{ route('liquidation.markForApproval', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs">
+                                                        Done
                                                     </button>
                                                 </form>
                                             @endif

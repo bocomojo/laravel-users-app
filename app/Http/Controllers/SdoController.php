@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SdoExport;
 use App\Imports\SdoImport;
 use Illuminate\Support\Facades\Log;
+use App\Models\BondedOfficial;
 
 class SdoController extends Controller
 {
@@ -74,15 +75,15 @@ class SdoController extends Controller
             'employment_status' => 'nullable|string|max:255',
         ]);
 
-        Sdo::create($validated);
+        $sdo = Sdo::create($validated);
+
+        // Create linked bonded_official entry
+        BondedOfficial::create([
+            'sdo_id' => $sdo->id,
+            'bond_status' => 'Pending', // or any default
+        ]);
 
         return redirect()->route('sdo.index')->with('success', 'SDO record created successfully!');
-    }
-
-    public function edit($id)
-    {
-        $record = Sdo::findOrFail($id);
-        return view('sdo.edit', compact('record'));
     }
 
     public function update(Request $request, $id)
@@ -137,10 +138,10 @@ class SdoController extends Controller
     }
 
     public function show($id)
-{
-    $sdo = Sdo::findOrFail($id);
-    return view('sdo.show', compact('sdo')); // adjust view path as needed
-}
+    {
+        $sdo = Sdo::findOrFail($id);
+        return view('sdo.show', compact('sdo')); // adjust view path as needed
+    }
 
     public function createForLiquidation()
     {

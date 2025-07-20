@@ -43,8 +43,7 @@
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($cashAdvances as $advance)
                                 @php
-                                    $relatedLiquidations = $advance->liquidations
-                                        ->where('status', 'Approved');
+                                    $relatedLiquidations = $advance->liquidations->where('status', 'Approved');
                                         
                                     $totalPreAudited = $relatedLiquidations->sum('pre_audited_amount');
                                     $remainingBalance = $advance->granted_amount - $totalPreAudited;
