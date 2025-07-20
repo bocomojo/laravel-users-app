@@ -9,20 +9,27 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-x-auto">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    
+
                     {{-- Filter Form --}}
                     <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
-                        <select name="status" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                        <select name="status"
+                            class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
                             <option value="">All Status</option>
-                            <option value="Fully Liquidated" {{ request('status') == 'Fully Liquidated' ? 'selected' : '' }}>Fully Liquidated</option>
-                            <option value="Ongoing" {{ request('status') == 'Ongoing' ? 'selected' : '' }}>Ongoing</option>
+                            <option value="Fully Liquidated" {{ request('status') == 'Fully Liquidated' ? 'selected' : '' }}>
+                                Fully Liquidated
+                            </option>
+                            <option value="Ongoing" {{ request('status') == 'Ongoing' ? 'selected' : '' }}>
+                                Ongoing
+                            </option>
                         </select>
 
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
+                        <button type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
                             Filter
                         </button>
+
                         <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search SDO, PAP, or Check #" 
+                            placeholder="Search SDO, PAP, or Check #"
                             class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
                     </form>
 
@@ -36,15 +43,16 @@
                                 <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Type</th>
                                 <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Amount</th>
                                 <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Remaining Balance</th>
+                                <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Cash Advance Status</th>
                                 <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Actions</th>
                                 <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Demand Letter Status</th>
                             </tr>
                         </thead>
+
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($cashAdvances as $advance)
                                 @php
                                     $relatedLiquidations = $advance->liquidations->where('status', 'Approved');
-                                        
                                     $totalPreAudited = $relatedLiquidations->sum('pre_audited_amount');
                                     $remainingBalance = $advance->granted_amount - $totalPreAudited;
                                 @endphp
@@ -56,6 +64,20 @@
                                     <td class="px-6 py-4">{{ $advance->transaction_type }}</td>
                                     <td class="px-6 py-4">₱{{ number_format($advance->granted_amount, 2) }}</td>
                                     <td class="px-6 py-4">₱{{ number_format($remainingBalance, 2) }}</td>
+
+                                    {{-- Cash Advance Status --}}
+                                    <td class="px-6 py-4 text-center">
+                                        @php
+                                            $cashAdvanceStatus = $remainingBalance != 0 ? 'Ongoing' : 'Fully Liquidated';
+                                            $badgeColor = $cashAdvanceStatus === 'Fully Liquidated'
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100';
+                                        @endphp
+
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $badgeColor }}">
+                                            {{ $cashAdvanceStatus }}
+                                        </span>
+                                    </td>
 
                                     {{-- Actions --}}
                                     <td class="px-6 py-4 space-y-2">
@@ -78,67 +100,75 @@
                                     </td>
 
                                     {{-- Demand Letter Status --}}
-<td class="px-6 py-4">
-    @php
-        $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
-        $remaining = $advance->granted_amount - $totalLiquidated;
-        $now = \Carbon\Carbon::now();
+                                    <td class="px-6 py-4">
+                                        @php
+                                            $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
+                                            $remaining = $advance->granted_amount - $totalLiquidated;
+                                            $now = \Carbon\Carbon::now();
 
-        $hasPayoutEnd = $advance->payout_end !== null;
-        $payoutEnd = $hasPayoutEnd ? \Carbon\Carbon::parse($advance->payout_end) : null;
-        $deadline = $hasPayoutEnd ? $payoutEnd->copy()->addDays(30) : null;
-    @endphp
+                                            $hasPayoutEnd = $advance->payout_end !== null;
+                                            $payoutEnd = $hasPayoutEnd ? \Carbon\Carbon::parse($advance->payout_end) : null;
+                                            $deadline = $hasPayoutEnd ? $payoutEnd->copy()->addDays(30) : null;
+                                        @endphp
 
-    @if ($advance->demand_letter_sent_at)
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded dark:bg-green-800 dark:text-green-100">
-            Sent
-        </span>
-        <br>
-        <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ \Carbon\Carbon::parse($advance->demand_letter_sent_at)->diffForHumans() }}
-        </span>
+                                        @if ($advance->demand_letter_sent_at)
+                                            <span
+                                                class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded dark:bg-green-800 dark:text-green-100">
+                                                Sent
+                                            </span>
+                                            <br>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ \Carbon\Carbon::parse($advance->demand_letter_sent_at)->diffForHumans() }}
+                                            </span>
 
-    @elseif ($remaining <= 0)
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
-            Not Needed
-        </span>
+                                        @elseif ($remaining <= 0)
+                                            <span
+                                                class="inline-block px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
+                                                Not Needed
+                                            </span>
 
-    @elseif ($hasPayoutEnd)
-        @php
-            $diffInSeconds = $now->diffInSeconds($deadline, false);
-            $days = floor(abs($diffInSeconds) / 86400);
-            $hours = floor((abs($diffInSeconds) % 86400) / 3600);
-        @endphp
+                                        @elseif ($hasPayoutEnd)
+                                            @php
+                                                $diffInSeconds = $now->diffInSeconds($deadline, false);
+                                                $days = floor(abs($diffInSeconds) / 86400);
+                                                $hours = floor((abs($diffInSeconds) % 86400) / 3600);
+                                            @endphp
 
-        @if ($diffInSeconds > 0)
-            <span class="inline-block px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded dark:bg-yellow-700 dark:text-yellow-100">
-                Pending
-            </span>
-            <br>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ $days }} day{{ $days !== 1 ? 's' : '' }} and {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} left
-            </span>
-        @else
-            <span class="inline-block px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded dark:bg-red-700 dark:text-red-100">
-                Overdue
-            </span>
-            <br>
-            <span class="text-xs text-red-400 dark:text-red-300 font-medium">
-                {{ $days }} day{{ $days !== 1 ? 's' : '' }} and {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} overdue
-            </span>
-        @endif
+                                            @if ($diffInSeconds > 0)
+                                                <span
+                                                    class="inline-block px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded dark:bg-yellow-700 dark:text-yellow-100">
+                                                    Pending
+                                                </span>
+                                                <br>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $days }} day{{ $days !== 1 ? 's' : '' }} and
+                                                    {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} left
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="inline-block px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded dark:bg-red-700 dark:text-red-100">
+                                                    Overdue
+                                                </span>
+                                                <br>
+                                                <span
+                                                    class="text-xs text-red-400 dark:text-red-300 font-medium">
+                                                    {{ $days }} day{{ $days !== 1 ? 's' : '' }} and
+                                                    {{ $hours }} hour{{ $hours !== 1 ? 's' : '' }} overdue
+                                                </span>
+                                            @endif
 
-    @else
-        <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
-            No payout end
-        </span>
-    @endif
-</td>
-
+                                        @else
+                                            <span
+                                                class="inline-block px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
+                                                No payout end
+                                            </span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="9"
+                                        class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                         No cash advances found.
                                     </td>
                                 </tr>
