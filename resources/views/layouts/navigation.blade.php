@@ -20,6 +20,7 @@
                                     'routes' => [
                                         ['label' => 'Add', 'route' => 'liquidation.create'],
                                         ['label' => 'View', 'route' => 'liquidation.index'],
+                                        ['label' => 'For Transmittal', 'route' => 'liquidation.for-transmittal'],
                                     ]
                                 ]
                             ],

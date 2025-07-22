@@ -71,4 +71,15 @@ class Liquidation extends Model
 
         return $this->status;
     }
+ 
+    public function sdo()
+    {
+        return $this->belongsTo(SDO::class, 'sdo_id');
+    }
+
+    public function sackAssignments()
+    {
+        return $this->hasMany(SackAssignment::class, 'liq_number', 'liq_number');
+    }
+
 }

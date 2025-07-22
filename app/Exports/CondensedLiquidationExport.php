@@ -72,47 +72,42 @@ class CondensedLiquidationExport implements FromCollection, WithHeadings, WithEv
     }
 
     public function registerEvents(): array
-    {
-        return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
+{
+    return [
+        AfterSheet::class => function (AfterSheet $event) {
+            $sheet = $event->sheet->getDelegate();
 
-                $sheet->insertNewRowBefore(1, 2);
-                $sheet->mergeCells('A1:M1');
-                $sheet->setCellValue('A1', 'VANESSA 2025');
-                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+            $sheet->getStyle('A1:L1')->getAlignment()->setHorizontal('center');
+            $sheet->getStyle('A1:L1')->getFont()->setBold(true);
 
-                $sheet->getStyle('A3:M3')->getAlignment()->setHorizontal('center');
-                $sheet->getStyle('A3:M3')->getFont()->setBold(true);
+            $highestRow = $sheet->getHighestRow();
 
-                $highestRow = $sheet->getHighestRow();
+            // Currency columns: H (Amount), I (Compliance), J (Audited), K (JEV)
+            foreach (['H', 'I', 'J', 'K'] as $col) {
+                $sheet->getStyle("{$col}2:{$col}{$highestRow}")
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0.00');
+            }
 
-                // Currency columns: H (Amount), I (Compliance), J (Audited)
-                foreach (['H', 'I', 'J', 'K'] as $col) {
-                    $sheet->getStyle("{$col}4:{$col}{$highestRow}")
-                        ->getNumberFormat()
-                        ->setFormatCode('#,##0.00');
-                }
+            // Date columns: A, E, G
+            foreach (['A', 'E', 'G'] as $col) {
+                $sheet->getStyle("{$col}2:{$col}{$highestRow}")
+                    ->getNumberFormat()
+                    ->setFormatCode('yyyy-mm-dd');
+            }
 
-                // Date columns: A, E, G, K
-                foreach (['A', 'E', 'G'] as $col) {
-                    $sheet->getStyle("{$col}4:{$col}{$highestRow}")
-                        ->getNumberFormat()
-                        ->setFormatCode('yyyy-mm-dd');
-                }
+            // Borders
+            $sheet->getStyle("A1:L{$highestRow}")
+                  ->getBorders()
+                  ->getAllBorders()
+                  ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-                // Borders
-                $sheet->getStyle("A3:M{$highestRow}")
-                      ->getBorders()
-                      ->getAllBorders()
-                      ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            // Autosize columns A–L
+            foreach (range('A', 'L') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+        },
+    ];
+}
 
-                // Autosize all columns A–M
-                foreach (range('A', 'L') as $col) {
-                    $sheet->getColumnDimension($col)->setAutoSize(true);
-                }
-            },
-        ];
-    }
 }

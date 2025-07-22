@@ -19,7 +19,7 @@
 
         <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">
             <div class="w-full lg:w-1/3" x-data="{ editDates: false }">
-                <div class="bg-[#1f2937] text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
+                <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
                     <div>
                         <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
                             Cash Advance Details
@@ -69,67 +69,76 @@
                             </button>
                         </h3>
                         <div class="mb-4">
-                            <p class="text-medium text-gray-300">
-                                <span class="font-medium text-white">Name:</span> {{ $cashAdvance->sdo->name ?? 'N/A' }}
+                            <p class="text-medium text-gray-800 dark:text-gray-300">
+                                <span class="font-medium text-gray-900 dark:text-white">Name:</span>
+                                {{ $cashAdvance->sdo->name ?? 'N/A' }}
                             </p>
-                            <p class="font-medium text-white">Particulars:</p>
-                            <p class="text-sm text-gray-300 text-justify break-words whitespace-pre-wrap">{{ $cashAdvance->particulars ?? 'N/A' }}</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                <span class="font-medium text-gray-900 dark:text-white">Particulars:
+                                {{ $cashAdvance->particulars ?? 'N/A' }}</span>
+                            </p>
                         </div>
-                        <div class="mb-4 space-y-1 text-sm text-white">
+
+                        <div class="mb-4 space-y-1 text-sm text-gray-800 dark:text-white">
                             <p>
-                                <span class="font-medium text-white">PAP:</span>
-                                <span class="text-gray-300">{{ $cashAdvance->papData->pap_name ?? 'N/A' }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">PAP:</span>
+                                <span class="text-gray-800 dark:text-gray-300">
+                                    {{ $cashAdvance->papData->pap_name ?? 'N/A' }}
+                                </span>
                             </p>
                             <p>
-                                <span class="font-medium text-white">Start of Payout:</span>
-                                <span class="text-gray-300">
+                                <span class="font-medium text-gray-900 dark:text-white">Start of Payout:</span>
+                                <span class="text-gray-800 dark:text-gray-300">
                                     {{ $cashAdvance->payout_start ? \Carbon\Carbon::parse($cashAdvance->payout_start)->format('F j, Y') : '—' }}
                                 </span>
                             </p>
                             <p>
-                                <span class="font-medium text-white">End of Payout:</span>
-                                <span class="text-gray-300">
+                                <span class="font-medium text-gray-900 dark:text-white">End of Payout:</span>
+                                <span class="text-gray-800 dark:text-gray-300">
                                     {{ $cashAdvance->payout_end ? \Carbon\Carbon::parse($cashAdvance->payout_end)->format('F j, Y') : '—' }}
                                 </span>
                             </p>
                             <p>
-                            @if ($cashAdvance->payout_attachment)
-                                <a href="{{ asset('storage/' . $cashAdvance->payout_attachment) }}" target="_blank" class="text-blue-600 underline">
-                                    📄 View Attached File
-                                </a>
-                            @endif
+                                @if ($cashAdvance->payout_attachment)
+                                    <a href="{{ asset('storage/' . $cashAdvance->payout_attachment) }}" target="_blank" class="text-blue-600 dark:text-blue-400 underline">
+                                        📄 View Attached File
+                                    </a>
+                                @endif
                             </p>
                             <p>
-                                <span class="font-medium text-white">Due Date:</span>
-                                <span class="text-gray-300">
+                                <span class="font-medium text-gray-900 dark:text-white">Due Date:</span>
+                                <span class="text-gray-800 dark:text-gray-300">
                                     {{ $cashAdvance->payout_end ? \Carbon\Carbon::parse($cashAdvance->payout_end)->addDays(31)->format('F j, Y') : '—' }}
                                 </span>
                             </p>
                         </div>
-                        <table class="w-full text-sm text-gray-300 table-fixed border-collapse mb-4">
+
+                        <table class="w-full text-sm text-gray-800 dark:text-gray-300 table-fixed border-collapse mb-4">
                             <tbody>
                                 <tr>
-                                    <td class="font-medium text-white py-2 pr-4 w-1/3">Check Number</td>
+                                    <td class="font-medium text-gray-900 dark:text-white py-2 pr-4 w-1/3">Check Number</td>
                                     <td class="py-2 pr-4">{{ $cashAdvance->check_number ?? 'N/A' }}</td>
                                     <td class="py-2">{{ $cashAdvance->check_date ? \Carbon\Carbon::parse($cashAdvance->check_date)->format('m/d/Y') : 'N/A' }}</td>
                                 </tr>
                             </tbody>
                         </table>
+
                         <!-- Granted Amount -->
-                        <div class="flex justify-between text-sm text-white border-t border-gray-600 pt-4">
+                        <div class="flex justify-between text-sm text-gray-800 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-4">
                             <span class="font-semibold">Granted Amount:</span>
                             <span>{{ number_format($cashAdvance->granted_amount, 2) }}</span>
                         </div>
-                        <!-- Total Liq. received -->
-                        <div class="flex justify-between text-sm text-white pt-4">
+
+                        <!-- Total Liquidation Received -->
+                        <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Liquidation Received:</span>
                             <span>
-                                {{ number_format($liquidations->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount'), 2) }}
+                                {{ number_format(abs($liquidations->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount')), 2) }}
                             </span>
                         </div>
 
                         <!-- Total Pre-Audited -->
-                        <div class="flex justify-between text-sm text-white pt-4">
+                        <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Pre-Audited:</span>
                             <span>
                                 {{ number_format($liquidations->where('liquidation_type', 'Liquidation')->sum('pre_audited_amount'), 2) }}
@@ -137,18 +146,18 @@
                         </div>
 
                         <!-- Total For Compliance -->
-                        <div class="flex justify-between text-sm text-white pt-4">
+                        <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Unsubmitted & For Compliance:</span>
                             <span>
-                                {{ number_format($liquidations->sum('for_compliance_amount'), 2) }}
+                                {{ number_format(abs((float) str_replace(',', '', $liquidations->sum('for_compliance_amount'))), 2) }}
                             </span>
                         </div>
 
                         <!-- Total Refund -->
-                        <div class="flex justify-between text-sm text-white pt-4">
+                        <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Refund:</span>
                             <span>
-                                {{ number_format($liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount'), 2) }}
+                                {{ number_format(abs($liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount')), 2) }}
                             </span>
                         </div>
                     </div>
@@ -257,45 +266,23 @@
                         </div>
                     </form>
 
-                    <div class="overflow-x-auto overflow-y-auto max-h-[500px] relative">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                    <div class="relative max-h-[500px] overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg">
+                        <table class="min-w-[1200px] table-fixed text-sm text-left text-gray-800 dark:text-gray-200">
+                            <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800 z-20">
                                 <tr>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Transaction Type
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Reference (LR/OR)
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Date Received
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Date Reviewed
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Liq Amount Received
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Amount for Compliance
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Pre-Audited Amount
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Pre-Auditor
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        JEV No.
-                                    </th>
-                                    <th class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                                        Actions
-                                    </th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Transaction Type</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Reference (LR/OR)</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Date Received</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Date Reviewed</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Liq Amount Received</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Amount for Compliance</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Audited Amount</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Auditor</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">JEV No.</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Actions</th>
                                 </tr>
                             </thead>
-                            <!-- tbody below -->
-
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800 will-change-transform">
                                     @if ($liquidations->isEmpty())
                                         <tr>
                                             <td colspan="10" class="px-4 py-4 text-center text-gray-600 dark:text-gray-400">

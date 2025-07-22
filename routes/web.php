@@ -18,7 +18,8 @@ use App\Http\Controllers\{
     TestMailController,
     UserController,
     UserFileController,
-    LiquidatedReportController
+    LiquidatedReportController,
+    JevController
 };
 use Spatie\Permission\Middleware\{
     PermissionMiddleware,
@@ -83,6 +84,19 @@ Route::post('pre-auditors/import', [PreAuditorController::class, 'import'])->nam
 Route::get('pre-auditors/{auditor}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditors.liquidations');
 Route::get('pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditor.show');
 Route::post('pre-auditor/liquidations/add-entry', [PreAuditorController::class, 'addEntry'])->name('pre-auditor.liquidations.add-entry');
+
+Route::post('/jev/import', [JevController::class, 'import'])->name('jev.import');
+
+Route::get('/liquidations/for-transmittal', [LiquidationController::class, 'forTransmittal'])->name('liquidation.for-transmittal');
+
+
+Route::get('/liquidation/export-transmittal', [LiquidationController::class, 'exportTransmittal'])
+    ->name('liquidation.export.transmittal');
+Route::post('/liquidation/assign-sack', [LiquidationController::class, 'assignSack'])
+    ->name('liquidation.assign.sack');
+Route::post('/liquidations/transmit', [\App\Http\Controllers\LiquidationController::class, 'bulkTransmit'])->name('liquidation.transmit.bulk');
+
+
 
 // ---------------------
 // Cash Advance & SDO

@@ -66,6 +66,38 @@ class LiquidationController extends Controller
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
+    public function exportTransmittal()
+    {
+        // Example logic: export to Excel or PDF
+        return response()->json(['message' => 'Export not yet implemented']);
+    }
+
+    public function assignSack(Request $request)
+    {
+        $request->validate([
+            'sack_number' => 'required|string',
+            'liq_numbers' => 'required|array',
+        ]);
+
+        foreach ($request->liq_numbers as $liq_number) {
+            DB::table('sack_assignment')->updateOrInsert(
+                ['liq_number' => $liq_number],
+                ['sack_number' => $request->sack_number, 'updated_at' => now(), 'created_at' => now()]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Sack number assigned successfully.');
+    }
+
+    public function bulkTransmit()
+    {
+        DB::table('liquidation')
+            ->where('status', '!=', 'Transmitted')
+            ->update(['status' => 'Transmitted']);
+
+        return redirect()->back()->with('success', 'All visible liquidations marked as Transmitted.');
+    }
+
     public function index(Request $request)
     {
         $query = Liquidation::with([
@@ -119,6 +151,10 @@ class LiquidationController extends Controller
                     $liq->status = 'For Approval';
                 }
             }
+            if (!empty($liq->jev_no) && $liq->status !== 'For Transmittal') {
+                $liq->status = 'For Transmittal';
+                $liq->save();
+            }
         }
 
         $sdos = Sdo::orderBy('name')->get();
@@ -130,10 +166,8 @@ class LiquidationController extends Controller
     {
         $cashAdvance = CashAdvance::with(['sdo', 'liquidation'])->findOrFail($id);
 
-        $liquidations = Liquidation::where([
-            ['cash_advance_id', $cashAdvance->id],
-            ['status', 'Approved'],
-        ])
+        $liquidations = Liquidation::where('cash_advance_id', $cashAdvance->id)
+            ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
             ->when($request->filled('type'), fn($q) => $q->where('liquidation_type', $request->type))
             ->orderBy('created_at', $request->get('sort', 'desc'))
             ->get();
@@ -238,6 +272,20 @@ class LiquidationController extends Controller
         }
 
         return view('liquidation.create', compact('cashAdvance', 'sdoList', 'preAuditors'));
+    }
+
+    public function forTransmittal(Request $request)
+    {
+        $search = $request->input('search');
+
+        $liquidations = Liquidation::where('status', 'For Transmittal')
+            ->when($search, function ($query, $search) {
+                $query->where('liq_number', 'like', "%{$search}%")
+                    ->orWhere('sdo_name', 'like', "%{$search}%");
+            })
+            ->get();
+
+        return view('liquidation.for-transmittal', compact('liquidations'));
     }
 
     public function store(Request $request)

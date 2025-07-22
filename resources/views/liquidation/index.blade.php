@@ -15,16 +15,20 @@
         </svg>
     </a>
 
-    <div class="py-6" x-data="{ openExportModal: false }">
-    <div class="mx-8"> <!-- Add horizontal margin here -->
+    <div class="py-6" x-data="{ openExportModal: false, openImportModal: false }">
+    <div class="mx-8">
         <div class="w-full px-4 mx-auto">
             <div class="bg-white dark:bg-gray-800 shadow-md rounded-md overflow-hidden">
-
-                {{-- Export Button --}}
-                <div class="px-6 pt-6 flex justify-end">
+         
+                <div class="px-6 pt-6 flex justify-end gap-2">
                     <button type="button" @click="openExportModal = true"
-                            class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md">
+                        class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md">
                         Export
+                    </button>
+
+                    <button type="button" @click="openImportModal = true"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md">
+                        Import JEV
                     </button>
                 </div>
 
@@ -196,22 +200,6 @@
                                     {{-- Actions --}}
                                     <td class="px-4 py-2 text-center space-y-2">
                                        <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
-                                            <!-- @if ($liq->status === 'Draft')
-                                                <a href="{{ route('liquidation.edit', $liq->id) }}"
-                                                    onclick="event.stopPropagation()"
-                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                                    Edit
-                                                </a>
-
-                                                <form action="{{ route('liquidation.markForApproval', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs">
-                                                        Done
-                                                    </button>
-                                                </form>
-                                            @endif -->
 
                                             @if (in_array($liq->status, ['For Checking', 'Processing']))
                                                 <button 
@@ -219,6 +207,23 @@
                                                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
                                                     Add Pre-Audit
                                                 </button>
+
+                                                <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit"
+                                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs">
+                                                        Set as Draft
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if (in_array($liq->status, ['For Transmittal', 'Transmitted']))
+                                                <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                                    onclick="event.stopPropagation()"
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                                    Edit
+                                                </a>
 
                                                 <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
                                                     @csrf
@@ -496,6 +501,35 @@
             </div>
         </form>
     </div>
+    
+    {{-- Import JEV Modal --}}
+    <div x-show="openImportModal" x-cloak class="fixed inset-0 flex items-center justify-center z-50">
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="openImportModal = false"></div>
+        <form method="POST" action="{{ route('jev.import') }}" enctype="multipart/form-data"
+            class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-md w-full max-w-lg z-50 space-y-4">
+            @csrf
+
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Import JEV File</h2>
+
+            <div>
+                <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Upload Excel File (.xlsx)</label>
+                <input type="file" name="jev_file" accept=".xlsx" required
+                    class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" @click="openImportModal = false"
+                    class="px-4 py-2 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded">
+                    Import
+                </button>
+            </div>
+        </form>
+    </div>
+
 <script>
     function toggleEntry(id) {
         const target = document.getElementById(`entries-${id}`);
