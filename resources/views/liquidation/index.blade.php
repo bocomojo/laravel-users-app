@@ -112,7 +112,7 @@
                                 <th class="px-6 py-3">SDO</th>
                                 <th class="px-6 py-3">Check #</th>
                                 <th class="px-6 py-3">Liq Amount Received</th>
-                                <th class="px-6 py-3">Amount for Compliance</th>
+                                <th class="px-6 py-3">For Compliance</th>
                                 <th class="px-6 py-3">Pre-Audited Amount</th>
                                 <th class="px-6 py-3">Status</th>
                                 <th class="px-6 py-3">Type</th>
@@ -121,6 +121,7 @@
                                 <th class="px-6 py-3">Reviewed Date</th>
                                 <th class="px-6 py-3">Pre-Auditor</th>
                                 <th class="px-6 py-3 text-center">Action</th>
+                                <th class="px-6 py-3">History</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -284,7 +285,60 @@
                                             @endif
                                         </div>
                                     </td>
+                                    <td class="px-6 py-3">
+                                        <button 
+                                            onclick="document.getElementById('history-modal-{{ $liq->id }}').classList.remove('hidden')" 
+                                            class="text-blue-600 hover:underline">
+                                            View
+                                        </button>
+                                    </td>
                                 </tr>
+                                <!-- Activity History Modal -->
+                                <div id="history-modal-{{ $liq->id }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                                    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-xl p-6">
+                                        <!-- Modal Header -->
+                                        <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">
+                                            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                                                Activity History — {{ $liq->liq_number ?? $liq->check_number }}
+                                            </h2>
+                                            <button onclick="document.getElementById('history-modal-{{ $liq->id }}').classList.add('hidden')" 
+                                                    class="text-gray-400 hover:text-red-500 text-2xl leading-none font-bold">
+                                                &times;
+                                            </button>
+                                        </div>
+
+                                        <!-- Modal Content -->
+                                        @if ($liq->activities->count())
+                                            <ul class="divide-y divide-gray-200 dark:divide-gray-700 max-h-80 overflow-y-auto">
+                                                @foreach ($liq->activities as $activity)
+                                                    <li class="py-3">
+                                                        <div class="flex items-center justify-between">
+                                                            <div>
+                                                                <p class="text-sm font-medium text-gray-800 dark:text-white">
+                                                                    {{ optional($activity->user)->name ?? 'System' }}
+                                                                    <span class="text-gray-500 dark:text-gray-400 font-normal">
+                                                                        — {{ $activity->action }}
+                                                                    </span>
+                                                                </p>
+                                                                @if ($activity->details)
+                                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                                        {{ $activity->details }}
+                                                                    </p>
+                                                                @endif
+                                                            </div>
+                                                            <span class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                                                                {{ $activity->created_at->format('M d, Y h:i A') }}
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            <p class="text-sm text-gray-600 dark:text-gray-300 text-center">No activity recorded.</p>
+                                        @endif
+                                    </div>
+                                </div>
+
                                 <!-- Add Pre-Audited Modal -->
                                 <div id="modal-{{ $liq->id }}" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
                                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
@@ -361,6 +415,7 @@
                                                     <tr class="text-gray-600 dark:text-gray-300">
                                                         <th class="py-1 px-2">Amount</th>
                                                         <th class="py-1 px-2">Type</th>
+                                                        <th class="py-1 px-2">Supporting Document</th>
                                                         <th class="py-1 px-2">Date Submitted</th>
                                                     </tr>
                                                 </thead>
@@ -381,6 +436,15 @@
                                                                         {{ $typeLabel }}
                                                                     </span>
                                                                 </td>
+                                                                    <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                                                                        @if ($entry->compliance_file)
+                                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
+                                                                                {{ $entry->compliance_file_name ?? 'View File' }}
+                                                                            </a>
+                                                                        @else
+                                                                            N/A
+                                                                        @endif
+                                                                    </td>
                                                                 <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
                                                             </tr>
                                                         @endif

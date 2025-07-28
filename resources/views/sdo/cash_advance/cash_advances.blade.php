@@ -86,6 +86,11 @@
                                             View
                                         </a>
 
+                                        <a href="{{ route('sdo.cash_advance.edit', ['id' => $advance->id]) }}"
+                                        class="block px-3 py-1 text-sm text-white bg-yellow-500 rounded hover:bg-yellow-600 text-center">
+                                        Edit
+                                        </a>
+
                                         @if ($remainingBalance == 0)
                                             <a href="{{ route('certificate.print', $advance->id) }}" target="_blank"
                                                 class="block px-3 py-1 text-sm text-white bg-purple-600 rounded hover:bg-purple-700 text-center">

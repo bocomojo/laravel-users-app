@@ -11,7 +11,7 @@
                class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
                 ↓ Export to Excel
             </a>
-            <a href="{{ url()->previous() }}"
+            <a href="{{ route('liquidation.index') }}"
                class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                 ← Return to Recent Page
             </a>
@@ -19,7 +19,7 @@
 
         <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">
             <div class="w-full lg:w-1/3" x-data="{ editDates: false }">
-                <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 border border-gray-700 space-y-6">
+                <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl p-6 space-y-6">
                     <div>
                         <h3 class="text-xl font-semibold mb-2 border-b border-gray-600 pb-2 flex justify-between items-center">
                             Cash Advance Details
@@ -279,7 +279,8 @@
                                     <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Audited Amount</th>
                                     <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Auditor</th>
                                     <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">JEV No.</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Actions</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Attachment</th>
+                                    <!-- <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Actions</th> -->
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800 will-change-transform">
@@ -332,12 +333,23 @@
                                                         {{ $liquidation->jev_no }}
                                                     @endif
                                                 </td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
-                                                    <!-- <div class="flex flex-col items-start space-y-1">
+                                                @foreach ($liquidation->preAuditEntries as $entry)
+                                                    <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                                                        @if ($entry->compliance_file)
+                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
+                                                                {{ $entry->compliance_file_name ?? 'View File' }}
+                                                            </a>
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                @endforeach
+                                                <!-- <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
+                                                    <div class="flex flex-col items-start space-y-1">
                                                         <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
                                                         <button @click="showModal = true; deleteId = {{ $liquidation->id }}" class="text-red-600 hover:underline">Delete</button>
-                                                    </div> -->
-                                                </td>
+                                                    </div>
+                                                </td> -->
                                             </tr>
                                         @endforeach
                                     @endif

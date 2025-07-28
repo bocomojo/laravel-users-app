@@ -26,11 +26,17 @@ class Liquidation extends Model
         'for_compliance_amount',
         'pre_audited_amount',
         'pre_auditor',
+        'status',
     ];
 
     public function cashAdvance()
     {
         return $this->belongsTo(\App\Models\CashAdvance::class, 'cash_advance_id');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(LiquidationActivity::class)->latest();
     }
 
     public function preAuditors()
@@ -51,6 +57,17 @@ class Liquidation extends Model
     public function preAuditEntries()
     {
         return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class);
+    }
+
+    public function preAuditorEntry()
+    {
+        return $this->hasOne(\App\Models\PreAuditorLiquidationEntry::class, 'liquidation_id');
+    }
+
+    public function complianceFiles()
+    {
+        return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class, 'liquidation_id')
+                    ->where('for_compliance', true);
     }
 
     public function getDisplayStatusAttribute()

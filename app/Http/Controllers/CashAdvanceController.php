@@ -164,4 +164,28 @@ public function updateDates(Request $request, $id)
 
         return view('sdo.cash_advance.show', compact('cashAdvance'));
     }
+
+    public function edit($id)
+    {
+        $advance = CashAdvance::findOrFail($id);
+        $sdoList = Sdo::all(); // if you have dropdowns
+        $papList = Pap::all(); // if you need pap selection
+
+        return view('sdo.cash_advance.edit', compact('advance', 'sdoList', 'papList'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'granted_amount' => 'required|numeric|min:0',
+            'check_number' => 'required|string',
+            // Add more validation as needed
+        ]);
+
+        $advance = CashAdvance::findOrFail($id);
+        $advance->update($request->all());
+
+        return redirect()->route('sdo.cash_advance.index')->with('success', 'Cash Advance updated successfully.');
+    }
+
 }

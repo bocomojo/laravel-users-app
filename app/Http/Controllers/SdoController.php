@@ -143,6 +143,12 @@ class SdoController extends Controller
         return view('sdo.show', compact('sdo')); // adjust view path as needed
     }
 
+    public function edit($id)
+    {
+        $sdo = Sdo::findOrFail($id);
+        return view('sdo.edit', compact('sdo'));
+    }
+
     public function createForLiquidation()
     {
         $sdos = Sdo::orderBy('name')->get();

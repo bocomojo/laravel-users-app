@@ -14,6 +14,7 @@ class PreAuditorLiquidationEntry extends Model
         'liquidation_id',
         'amount',
         'for_compliance',
+        'compliance_file',
     ];
 
     public function preAuditor()

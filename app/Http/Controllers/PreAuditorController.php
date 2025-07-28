@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use App\Mail\ComplianceFileSubmitted;
+use App\Models\LiquidationActivity;
+
 
 class PreAuditorController extends Controller
 {
@@ -51,6 +53,7 @@ class PreAuditorController extends Controller
         $auditor = PreAuditor::findOrFail($id);
 
         $liquidations = $auditor->liquidation()
+            ->with('preAuditEntries')
             ->orderByRaw("CASE WHEN status = 'Completed' THEN 1 ELSE 0 END ASC")
             ->orderBy('created_at', 'asc')
             ->get();
@@ -165,12 +168,10 @@ if ($request->for_compliance) {
     }
 }
 
-
     // Handle file upload if for compliance
     $filePath = null;
     if ($request->for_compliance && $request->hasFile('supporting_file')) {
-        $file = $request->file('supporting_file');
-        $filePath = $file->store('supporting_files', 'public');
+        $filePath = $request->file('supporting_file')->store('supporting_files', 'public');
     }
 
     // Create the pre-audit entry
@@ -179,7 +180,7 @@ if ($request->for_compliance) {
         'liquidation_id'   => $request->liquidation_id,
         'amount'           => $request->for_compliance ? 0 : $request->amount,
         'for_compliance'   => $request->for_compliance ? $request->amount : 0,
-        'supporting_file'  => $filePath,
+        'compliance_file'  => $filePath,
     ]);
 
     // Reload and update liquidation totals
@@ -202,6 +203,13 @@ if ($request->for_compliance) {
     }
 
     $liquidation->save();
+    LiquidationActivity::create([
+    'liquidation_id' => $liquidation->id,
+    'user_id'        => auth()->id(),
+    'action'         => 'Pre-Audit Entry Added',
+    'details'        => 'Amount: ' . $request->amount . ', For Compliance: ' . ($request->for_compliance ? 'Yes' : 'No'),
+]);
+
 
     // Email the SDO if for compliance and email is available
     if ($request->for_compliance && $filePath) {

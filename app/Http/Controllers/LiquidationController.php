@@ -9,7 +9,6 @@ use App\Models\CashAdvance;
 use App\Models\PreAuditor;
 use App\Exports\LiquidationsExport;
 use App\Exports\CondensedLiquidationExport;
-use App\Models\LiquidatedReport;
 use App\Models\PreAuditorLiquidationEntry;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\LiquidationImport;
@@ -180,13 +179,6 @@ class LiquidationController extends Controller
         ]);
     }
 
-    public function massApprove()
-    {
-        $updated = Liquidation::where('status', 'For Checking')->update(['status' => 'Approved']);
-
-        return redirect()->route('liquidation.index')->with('success', "$updated record(s) approved successfully.");
-    }
-
     public function import(Request $request)
     {
         $request->validate([
@@ -215,41 +207,14 @@ class LiquidationController extends Controller
             $liq->status = 'For Approval';
             $liq->save();
         }
-
-        return redirect()->back()->with('success', 'Marked as For Approval.');
-    }
-
-    public function approve($id)
-    {
-        $liq = Liquidation::findOrFail($id);
-
-        // Set status and current date
-        $liq->status = 'Approved';
-        $liq->liq_date = now()->toDateString(); // Set current date
-        $liq->save();
-
-        // Create report with the updated liq_date
-        LiquidatedReport::create([
+        LiquidationActivity::create([
             'liquidation_id' => $liq->id,
-            'cash_advance_id' => $liq->cash_advance_id,
-            'sdo_name' => $liq->sdo_name,
-            'check_number' => $liq->check_number,
-            'granted_amount' => $liq->granted_amount,
-            'for_liquidation_amount' => $liq->for_liquidation_amount,
-            'for_compliance_amount' => $liq->for_compliance_amount,
-            'pre_audited_amount' => $liq->pre_audited_amount,
-            'liquidation_type' => $liq->liquidation_type,
-            'status' => $liq->status,
-            'liq_date_received' => $liq->liq_date_received,
-            'liq_number' => $liq->liq_number,
-            'liq_date' => $liq->liq_date, // now set to today's date
-            'or_number' => $liq->or_number,
-            'or_date' => $liq->or_date,
-            'pre_auditor' => $liq->pre_auditor,
-            'jev_no' => $liq->jev_no,
+            'user_id' => auth()->id(),
+            'action' => 'Approved',
+            'details' => 'Status changed to Approved',
         ]);
 
-        return redirect()->back()->with('success', 'Liquidation approved.');
+        return redirect()->back()->with('success', 'Marked as For Approval.');
     }
 
     public function create(Request $request)
@@ -272,6 +237,23 @@ class LiquidationController extends Controller
         }
 
         return view('liquidation.create', compact('cashAdvance', 'sdoList', 'preAuditors'));
+    }
+
+    public function approve($id)
+    {
+        $liq = \App\Models\Liquidation::findOrFail($id);
+
+        $liq->status = 'Approved';
+        $liq->save();
+
+        \App\Models\LiquidationActivity::create([
+            'liquidation_id' => $liq->id,
+            'user_id' => auth()->id(),
+            'action' => 'Approved',
+            'details' => 'Status changed to Approved by button click',
+        ]);
+
+        return redirect()->back()->with('success', 'Liquidation marked as Approved.');
     }
 
     public function forTransmittal(Request $request)
@@ -383,6 +365,12 @@ class LiquidationController extends Controller
                 $liquidation->status = 'Draft';
                 $liquidation->save();
             }
+            LiquidationActivity::create([
+            'liquidation_id' => $liq->id,
+            'user_id' => auth()->id(),
+            'action' => 'Approved',
+            'details' => 'Status changed to Approved',
+        ]);
 
             return redirect()->back()->with('success', 'Liquidation set as Draft.');
         }
@@ -438,6 +426,12 @@ class LiquidationController extends Controller
         $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
         $cashAdvance->save();
     }
+    LiquidationActivity::create([
+            'liquidation_id' => $liq->id,
+            'user_id' => auth()->id(),
+            'action' => 'Approved',
+            'details' => 'Status changed to Approved',
+        ]);
 
     return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
                      ->with('success', 'Liquidation updated successfully.');

@@ -18,7 +18,6 @@ use App\Http\Controllers\{
     TestMailController,
     UserController,
     UserFileController,
-    LiquidatedReportController,
     JevController
 };
 use Spatie\Permission\Middleware\{
@@ -73,9 +72,6 @@ Route::resource('liquidation', LiquidationController::class)->only([
     'create', 'store', 'show', 'index', 'edit', 'update', 'destroy'
 ]);
 
-// Liquidated Reports
-Route::resource('liquidated_reports', LiquidatedReportController::class);
-
 // ---------------------
 // Pre-Auditors
 // ---------------------
@@ -88,38 +84,38 @@ Route::post('pre-auditor/liquidations/add-entry', [PreAuditorController::class, 
 Route::post('/jev/import', [JevController::class, 'import'])->name('jev.import');
 
 Route::get('/liquidations/for-transmittal', [LiquidationController::class, 'forTransmittal'])->name('liquidation.for-transmittal');
-
-
-Route::get('/liquidation/export-transmittal', [LiquidationController::class, 'exportTransmittal'])
-    ->name('liquidation.export.transmittal');
-Route::post('/liquidation/assign-sack', [LiquidationController::class, 'assignSack'])
-    ->name('liquidation.assign.sack');
-Route::post('/liquidations/transmit', [\App\Http\Controllers\LiquidationController::class, 'bulkTransmit'])->name('liquidation.transmit.bulk');
-
-
+Route::get('/liquidation/export-transmittal', [LiquidationController::class, 'exportTransmittal'])->name('liquidation.export.transmittal');
+Route::post('/liquidation/assign-sack', [LiquidationController::class, 'assignSack'])->name('liquidation.assign.sack');
+Route::post('/liquidations/transmit', [LiquidationController::class, 'bulkTransmit'])->name('liquidation.transmit.bulk');
 
 // ---------------------
-// Cash Advance & SDO
+// Cash Advance & SDO (Grouped)
 // ---------------------
 Route::prefix('sdo')->name('sdo.')->group(function () {
     Route::resource('cash_advance', CashAdvanceController::class)->except(['edit', 'destroy']);
+
+    // ✅ Explicit edit/update inside the group for proper route names
+    Route::get('cash_advance/{id}/edit', [CashAdvanceController::class, 'edit'])->name('cash_advance.edit');
+    Route::put('cash_advance/{id}', [CashAdvanceController::class, 'update'])->name('cash_advance.update');
+
     Route::get('cash-advances/all', [CashAdvanceController::class, 'cashAdvances'])->name('cash_advance.cash_advances');
-    Route::get('cash-advance/create', [CashAdvanceController::class, 'create'])->name('cash_advance.create');
     Route::post('cash-advance/import', [CashAdvanceController::class, 'import'])->name('cash_advance.import');
 
     Route::get('cash_advance/index', [SdoController::class, 'sdoCashAdvance'])->name('cash.advance');
+
     Route::get('bonded/create', [BondedOfficialController::class, 'create'])->name('bonded.create');
     Route::get('bonded_officials', [BondedOfficialController::class, 'index'])->name('bonded.index');
+    Route::put('bonded-officials/{id}', [BondedOfficialController::class, 'update'])->name('bonded-officials.update');
 
     Route::get('export', [SdoController::class, 'export'])->name('export');
     Route::post('import', [SdoController::class, 'import'])->name('import');
 });
 Route::resource('sdo', SdoController::class);
 
-// Specific update route
+// ---------------------
+// Specific Cash Advance Utility Route
+// ---------------------
 Route::put('/cash-advance/{id}/update-dates', [CashAdvanceController::class, 'updateDates'])->name('cash-advance.update-dates');
-Route::put('sdo/bonded-officials/{id}', [BondedOfficialController::class, 'update'])
-    ->name('sdo.bonded-officials.update');
 
 // ---------------------
 // Users
@@ -165,14 +161,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 // ---------------------
-// Staff Section
-// ---------------------
-// Route::middleware(['auth', 'role:admin,staff'])->group(function () {
-//     Route::get('/staff-section', [StaffController::class, 'index'])->name('staff.section');
-// });
-
-// ---------------------
-// Miscellaneous
+// Test & Miscellaneous
 // ---------------------
 Route::get('/send-test-email', [TestMailController::class, 'send'])->name('send.test.email');
 
@@ -190,10 +179,12 @@ Route::middleware('auth')->get('/api/latest-ongoing-cash-advance/{sdoId}', funct
         : response()->json(['message' => 'No ongoing cash advance found.'], 404);
 });
 
+// ---------------------
+// Pre-Audit Dashboard
+// ---------------------
 Route::get('/pre-audit/dashboard', [PreAuditorController::class, 'dashboard'])->name('preaudit.dashboard');
 
-
 // ---------------------
-// Auth Routes
+// Auth
 // ---------------------
 require __DIR__.'/auth.php';
