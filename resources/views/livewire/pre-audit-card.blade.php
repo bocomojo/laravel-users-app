@@ -51,7 +51,7 @@
                     Assigned: {{ $assigned }}
                 </span>
                 <span class="text-green-800 dark:text-green-300 bg-green-100 dark:bg-green-800 px-2 py-1 rounded-md">
-                    Approved: {{ $completed }}
+                    Completed: {{ $completed }}
                 </span>
             </div>
         </div>

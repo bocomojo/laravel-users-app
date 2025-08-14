@@ -53,7 +53,7 @@ class LiquidationImport implements ToCollection, WithHeadingRow
 
                     'status'                => $status,
                     'pre_auditor'           => implode(', ', $preAuditorNames),
-                    'pre_audited_amount'    => $row['for_liquidation_amount'],
+                    // 'pre_audited_amount'    => $row['for_liquidation_amount'],
                     'fo_compliance_amount'  => $row['fo_compliance_amount'] ?? null,
                 ]);
 

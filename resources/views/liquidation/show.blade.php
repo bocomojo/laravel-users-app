@@ -237,7 +237,7 @@
 
                             @php
                                 $totalPreAudited = $liquidations->sum('pre_audited_amount');
-                                $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited;
+                                $remainingBalance = $cashAdvance->granted_amount + $totalPreAudited;
                             @endphp
 
                             <p class="text-gray-700 dark:text-gray-300">
@@ -333,14 +333,15 @@
                                                         {{ $liquidation->jev_no }}
                                                     @endif
                                                 </td>
-                                                @foreach ($liquidation->preAuditEntries as $entry)
+                                               
                                                     <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                                                         @foreach ($liquidation->preAuditEntries as $entry) 
                                                         @if ($entry->compliance_file)
                                                             <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
                                                                 {{ $entry->compliance_file_name ?? 'View File' }}
                                                             </a>
                                                         @else
-                                                            N/A
+                                                            
                                                         @endif
                                                     </td>
                                                 @endforeach

@@ -12,6 +12,8 @@
 
                     {{-- Filter Form --}}
                     <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
+
+                        {{-- Status Filter --}}
                         <select name="status"
                             class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
                             <option value="">All Status</option>
@@ -23,14 +25,45 @@
                             </option>
                         </select>
 
+                        {{-- PAP Filter --}}
+                        <select name="pap"
+                            class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                            <option value="">All PAP</option>
+                            @foreach($paps as $pap)
+                                <option value="{{ $pap->pap_name }}" {{ request('pap') == $pap->pap_name ? 'selected' : '' }}>
+                                    {{ $pap->pap_name }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- Demand Letter Status Filter --}}
+                        <select name="demand_letter_status"
+                            class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                            <option value="">All Demand Letter Status</option>
+                            <option value="Overdue" {{ request('demand_letter_status') == 'Overdue' ? 'selected' : '' }}>
+                                Overdue
+                            </option>
+                        </select>
+
+                        {{-- Filter Button --}}
                         <button type="submit"
                             class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
                             Filter
                         </button>
 
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search SDO, PAP, or Check #"
-                            class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                        {{-- Clear Filter --}}
+                        <a href="{{ route('sdo.cash_advance.cash_advances') }}"
+                            class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
+                            Clear
+                        </a>
+
+                        {{-- Search Field Floated Right --}}
+                        <div class="ml-auto">
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Search SDO, PAP, or Check #"
+                                class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                        </div>
+
                     </form>
 
                     {{-- Table --}}

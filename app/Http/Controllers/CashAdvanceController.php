@@ -64,13 +64,52 @@ class CashAdvanceController extends Controller
         ]);
     }
 
-    public function cashAdvances()
+    public function cashAdvances(Request $request)
     {
-        $cashAdvances = CashAdvance::with(['sdo', 'pap', 'liquidations'])->paginate(15);
+        $status = $request->input('status');
+        $search = $request->input('search');
+        $pap = $request->input('pap');
+        $demandLetterStatus = $request->input('demand_letter_status');
 
-        return view('sdo.cash_advance.cash_advances', compact('cashAdvances'));
+        $cashAdvances = CashAdvance::with(['sdo', 'liquidations'])
+            ->when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->when($pap, function ($query) use ($pap) {
+                $query->where('pap', $pap);
+            })
+            ->when($demandLetterStatus, function ($query) use ($demandLetterStatus) {
+                if ($demandLetterStatus === 'Overdue') {
+                    $query->where('demand_letter_status', 'Overdue');
+                    // Or dynamic overdue check: $query->whereDate('due_date', '<', now());
+                } else {
+                    $query->where('demand_letter_status', $demandLetterStatus);
+                }
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('sdo', function ($sdoQuery) use ($search) {
+                            $sdoQuery->where('name', 'like', "%{$search}%");
+                        })
+                    ->orWhere('pap', 'like', "%{$search}%")
+                    ->orWhere('check_number', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(15)
+            ->appends($request->only('status', 'pap', 'demand_letter_status', 'search'));
+
+        // ✅ Pull PAP list from pap table
+        $paps = Pap::orderBy('pap_name', 'asc')->get();
+
+        return view('sdo.cash_advance.cash_advances', compact(
+            'cashAdvances',
+            'status',
+            'search',
+            'pap',
+            'paps',
+            'demandLetterStatus'
+        ));
     }
-
 
 public function updateDates(Request $request, $id)
 {

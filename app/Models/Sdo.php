@@ -27,4 +27,9 @@ class Sdo extends Model
         // This assumes each SDO can have one latest ongoing cash advance
         return $this->hasOne(CashAdvance::class)->latestOfMany();
     }
+
+    public function cashAdvances()
+    {
+        return $this->hasMany(\App\Models\CashAdvance::class, 'sdo_id');
+    }
 }

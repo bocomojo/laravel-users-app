@@ -8,6 +8,7 @@ use App\Models\Sdo;
 use App\Models\CashAdvance;
 use App\Models\PreAuditor;
 use App\Exports\LiquidationsExport;
+use App\Models\LiquidationActivity;
 use App\Exports\CondensedLiquidationExport;
 use App\Models\PreAuditorLiquidationEntry;
 use Maatwebsite\Excel\Facades\Excel;
@@ -201,20 +202,37 @@ class LiquidationController extends Controller
 
     public function markForApproval($id)
     {
-        $liq = Liquidation::findOrFail($id);
+        $liq = \App\Models\Liquidation::findOrFail($id);
 
         if ($liq->status === 'Draft') {
-            $liq->status = 'For Approval';
-            $liq->save();
-        }
-        LiquidationActivity::create([
-            'liquidation_id' => $liq->id,
-            'user_id' => auth()->id(),
-            'action' => 'Approved',
-            'details' => 'Status changed to Approved',
-        ]);
+            $entries = $liq->preAuditEntries;
 
-        return redirect()->back()->with('success', 'Marked as For Approval.');
+            $totalComplied = $entries->sum('amount');
+            $totalCompliance = $entries->sum('for_compliance');
+            $totalCombined = $totalComplied + $totalCompliance;
+            $expectedAmount = abs($liq->for_liquidation_amount);
+
+            if ($entries->isEmpty()) {
+                $liq->status = 'For Checking';
+            } elseif (round($totalCombined, 2) === round($expectedAmount, 2)) {
+                $liq->status = 'For Approval';
+            } else {
+                $liq->status = 'Processing';
+            }
+
+            $liq->pre_audited_amount = $totalComplied;
+            $liq->for_compliance_amount = $totalCompliance;
+            $liq->save();
+
+            \App\Models\LiquidationActivity::create([
+                'liquidation_id' => $liq->id,
+                'user_id' => auth()->id(),
+                'action' => 'Marked as Done',
+                'details' => "Status changed to {$liq->status}",
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Marked as ' . $liq->status . '.');
     }
 
     public function create(Request $request)
@@ -244,6 +262,12 @@ class LiquidationController extends Controller
         $liq = \App\Models\Liquidation::findOrFail($id);
 
         $liq->status = 'Approved';
+
+        // Only set liq_date if it's currently null
+        if (is_null($liq->liq_date)) {
+            $liq->liq_date = now(); // or Carbon::now() if not using the global helper
+        }
+
         $liq->save();
 
         \App\Models\LiquidationActivity::create([
@@ -361,18 +385,23 @@ class LiquidationController extends Controller
         {
             $liquidation = \App\Models\Liquidation::findOrFail($id);
 
-            if ($liquidation->status === 'Approved') {
+            if (in_array($liquidation->status, ['Approved', 'For Approval', 'For Checking', 'Processing'])) {
+                $previousStatus = $liquidation->status;
+
                 $liquidation->status = 'Draft';
                 $liquidation->save();
-            }
-            LiquidationActivity::create([
-            'liquidation_id' => $liq->id,
-            'user_id' => auth()->id(),
-            'action' => 'Approved',
-            'details' => 'Status changed to Approved',
-        ]);
 
-            return redirect()->back()->with('success', 'Liquidation set as Draft.');
+                LiquidationActivity::create([
+                    'liquidation_id' => $liquidation->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'Draft',
+                    'details' => "Status changed to Draft from {$previousStatus}",
+                ]);
+
+                return redirect()->back()->with('success', 'Liquidation set as Draft.');
+            }
+
+            return redirect()->back()->with('error', 'Cannot set as Draft from current status.');
         }
 
         public function edit($id)

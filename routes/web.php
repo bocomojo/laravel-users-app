@@ -18,7 +18,9 @@ use App\Http\Controllers\{
     TestMailController,
     UserController,
     UserFileController,
-    JevController
+    JevController,
+    ComplianceTrackingController,
+    SentMailController
 };
 use Spatie\Permission\Middleware\{
     PermissionMiddleware,
@@ -50,6 +52,10 @@ Route::match(['get', 'post'], '/pap/import', [PapController::class, 'import'])->
 // ---------------------
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 
+
+
+Route::get('/sent', [SentMailController::class, 'index'])->name('mail.sent');
+Route::get('/sent/{id}', [SentMailController::class, 'show'])->name('mail.show');
 // ---------------------
 // Liquidation
 // ---------------------
@@ -128,8 +134,6 @@ Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name(
 // ---------------------
 Route::prefix('compliance')->name('sdo.compliance.')->group(function () {
     Route::get('/', [ComplianceFileController::class, 'index'])->name('index');
-    Route::get('create', [ComplianceFileController::class, 'create'])->name('create');
-    Route::post('/', [ComplianceFileController::class, 'store'])->name('store');
 });
 
 // ---------------------

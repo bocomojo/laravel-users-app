@@ -70,15 +70,13 @@
                                     [
                                         'label' => 'Compliance Tracking',
                                         'routes' => [
-                                            ['label' => 'Add', 'route' => 'sdo.compliance.create'],
                                             ['label' => 'View', 'route' => 'sdo.compliance.index'],
                                         ]
                                     ],
                                     [
-                                        'label' => 'Documents',
+                                        'label' => 'Sent Items',
                                         'routes' => [
-                                            ['label' => 'Add', 'route' => 'pdf.upload'],
-                                            ['label' => 'View', 'route' => 'documents.index'],
+                                            ['label' => 'View', 'route' => 'sdo.compliance.index'],
                                         ]
                                     ]
                                 ]
