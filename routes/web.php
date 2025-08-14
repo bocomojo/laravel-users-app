@@ -20,7 +20,7 @@ use App\Http\Controllers\{
     UserFileController,
     JevController,
     ComplianceTrackingController,
-    SentMailController
+    GmailController
 };
 use Spatie\Permission\Middleware\{
     PermissionMiddleware,
@@ -52,10 +52,12 @@ Route::match(['get', 'post'], '/pap/import', [PapController::class, 'import'])->
 // ---------------------
 Route::get('/certificate/print/{id}', [CertificateController::class, 'print'])->name('certificate.print');
 
+// Gmail API Routes
+Route::get('/gmail/auth', [GmailController::class, 'auth'])->name('gmail.auth');
+Route::get('/gmail/callback', [GmailController::class, 'callback'])->name('gmail.callback');
+Route::get('/gmail/sent', [GmailController::class, 'sent'])->name('gmail.sent');
 
-
-Route::get('/sent', [SentMailController::class, 'index'])->name('mail.sent');
-Route::get('/sent/{id}', [SentMailController::class, 'show'])->name('mail.show');
+Route::get('/gmail/message/{id}', [GmailController::class, 'show'])->name('gmail.message');
 // ---------------------
 // Liquidation
 // ---------------------

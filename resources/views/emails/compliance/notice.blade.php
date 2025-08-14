@@ -1,14 +1,17 @@
 <x-mail::message>
-@component('mail::message')
-# Compliance File Submitted
+# 📄 Compliance File Submitted
 
-A new compliance file has been submitted for:
+Hello,
 
-**Liquidation Number:** {{ $liquidation->liq_number ?? $liquidation->check_number }}
+We would like to inform you that a **new compliance file** has been submitted for review.
 
-Please see the attached file for review.
+<!-- **Liquidation Number:** {{ $liquidation->liq_number ?? $liquidation->check_number }} -->
 
-Thanks,<br>
-{{ config('app.name') }}
-@endcomponent
+You will find the related document attached to this email.  
+Please review it at your earliest convenience.
+
+---
+
+Thanks & Best Regards,  
+**Accounting - Liquidation Team**
 </x-mail::message>

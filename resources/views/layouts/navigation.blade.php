@@ -76,7 +76,7 @@
                                     [
                                         'label' => 'Sent Items',
                                         'routes' => [
-                                            ['label' => 'View', 'route' => 'sdo.compliance.index'],
+                                            ['label' => 'View', 'route' => 'gmail.sent'],
                                         ]
                                     ]
                                 ]
