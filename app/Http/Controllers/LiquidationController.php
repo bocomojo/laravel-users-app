@@ -62,7 +62,7 @@ class LiquidationController extends Controller
     }
 
     public function export($cashAdvanceId)
-    {
+    {   
         return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
     }
 
