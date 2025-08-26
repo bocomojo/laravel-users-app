@@ -69,10 +69,16 @@ class GmailController extends Controller
         // Apply search if provided
         if ($request->filled('search')) {
             $search = trim($request->search);
+
+            // Check if search matches any SDO email
             $sdoEmails = Sdo::where('name', 'like', "%{$search}%")->pluck('email')->toArray();
+
             if (!empty($sdoEmails)) {
                 $toQuery = implode(' OR to:', $sdoEmails);
-                $query .= ' to:' . $toQuery;
+                $query .= ' (to:' . $toQuery . ' OR "' . $search . '")';
+            } else {
+                // Search subject, body, etc. directly
+                $query .= ' "' . $search . '"';
             }
         }
 
@@ -151,7 +157,8 @@ class GmailController extends Controller
     $attachments = [];
     $htmlBody = '';
 
-    $processParts = function ($parts) use (&$processParts, $service, $message, &$attachments, &$htmlBody) {
+    // Recursively process parts
+    $processParts = function ($parts) use (&$processParts, $message, &$attachments, &$htmlBody) {
         foreach ($parts as $part) {
             $mimeType = $part->getMimeType();
             $filename = $part->getFilename();
@@ -163,17 +170,13 @@ class GmailController extends Controller
                 $htmlBody = base64_decode(strtr($data, '-_', '+/'));
             }
 
-            // Attachment
+            // Attachment (store metadata only)
             if ($filename && $body && $body->getAttachmentId()) {
-                $attachment = $service->users_messages_attachments->get(
-                    'me', 
-                    $message->getId(), 
-                    $body->getAttachmentId()
-                );
                 $attachments[] = [
-                    'filename' => $filename,
-                    'mimeType' => $mimeType,
-                    'data' => $attachment->getData()
+                    'messageId'    => $message->getId(),
+                    'attachmentId' => $body->getAttachmentId(),
+                    'filename'     => $filename,
+                    'mimeType'     => $mimeType
                 ];
             }
 
@@ -185,13 +188,83 @@ class GmailController extends Controller
     };
 
     $payload = $message->getPayload();
-    $parts = $payload->getParts() ?: [$payload]; // ensure we always have an array
+    $parts = $payload->getParts() ?: [$payload]; // ensure array
     $processParts($parts);
 
     return response()->json([
-        'html' => $htmlBody ?: '<p>(No Content)</p>',
+        'html'        => $htmlBody ?: '<p>(No Content)</p>',
         'attachments' => $attachments
     ]);
+}
+
+
+public function downloadAttachment($messageId, $attachmentId, $filename)
+{
+    $tokenPath = storage_path('app/google/token.json');
+    if (!file_exists($tokenPath)) {
+        return redirect()->route('gmail.auth')
+            ->with('error', 'Please connect your Gmail account to download attachments.');
+    }
+
+    // Load Google Client
+    $client = $this->getGoogleClient();
+    $accessToken = json_decode(file_get_contents($tokenPath), true);
+    $client->setAccessToken($accessToken);
+
+    // Refresh token if expired
+    if ($client->isAccessTokenExpired()) {
+        if ($client->getRefreshToken()) {
+            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            file_put_contents($tokenPath, json_encode($client->getAccessToken()));
+        } else {
+            return redirect()->route('gmail.auth')
+                ->with('error', 'Please reconnect your Gmail account.');
+        }
+    }
+
+    $service = new \Google\Service\Gmail($client);
+
+    try {
+        // Validate IDs
+        if (empty($messageId) || empty($attachmentId)) {
+            abort(400, 'Invalid attachment request.');
+        }
+
+        // Sanitize filename
+        $filename = preg_replace('/[^\w\-. ]+/', '_', $filename);
+
+        // Fetch attachment from Gmail
+        $attachment = $service->users_messages_attachments->get('me', $messageId, $attachmentId);
+        $data = base64_decode(strtr($attachment->getData(), ['-' => '+', '_' => '/']));
+
+        if ($data === false) {
+            abort(500, 'Failed to decode attachment data.');
+        }
+
+        // Detect MIME type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_buffer($finfo, $data) ?: 'application/octet-stream';
+        finfo_close($finfo);
+
+        // Decide if we show inline or download
+        $inlineTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'text/plain'
+        ];
+        $disposition = in_array($mimeType, $inlineTypes) ? 'inline' : 'attachment';
+
+        return response($data)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Disposition', $disposition . '; filename="' . $filename . '"');
+
+    } catch (\Google\Service\Exception $e) {
+        abort($e->getCode() ?: 500, 'Gmail API Error: ' . $e->getMessage());
+    } catch (\Exception $e) {
+        abort(500, 'Server Error: ' . $e->getMessage());
+    }
 }
 
 

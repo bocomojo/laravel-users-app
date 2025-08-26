@@ -65,51 +65,56 @@ class CashAdvanceController extends Controller
     }
 
     public function cashAdvances(Request $request)
-    {
-        $status = $request->input('status');
-        $search = $request->input('search');
-        $pap = $request->input('pap');
-        $demandLetterStatus = $request->input('demand_letter_status');
+{
+    $status = $request->input('status');
+    $search = $request->input('search');
+    $pap = $request->input('pap');
 
-        $cashAdvances = CashAdvance::with(['sdo', 'liquidations'])
-            ->when($status, function ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            ->when($pap, function ($query) use ($pap) {
-                $query->where('pap', $pap);
-            })
-            ->when($demandLetterStatus, function ($query) use ($demandLetterStatus) {
-                if ($demandLetterStatus === 'Overdue') {
-                    $query->where('demand_letter_status', 'Overdue');
-                    // Or dynamic overdue check: $query->whereDate('due_date', '<', now());
-                } else {
-                    $query->where('demand_letter_status', $demandLetterStatus);
-                }
-            })
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('sdo', function ($sdoQuery) use ($search) {
-                            $sdoQuery->where('name', 'like', "%{$search}%");
-                        })
-                    ->orWhere('pap', 'like', "%{$search}%")
-                    ->orWhere('check_number', 'like', "%{$search}%");
-                });
-            })
-            ->paginate(15)
-            ->appends($request->only('status', 'pap', 'demand_letter_status', 'search'));
+    // Fetch cash advances with relationships, apply filters
+    $cashAdvances = CashAdvance::with(['sdo', 'liquidations'])
+        ->when($status, fn($query) => $query->where('status', $status))
+        ->when($pap, fn($query) => $query->where('pap', $pap))
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('sdo', fn($sdoQuery) => $sdoQuery->where('name', 'like', "%{$search}%"))
+                  ->orWhere('pap', 'like', "%{$search}%")
+                  ->orWhere('check_number', 'like', "%{$search}%");
+            });
+        })
+        ->paginate(15)
+        ->withQueryString();
 
-        // ✅ Pull PAP list from pap table
-        $paps = Pap::orderBy('pap_name', 'asc')->get();
+    $now = now();
 
-        return view('sdo.cash_advance.cash_advances', compact(
-            'cashAdvances',
-            'status',
-            'search',
-            'pap',
-            'paps',
-            'demandLetterStatus'
-        ));
+    // Dynamically mark overdue and calculate aging
+    foreach ($cashAdvances as $advance) {
+        if ($advance->status === 'Ongoing' && $advance->payout_end) {
+            $deadline = \Carbon\Carbon::parse($advance->payout_end)->addDays(31);
+            $totalLiquidated = $advance->liquidations->sum('for_liquidation_amount');
+            $remaining = $advance->granted_amount - $totalLiquidated;
+
+            if ($now->greaterThanOrEqualTo($deadline) && $remaining > 0) {
+                $advance->status = 'Overdue';
+                $advance->aging = $now->diffInDays($deadline);
+            } else {
+                $advance->aging = 0;
+            }
+        } else {
+            $advance->aging = 0;
+        }
     }
+
+    // Pull PAP list for filter dropdown
+    $paps = Pap::orderBy('pap_name', 'asc')->get();
+
+    return view('sdo.cash_advance.cash_advances', compact(
+        'cashAdvances',
+        'status',
+        'search',
+        'pap',
+        'paps'
+    ));
+}
 
 public function updateDates(Request $request, $id)
 {

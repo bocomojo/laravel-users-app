@@ -58,6 +58,8 @@ Route::get('/gmail/callback', [GmailController::class, 'callback'])->name('gmail
 Route::get('/gmail/sent', [GmailController::class, 'sent'])->name('gmail.sent');
 
 Route::get('/gmail/message/{id}', [GmailController::class, 'show'])->name('gmail.message');
+Route::get('/gmail/attachment/{messageId}/{attachmentId}/{filename}', [GmailController::class, 'downloadAttachment']);
+
 // ---------------------
 // Liquidation
 // ---------------------
