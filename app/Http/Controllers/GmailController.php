@@ -28,13 +28,12 @@ class GmailController extends Controller
     public function callback(Request $request)
     {
         $client = $this->getGoogleClient();
-
         $accessToken = $client->fetchAccessTokenWithAuthCode($request->code);
 
         // Save token for later use
         file_put_contents(storage_path('app/google/token.json'), json_encode($accessToken));
 
-        return redirect()->route('mail.sent')
+        return redirect()->route('gmail.sent')
             ->with('success', 'Gmail connected successfully!');
     }
 
@@ -52,7 +51,12 @@ class GmailController extends Controller
 
         if ($client->isAccessTokenExpired()) {
             if ($client->getRefreshToken()) {
-                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                if (isset($newToken['error'])) {
+                    unlink($tokenPath);
+                    return redirect()->route('gmail.auth')
+                        ->with('error', 'Gmail session expired, please sign in again.');
+                }
                 file_put_contents($tokenPath, json_encode($client->getAccessToken()));
             } else {
                 return redirect()->route('gmail.auth')
@@ -61,23 +65,17 @@ class GmailController extends Controller
         }
 
         $service = new Gmail($client);
-
-        // Filter sent messages by subject
         $subjectFilter = 'Compliance File Submitted';
         $query = 'label:SENT subject:"' . $subjectFilter . '"';
 
-        // Apply search if provided
         if ($request->filled('search')) {
             $search = trim($request->search);
-
-            // Check if search matches any SDO email
             $sdoEmails = Sdo::where('name', 'like', "%{$search}%")->pluck('email')->toArray();
 
             if (!empty($sdoEmails)) {
                 $toQuery = implode(' OR to:', $sdoEmails);
                 $query .= ' (to:' . $toQuery . ' OR "' . $search . '")';
             } else {
-                // Search subject, body, etc. directly
                 $query .= ' "' . $search . '"';
             }
         }
@@ -92,7 +90,6 @@ class GmailController extends Controller
         }
 
         $list = $service->users_messages->listUsersMessages('me', $params);
-
         $messages = [];
         $sdoList = Sdo::pluck('name', 'email')
                     ->mapWithKeys(fn($name, $email) => [strtolower(trim($email)) => $name]);
@@ -125,7 +122,7 @@ class GmailController extends Controller
                 'to'      => $toName,
                 'subject' => $subject,
                 'date'    => $date,
-                'snippet' => $msg->getSnippet(), // snippet for left pane preview
+                'snippet' => $msg->getSnippet(),
             ];
         }
 
@@ -135,138 +132,134 @@ class GmailController extends Controller
     }
 
     public function show($id)
-{
-    $tokenPath = storage_path('app/google/token.json');
-    if (!file_exists($tokenPath)) abort(403, 'Gmail not connected.');
+    {
+        $tokenPath = storage_path('app/google/token.json');
+        if (!file_exists($tokenPath)) abort(403, 'Gmail not connected.');
 
-    $client = $this->getGoogleClient();
-    $client->setAccessToken(json_decode(file_get_contents($tokenPath), true));
+        $client = $this->getGoogleClient();
+        $client->setAccessToken(json_decode(file_get_contents($tokenPath), true));
 
-    if ($client->isAccessTokenExpired()) {
-        if ($client->getRefreshToken()) {
-            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents($tokenPath, json_encode($client->getAccessToken()));
-        } else {
-            abort(403, 'Session expired.');
-        }
-    }
-
-    $service = new \Google_Service_Gmail($client);
-    $message = $service->users_messages->get('me', $id, ['format' => 'full']);
-
-    $attachments = [];
-    $htmlBody = '';
-
-    // Recursively process parts
-    $processParts = function ($parts) use (&$processParts, $message, &$attachments, &$htmlBody) {
-        foreach ($parts as $part) {
-            $mimeType = $part->getMimeType();
-            $filename = $part->getFilename();
-            $body = $part->getBody();
-
-            // HTML body
-            if ($mimeType === 'text/html' && empty($htmlBody)) {
-                $data = $body->getData() ?? '';
-                $htmlBody = base64_decode(strtr($data, '-_', '+/'));
-            }
-
-            // Attachment (store metadata only)
-            if ($filename && $body && $body->getAttachmentId()) {
-                $attachments[] = [
-                    'messageId'    => $message->getId(),
-                    'attachmentId' => $body->getAttachmentId(),
-                    'filename'     => $filename,
-                    'mimeType'     => $mimeType
-                ];
-            }
-
-            // Nested parts
-            if ($part->getParts()) {
-                $processParts($part->getParts());
+        if ($client->isAccessTokenExpired()) {
+            if ($client->getRefreshToken()) {
+                $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                if (isset($newToken['error'])) {
+                    unlink($tokenPath);
+                    abort(403, 'Gmail session expired. Please reconnect.');
+                }
+                file_put_contents($tokenPath, json_encode($client->getAccessToken()));
+            } else {
+                abort(403, 'Session expired.');
             }
         }
-    };
 
-    $payload = $message->getPayload();
-    $parts = $payload->getParts() ?: [$payload]; // ensure array
-    $processParts($parts);
+        $service = new Gmail($client);
+        $message = $service->users_messages->get('me', $id, ['format' => 'full']);
 
-    return response()->json([
-        'html'        => $htmlBody ?: '<p>(No Content)</p>',
-        'attachments' => $attachments
-    ]);
-}
+        $attachments = [];
+        $htmlBody = '';
 
+        $processParts = function ($parts) use (&$processParts, $message, &$attachments, &$htmlBody) {
+            foreach ($parts as $part) {
+                $mimeType = $part->getMimeType();
+                $filename = $part->getFilename();
+                $body = $part->getBody();
 
-public function downloadAttachment($messageId, $attachmentId, $filename)
-{
-    $tokenPath = storage_path('app/google/token.json');
-    if (!file_exists($tokenPath)) {
-        return redirect()->route('gmail.auth')
-            ->with('error', 'Please connect your Gmail account to download attachments.');
+                if ($mimeType === 'text/html' && empty($htmlBody)) {
+                    $data = $body->getData() ?? '';
+                    $htmlBody = base64_decode(strtr($data, '-_', '+/'));
+                }
+
+                if ($filename && $body && $body->getAttachmentId()) {
+                    $attachments[] = [
+                        'messageId'    => $message->getId(),
+                        'attachmentId' => $body->getAttachmentId(),
+                        'filename'     => $filename,
+                        'mimeType'     => $mimeType
+                    ];
+                }
+
+                if ($part->getParts()) {
+                    $processParts($part->getParts());
+                }
+            }
+        };
+
+        $payload = $message->getPayload();
+        $parts = $payload->getParts() ?: [$payload];
+        $processParts($parts);
+
+        return response()->json([
+            'html'        => $htmlBody ?: '<p>(No Content)</p>',
+            'attachments' => $attachments
+        ]);
     }
 
-    // Load Google Client
-    $client = $this->getGoogleClient();
-    $accessToken = json_decode(file_get_contents($tokenPath), true);
-    $client->setAccessToken($accessToken);
-
-    // Refresh token if expired
-    if ($client->isAccessTokenExpired()) {
-        if ($client->getRefreshToken()) {
-            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents($tokenPath, json_encode($client->getAccessToken()));
-        } else {
+    public function downloadAttachment($messageId, $attachmentId, $filename)
+    {
+        $tokenPath = storage_path('app/google/token.json');
+        if (!file_exists($tokenPath)) {
             return redirect()->route('gmail.auth')
-                ->with('error', 'Please reconnect your Gmail account.');
+                ->with('error', 'Please connect your Gmail account to download attachments.');
+        }
+
+        $client = $this->getGoogleClient();
+        $accessToken = json_decode(file_get_contents($tokenPath), true);
+        $client->setAccessToken($accessToken);
+
+        if ($client->isAccessTokenExpired()) {
+            if ($client->getRefreshToken()) {
+                $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                if (isset($newToken['error'])) {
+                    unlink($tokenPath);
+                    return redirect()->route('gmail.auth')
+                        ->with('error', 'Gmail session expired, please sign in again.');
+                }
+                file_put_contents($tokenPath, json_encode($client->getAccessToken()));
+            } else {
+                return redirect()->route('gmail.auth')
+                    ->with('error', 'Please reconnect your Gmail account.');
+            }
+        }
+
+        $service = new Gmail($client);
+
+        try {
+            if (empty($messageId) || empty($attachmentId)) {
+                abort(400, 'Invalid attachment request.');
+            }
+
+            $filename = preg_replace('/[^\w\-. ]+/', '_', $filename);
+
+            $attachment = $service->users_messages_attachments->get('me', $messageId, $attachmentId);
+            $data = base64_decode(strtr($attachment->getData(), ['-' => '+', '_' => '/']));
+
+            if ($data === false) {
+                abort(500, 'Failed to decode attachment data.');
+            }
+
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_buffer($finfo, $data) ?: 'application/octet-stream';
+            finfo_close($finfo);
+
+            $inlineTypes = [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'text/plain'
+            ];
+            $disposition = in_array($mimeType, $inlineTypes) ? 'inline' : 'attachment';
+
+            return response($data)
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', $disposition . '; filename="' . $filename . '"');
+
+        } catch (\Google\Service\Exception $e) {
+            abort($e->getCode() ?: 500, 'Gmail API Error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            abort(500, 'Server Error: ' . $e->getMessage());
         }
     }
-
-    $service = new \Google\Service\Gmail($client);
-
-    try {
-        // Validate IDs
-        if (empty($messageId) || empty($attachmentId)) {
-            abort(400, 'Invalid attachment request.');
-        }
-
-        // Sanitize filename
-        $filename = preg_replace('/[^\w\-. ]+/', '_', $filename);
-
-        // Fetch attachment from Gmail
-        $attachment = $service->users_messages_attachments->get('me', $messageId, $attachmentId);
-        $data = base64_decode(strtr($attachment->getData(), ['-' => '+', '_' => '/']));
-
-        if ($data === false) {
-            abort(500, 'Failed to decode attachment data.');
-        }
-
-        // Detect MIME type
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_buffer($finfo, $data) ?: 'application/octet-stream';
-        finfo_close($finfo);
-
-        // Decide if we show inline or download
-        $inlineTypes = [
-            'application/pdf',
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'text/plain'
-        ];
-        $disposition = in_array($mimeType, $inlineTypes) ? 'inline' : 'attachment';
-
-        return response($data)
-            ->header('Content-Type', $mimeType)
-            ->header('Content-Disposition', $disposition . '; filename="' . $filename . '"');
-
-    } catch (\Google\Service\Exception $e) {
-        abort($e->getCode() ?: 500, 'Gmail API Error: ' . $e->getMessage());
-    } catch (\Exception $e) {
-        abort(500, 'Server Error: ' . $e->getMessage());
-    }
-}
-
 
     private function getMessageBody($message)
     {
