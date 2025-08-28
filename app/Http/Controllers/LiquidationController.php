@@ -456,7 +456,7 @@ class LiquidationController extends Controller
         $cashAdvance->save();
     }
     LiquidationActivity::create([
-            'liquidation_id' => $liq->id,
+            'liquidation_id' => $liquidation->id,
             'user_id' => auth()->id(),
             'action' => 'Approved',
             'details' => 'Status changed to Approved',

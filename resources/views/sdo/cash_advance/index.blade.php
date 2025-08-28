@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Cash Advance') }}
+            {{ __('Cash Advance Eligibility') }}
         </h2>
     </x-slot>
 
     <div x-data="{ openModalId: null }" class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-[95%] mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
@@ -34,9 +34,21 @@
                         <table class="w-full table-auto border-collapse border border-gray-200 dark:border-gray-700 rounded-lg">
                             <thead class="bg-gray-100 dark:bg-gray-700">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Status</th>
+                                    @php $direction = request('direction') === 'asc' ? 'desc' : 'asc'; @endphp
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">
+                                        <a href="{{ route('sdo.cash_advance.index', array_merge(request()->all(), ['sort' => 'name', 'direction' => $direction])) }}"
+                                        class="hover:underline flex items-center">
+                                            Name
+                                            @if(request('sort') === 'name')
+                                                <span>{{ request('direction') === 'asc' ? '↑' : '↓' }}</span>
+                                            @endif
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Position</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Employment Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Email</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Corporate Email</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -45,14 +57,26 @@
                                 @foreach ($sdoRecords as $record)
                                     @php
                                         $hasOngoing = $record->cashAdvance && $record->cashAdvance->status === 'Ongoing';
+                                        $bondStatus = optional($record->bondedOfficial)->bond_status; // null if no record
                                     @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-b dark:border-gray-600">
-                                        <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">
-                                            @if ($hasOngoing)
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->position }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->employment_status }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->corporate_email }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+                                            @if (is_null($record->bondedOfficial))
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-200 dark:bg-gray-600 dark:text-gray-100 rounded-full">
+                                                    No Record in Bonds
+                                                </span>
+                                            @elseif ($bondStatus === 'Without SO')
+                                                <span class="inline-block px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:bg-red-700 dark:text-red-100 rounded-full">
+                                                    No SO
+                                                </span>
+                                            @elseif ($bondStatus === 'With SO' && $hasOngoing)
                                                 <span class="inline-block px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 dark:bg-yellow-700 dark:text-yellow-100 rounded-full">
-                                                    Ongoing
+                                                    Ongoing Cash Advance
                                                 </span>
                                             @else
                                                 <span class="inline-block px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 dark:bg-green-700 dark:text-green-100 rounded-full">
@@ -61,13 +85,14 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 flex items-center gap-4">
-                                            <div x-data="{ showEligibilityModal: false }">
-                                                @if ($hasOngoing)
+                                            @if (is_null($record->bondedOfficial) || $bondStatus === 'Without SO')
+                                                {{-- No Add Cash button --}}
+                                            @elseif ($bondStatus === 'With SO' && $hasOngoing)
+                                                <div x-data="{ showEligibilityModal: false }">
                                                     <button @click="showEligibilityModal = true"
                                                         class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
                                                         Add Cash
                                                     </button>
-
                                                     <div x-show="showEligibilityModal" style="display: none"
                                                         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                                                         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -83,13 +108,13 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                @else
-                                                    <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
-                                                        class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
-                                                        Add Cash
-                                                    </a>
-                                                @endif
-                                            </div>
+                                                </div>
+                                            @else
+                                                <a href="{{ route('sdo.cash_advance.create', ['sdo_id' => $record->id]) }}"
+                                                    class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition">
+                                                    Add Cash
+                                                </a>
+                                            @endif
 
                                             <button @click="openModalId = {{ $record->id }}"
                                                 class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition">

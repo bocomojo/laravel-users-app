@@ -75,6 +75,10 @@ class CashAdvance extends Model
     {
         return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class, 'cash_advance_id');
     }
-
+    public function bondedOfficial()
+{
+    // Assuming bonded_officials table has sdo_id as a foreign key
+    return $this->hasOne(\App\Models\BondedOfficial::class, 'sdo_id', 'id');
+}
 
 }

@@ -39,8 +39,18 @@
                         </div>
 
                         <div>
-                            <label for="granted_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Granted Amount</label>
-                            <input type="number" step="0.01" name="granted_amount" id="granted_amount" readonly value="{{ old('granted_amount', $liquidation->granted_amount) }}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed" />
+                            <label for="granted_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Granted Amount
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="granted_amount"
+                                id="granted_amount"
+                                readonly
+                                value="{{ old('granted_amount', $liquidation->cashAdvance->granted_amount ?? '') }}"
+                                class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed"
+                            />
                         </div>
 
                         <div>
@@ -88,10 +98,10 @@
                         </div>
                     </div>
 
-                    <div class="mt-4">
+                    <!-- <div class="mt-4">
                         <label for="for_compliance_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount For Compliance</label>
                         <input type="number" name="for_compliance_amount" id="for_compliance_amount" value="{{ old('for_compliance_amount', $liquidation->for_compliance_amount) }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                    </div>
+                    </div> -->
 
                     <div class="flex justify-between items-center mt-6">
                         <a href="{{ route('liquidation.index') }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back to Liquidations</a>

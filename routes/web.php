@@ -60,6 +60,11 @@ Route::get('/gmail/sent', [GmailController::class, 'sent'])->name('gmail.sent');
 Route::get('/gmail/message/{id}', [GmailController::class, 'show'])->name('gmail.message');
 Route::get('/gmail/attachment/{messageId}/{attachmentId}/{filename}', [GmailController::class, 'downloadAttachment']);
 
+
+Route::delete('/pre-auditor-entry/{id}', [PreAuditorController::class, 'destroyEntry'])
+    ->name('pre-auditor-entry.destroy');
+
+
 // ---------------------
 // Liquidation
 // ---------------------

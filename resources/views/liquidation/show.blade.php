@@ -147,7 +147,7 @@
 
                         <!-- Total For Compliance -->
                         <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
-                            <span class="font-semibold">Total Unsubmitted & For Compliance:</span>
+                            <span class="font-semibold">Total For Compliance:</span>
                             <span>
                                 {{ number_format(abs((float) str_replace(',', '', $liquidations->sum('for_compliance_amount'))), 2) }}
                             </span>
@@ -237,7 +237,10 @@
 
                             @php
                                 $totalPreAudited = $liquidations->sum('pre_audited_amount');
-                                $remainingBalance = $cashAdvance->granted_amount + $totalPreAudited;
+                                $refunds = $liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount');
+
+                                    $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited + $refunds;
+
                             @endphp
 
                             <p class="text-gray-700 dark:text-gray-300">

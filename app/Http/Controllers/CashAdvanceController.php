@@ -16,16 +16,21 @@ class CashAdvanceController extends Controller
 {
     // ✅ New: Show list of all cash advances, optionally filtered by sdo_id
     public function index(Request $request)
-    {
-        $search = $request->input('search');
+{
+    $search = $request->input('search');
 
-        $sdoRecords = Sdo::when($search, function ($query) use ($search) {
-            return $query->where('name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-        })->paginate(10);
+    $sdoRecords = Sdo::with(['bondedOfficial', 'cashAdvance']) // eager load related tables
+        ->when($search, function ($query) use ($search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        })
+        ->paginate(10);
 
-        return view('sdo.cash_advance.index', compact('sdoRecords', 'search'));
-    }
+    return view('sdo.cash_advance.index', compact('sdoRecords', 'search'));
+}
+
 
     public function import(Request $request)
     {
@@ -88,21 +93,29 @@ class CashAdvanceController extends Controller
 
     // Dynamically mark overdue and calculate aging
     foreach ($cashAdvances as $advance) {
-        if ($advance->status === 'Ongoing' && $advance->payout_end) {
-            $deadline = \Carbon\Carbon::parse($advance->payout_end)->addDays(31);
-            $totalLiquidated = $advance->liquidations->sum('for_liquidation_amount');
-            $remaining = $advance->granted_amount - $totalLiquidated;
+    $totalLiquidated = $advance->liquidations->sum('for_liquidation_amount');
+    $remaining = $advance->granted_amount - $totalLiquidated;
 
-            if ($now->greaterThanOrEqualTo($deadline) && $remaining > 0) {
-                $advance->status = 'Overdue';
-                $advance->aging = $now->diffInDays($deadline);
-            } else {
-                $advance->aging = 0;
-            }
+    // ✅ Automatically mark as Fully Liquidated
+    if ($remaining <= 0 && $advance->status !== 'Fully Liquidated') {
+        $advance->status = 'Fully Liquidated';
+        $advance->save(); // persist change
+    }
+
+    if ($advance->status === 'Ongoing' && $advance->payout_end) {
+        $deadline = \Carbon\Carbon::parse($advance->payout_end)->addDays(31);
+
+        if ($now->greaterThanOrEqualTo($deadline) && $remaining > 0) {
+            $advance->status = 'Overdue';
+            $advance->aging = $now->diffInDays($deadline);
         } else {
             $advance->aging = 0;
         }
+    } else {
+        $advance->aging = 0;
     }
+}
+
 
     // Pull PAP list for filter dropdown
     $paps = Pap::orderBy('pap_name', 'asc')->get();

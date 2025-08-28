@@ -32,4 +32,11 @@ class Sdo extends Model
     {
         return $this->hasMany(\App\Models\CashAdvance::class, 'sdo_id');
     }
+
+    public function bondedOfficial()
+{
+    // Assuming bonded_officials table has sdo_id as a foreign key
+    return $this->hasOne(\App\Models\BondedOfficial::class, 'sdo_id', 'id');
+}
+
 }

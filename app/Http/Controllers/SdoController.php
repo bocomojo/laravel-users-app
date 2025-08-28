@@ -105,12 +105,18 @@ class SdoController extends Controller
     }
 
     public function destroy($id)
-    {
-        $record = Sdo::findOrFail($id);
-        $record->delete();
+{
+    $record = Sdo::findOrFail($id);
 
-        return redirect()->route('sdo.index')->with('success', 'SDO record deleted successfully.');
-    }
+    // Delete any linked bonded_official records
+    BondedOfficial::where('sdo_id', $record->id)->delete();
+
+    // Delete the SDO record
+    $record->delete();
+
+    return redirect()->route('sdo.index')->with('success', 'SDO record and related bonded officials deleted successfully.');
+}
+
 
     public function export()
     {

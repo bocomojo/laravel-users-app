@@ -226,6 +226,52 @@ if ($request->for_compliance) {
     return back()->with('success', 'Pre-audit entry added and totals updated.');
 } 
 
+public function destroyEntry($id)
+{
+    $entry = PreAuditorLiquidationEntry::findOrFail($id);
+    $liquidation = $entry->liquidation;
+
+    // Delete attached file if exists
+    if ($entry->compliance_file && \Storage::disk('public')->exists($entry->compliance_file)) {
+        \Storage::disk('public')->delete($entry->compliance_file);
+    }
+
+    // Delete entry
+    $entry->delete();
+
+    // Recalculate totals
+    $entries = $liquidation->preAuditEntries;
+
+    $totalComplied = $entries->sum('amount');
+    $totalCompliance = $entries->sum('for_compliance');
+    $totalCombined = $totalComplied + $totalCompliance;
+
+    $liquidation->pre_audited_amount = $totalComplied;
+    $liquidation->for_compliance_amount = $totalCompliance;
+
+    if ($entries->isEmpty()) {
+        $liquidation->status = 'Processing';
+    } elseif (round($totalCombined, 2) >= round($liquidation->for_liquidation_amount, 2)) {
+        $liquidation->status = 'For Approval';
+    }
+
+    $liquidation->save();
+
+    // Log deletion
+    LiquidationActivity::create([
+        'liquidation_id' => $liquidation->id,
+        'user_id'        => auth()->id(),
+        'action'         => 'Pre-Audit Entry Deleted',
+        'details'        => 'Entry ID: ' . $id,
+    ]);
+
+    // Respond with JSON for AJAX
+    return response()->json([
+        'success' => true,
+        'entryId' => $id
+    ]);
+}
+
 public function dashboard()
 {
     $preAuditors = PreAuditor::with(['preAuditEntries', 'liquidation'])->get();
@@ -246,4 +292,5 @@ public function dashboard()
         $preAuditor->delete();
         return redirect()->route('pre-auditors.index')->with('success', 'Pre-Auditor deleted.');
     }
+    
 }
