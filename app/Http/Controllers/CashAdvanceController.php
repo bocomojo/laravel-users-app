@@ -129,6 +129,23 @@ class CashAdvanceController extends Controller
     ));
 }
 
+public function cancel($id)
+{
+    $advance = CashAdvance::with('liquidation')->findOrFail($id);
+
+    // Prevent cancelling if liquidations exist
+    if ($advance->liquidation->count() > 0) {
+        return redirect()->route('sdo.cash_advance.cash_advances')
+            ->with('error', 'This cash advance cannot be cancelled because it already has liquidations.');
+    }
+
+    $advance->status = 'Cancelled';
+    $advance->save();
+
+    return redirect()->route('sdo.cash_advance.cash_advances')
+        ->with('success', 'Cash advance has been cancelled.');
+}
+
 public function updateDates(Request $request, $id)
 {
     $request->validate([

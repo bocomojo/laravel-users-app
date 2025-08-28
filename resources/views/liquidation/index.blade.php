@@ -670,7 +670,58 @@
         </div>
     </div>
 </div>
+{{-- Import Result Modal --}}
+@if(session('success') || session('warning'))
+    <div x-data="{ open: true }">
+        <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-lg w-full">
+                @if(session('success'))
+                    <div class="flex items-center text-green-600 mb-4">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <h2 class="text-lg font-semibold">Success</h2>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300">{{ session('success') }}</p>
+                @elseif(session('warning'))
+                    <div class="flex items-center text-yellow-600 mb-4">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h2 class="text-lg font-semibold">Warning</h2>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300">{{ session('warning') }}</p>
 
+                    {{-- Skipped entries --}}
+                    @if(session('skippedLiquidations'))
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            {{ count(session('skippedLiquidations')) }} liquidation(s) skipped:
+                        </p>
+                        <ul class="mt-3 list-disc list-inside text-sm text-gray-700 dark:text-gray-300 max-h-40 overflow-y-auto">
+                            @foreach(session('skippedLiquidations') as $row)
+                                <li>
+                                    <strong>SDO:</strong> {{ $row['sdo_name'] ?? 'Unknown SDO' }},
+                                    <strong>Check #:</strong> {{ $row['check_number'] ?? 'N/A' }},
+                                    <strong>LIQ #:</strong> {{ $row['liq_number'] ?? 'N/A' }}  
+                                    <span class="text-red-500">({{ $row['reason'] }})</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                @endif
+
+                <div class="mt-6 text-right">
+                    <button @click="open = false"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
     <script>
         function toggleEntry(id) {

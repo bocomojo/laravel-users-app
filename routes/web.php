@@ -63,7 +63,13 @@ Route::get('/gmail/attachment/{messageId}/{attachmentId}/{filename}', [GmailCont
 
 Route::delete('/pre-auditor-entry/{id}', [PreAuditorController::class, 'destroyEntry'])
     ->name('pre-auditor-entry.destroy');
+Route::get('/sdo/{id}/cash-advance', [SdoController::class, 'cashAdvance'])->name('sdo.cash_advance');
+Route::get('/sdo/{id}/cash-advances', [SdoController::class, 'cashAdvanceWithFilters'])
+    ->name('sdo.cash_advances');
 
+
+Route::patch('/sdo/cash-advance/{id}/cancel', [\App\Http\Controllers\CashAdvanceController::class, 'cancel'])
+    ->name('sdo.cash_advance.cancel');
 
 // ---------------------
 // Liquidation

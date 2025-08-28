@@ -124,58 +124,83 @@
 
                                     {{-- Cash Advance Status --}}
                                     <td class="px-6 py-4 text-center">
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $badgeColor }}">
-                                            {{ $cashAdvanceStatus }}
-                                        </span>
-                                        @if($agingDate)
-                                            <br>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $now->diffForHumans($agingDate, ['parts' => 2, 'short' => true]) }}
+                                        @if ($advance->status === 'Cancelled')
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                                Cancelled
                                             </span>
+                                        @else
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $badgeColor }}">
+                                                {{ $cashAdvanceStatus }}
+                                            </span>
+                                            @if($agingDate)
+                                                <br>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $now->diffForHumans($agingDate, ['parts' => 2, 'short' => true]) }}
+                                                </span>
+                                            @endif
                                         @endif
                                     </td>
 
                                     {{-- Actions --}}
                                     <td class="px-6 py-4 space-y-2">
-                                        <a href="{{ route('liquidation.show', $advance->id) }}"
-                                            class="block px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 text-center">
-                                            View
-                                        </a>
-                                        <a href="{{ route('sdo.cash_advance.edit', ['id' => $advance->id]) }}"
-                                            class="block px-3 py-1 text-sm text-white bg-yellow-500 rounded hover:bg-yellow-600 text-center">
-                                            Edit
-                                        </a>
-                                        @if ($remainingBalance <= 0)
-                                            <a href="{{ route('certificate.print', $advance->id) }}" target="_blank"
-                                                class="block px-3 py-1 text-sm text-white bg-purple-600 rounded hover:bg-purple-700 text-center">
-                                                Print Certificate
+                                        @if ($advance->status !== 'Cancelled')
+                                            <a href="{{ route('liquidation.show', $advance->id) }}"
+                                                class="block px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 text-center">
+                                                View
                                             </a>
-                                        @else
-                                            <a href="{{ route('liquidation.create', ['cash_advance_id' => $advance->id]) }}"
-                                                class="block px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700 text-center">
-                                                Add Liquidation
+                                            <a href="{{ route('sdo.cash_advance.edit', ['id' => $advance->id]) }}"
+                                                class="block px-3 py-1 text-sm text-white bg-yellow-500 rounded hover:bg-yellow-600 text-center">
+                                                Edit
                                             </a>
+                                            @if ($remainingBalance <= 0)
+                                                <a href="{{ route('certificate.print', $advance->id) }}" target="_blank"
+                                                    class="block px-3 py-1 text-sm text-white bg-purple-600 rounded hover:bg-purple-700 text-center">
+                                                    Print Certificate
+                                                </a>
+                                            @else
+                                                <a href="{{ route('liquidation.create', ['cash_advance_id' => $advance->id]) }}"
+                                                    class="block px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700 text-center">
+                                                    Add Liquidation
+                                                </a>
+                                            @endif
+
+                                            {{-- Show Cancel button only for Admin AND only if no liquidations exist --}}
+                                            @role('admin')
+                                                @if($advance->liquidation->count() === 0)
+                                                    <form method="POST" action="{{ route('sdo.cash_advance.cancel', $advance->id) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit"
+                                                            onclick="return confirm('Are you sure you want to cancel this cash advance?')"
+                                                            class="block w-full px-3 py-1 text-sm text-white bg-red-600 rounded hover:bg-red-700 text-center">
+                                                            Cancel
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @endrole
                                         @endif
                                     </td>
 
                                     {{-- Demand Letter Status --}}
                                     <td class="px-6 py-4">
-                                        @if ($advance->demand_letter_sent_at)
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded dark:bg-green-800 dark:text-green-100">
-                                                Sent
-                                            </span>
-                                            <br>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ \Carbon\Carbon::parse($advance->demand_letter_sent_at)->diffForHumans() }}
-                                            </span>
-                                        @elseif ($remainingBalance <= 0)
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
-                                                Not Needed
-                                            </span>
-                                        @else
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded dark:bg-yellow-700 dark:text-yellow-100">
-                                                Pending
-                                            </span>
+                                        @if ($advance->status !== 'Cancelled')
+                                            @if ($advance->demand_letter_sent_at)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded dark:bg-green-800 dark:text-green-100">
+                                                    Sent
+                                                </span>
+                                                <br>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ \Carbon\Carbon::parse($advance->demand_letter_sent_at)->diffForHumans() }}
+                                                </span>
+                                            @elseif ($remainingBalance <= 0)
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-800 rounded dark:bg-gray-700 dark:text-gray-100">
+                                                    Not Needed
+                                                </span>
+                                            @else
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded dark:bg-yellow-700 dark:text-yellow-100">
+                                                    Pending
+                                                </span>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>

@@ -187,10 +187,29 @@ class LiquidationController extends Controller
         ]);
 
         try {
-            Excel::import(new LiquidationImport, $request->file('import_file'));
-            return redirect()->route('liquidation.index')->with('success', 'Liquidations imported successfully.');
+            $import = new LiquidationImport();
+            Excel::import($import, $request->file('import_file'));
+
+            $skipped = $import->getSkipped();
+
+            if (!empty($skipped)) {
+                return redirect()
+                    ->route('liquidation.index')
+                    ->with([
+                        'warning' => 'Some liquidations were skipped because no matching Cash Advance was found or the related CA is Cancelled.',
+                        'skippedLiquidations' => $skipped,
+                    ]);
+            }
+
+            return redirect()
+                ->route('liquidation.index')
+                ->with([
+                    'success' => 'All liquidations imported successfully.'
+                ]);
         } catch (\Exception $e) {
-            return back()->withErrors(['import_error' => 'Import failed: ' . $e->getMessage()]);
+            return back()->withErrors([
+                'import_error' => 'Import failed: ' . $e->getMessage()
+            ]);
         }
     }
 

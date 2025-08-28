@@ -11,10 +11,7 @@
                class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
                 ↓ Export to Excel
             </a>
-            <a href="{{ route('liquidation.index') }}"
-               class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                ← Return to Recent Page
-            </a>
+            <x-back-button label="← Return to Previous Page"/>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">

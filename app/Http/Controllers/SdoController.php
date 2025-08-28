@@ -117,6 +117,38 @@ class SdoController extends Controller
     return redirect()->route('sdo.index')->with('success', 'SDO record and related bonded officials deleted successfully.');
 }
 
+public function cashAdvanceWithFilters(Request $request, $id)
+{
+    $sdo = Sdo::findOrFail($id);
+
+    $search       = $request->input('search');
+    $status       = $request->input('status');
+    $payoutStart  = $request->input('payout_start');
+    $payoutEnd    = $request->input('payout_end');
+
+    $cashAdvances = $sdo->cashAdvances()
+        ->when($status, fn($q) => $q->where('status', $status))
+        ->when($payoutStart, fn($q) => $q->whereDate('payout_start', '>=', $payoutStart))
+        ->when($payoutEnd, fn($q) => $q->whereDate('payout_end', '<=', $payoutEnd))
+        ->when($search, function ($q) use ($search) {
+            $q->where(function ($inner) use ($search) {
+                $inner->where('check_number', 'like', "%{$search}%")
+                    ->orWhere('dv_number', 'like', "%{$search}%")
+                    ->orWhere('ors_number', 'like', "%{$search}%")
+                    ->orWhere('particulars', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('check_date', 'desc')
+        ->get();
+
+    return view('sdo.cash_advance', compact('sdo', 'cashAdvances'));
+}
+
+public function cashAdvance($id)
+{
+    $sdo = Sdo::with('cashAdvances')->findOrFail($id); // assuming relation is defined
+    return view('sdo.cash_advance', compact('sdo'));
+}
 
     public function export()
     {

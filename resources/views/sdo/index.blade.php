@@ -71,7 +71,12 @@
                             <tbody class="bg-white dark:bg-gray-800">
                                 @forelse ($sdoRecords as $record)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-b dark:border-gray-600">
-                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+                                            <a href="{{ route('sdo.cash_advance', $record->id) }}" 
+                                            class="text-blue-600 dark:text-blue-400 hover:underline">
+                                                {{ $record->name }}
+                                            </a>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->position }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->official_station }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->employment_status }}</td>
