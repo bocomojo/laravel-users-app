@@ -9,16 +9,6 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 p-6 shadow rounded">
 
-                @if ($errors->any())
-                    <div class="mb-4 text-sm text-red-600">
-                        <ul class="list-disc list-inside">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 <form action="{{ route('liquidation.import') }}" method="POST" enctype="multipart/form-data" class="mb-4">
                     @csrf
                     <div class="flex items-center gap-4">
@@ -85,7 +75,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label for="liq_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">LR Number</label>
-                                <input type="text" name="liq_number" id="liq_number" value="{{ old('liq_number') }}" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                                <input 
+                                    type="text" 
+                                    name="liq_number" 
+                                    id="liq_number" 
+                                    value="Loading..." 
+                                    readonly
+                                    class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-not-allowed"
+                                />
                             </div>
                         </div>
                     </div>
@@ -118,7 +115,7 @@
                                         {{ old('pre_auditor') == $auditor->id ? 'checked' : '' }}>
                                     {{ $auditor->name }}
                                     @if ($loop->first)
-                                        <span class="ml-1 text-green-600 dark:text-green-300">🎆❤️ This Pre-Auditor deserves more work ❤️🎆</span>
+                                        <span class="ml-1 text-green-600 dark:text-green-300"></span>
                                     @endif
                                 </label>
                             @endforeach
@@ -130,6 +127,23 @@
                         <button type="submit" id="submit_btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Save</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fail Modal -->
+    <div x-data="{ open: {{ $errors->has('liq_number') ? 'true' : 'false' }} }" 
+        x-show="open" 
+        class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6">
+            <h2 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">Error</h2>
+            <p class="text-sm text-gray-700 dark:text-gray-200">
+                @error('liq_number')
+                    {{ $message }}
+                @enderror
+            </p>
+            <div class="mt-6 flex justify-end">
+                <button @click="open = false" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Close</button>
             </div>
         </div>
     </div>
@@ -151,8 +165,7 @@
 
                 orNumber.required = isRefund;
                 orDate.required = isRefund;
-                liqNumber.required = !isRefund;
-                // liqDate.required = !isRefund;
+                // liqNumber.required = !isRefund; // No longer required, auto-generated
             }
 
             liquidationType.addEventListener('change', toggleLiquidationInputs);
@@ -170,6 +183,45 @@
             });
         });
     </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const liqNumberInput = document.getElementById('liq_number');
+    const sdoSelect = document.getElementById('sdo_id');
+    const liquidationType = document.getElementById('liquidation_type');
+
+    async function fetchLrNumber() {
+        const sdoId = sdoSelect.value;
+        const type = liquidationType.value;
+
+        if (!sdoId || type !== 'Liquidation') {
+            liqNumberInput.value = 'N/A';
+            return;
+        }
+
+        liqNumberInput.value = 'Loading...';
+
+        try {
+            const response = await fetch("{{ route('liquidation.nextLrNumber') }}");
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            liqNumberInput.value = data.next_number ?? 'Error';
+        } catch (error) {
+            console.error('Error fetching LR number:', error);
+            liqNumberInput.value = 'Error fetching number';
+        }
+    }
+
+    fetchLrNumber();
+
+    sdoSelect.addEventListener('change', fetchLrNumber);
+    liquidationType.addEventListener('change', fetchLrNumber);
+});
+</script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

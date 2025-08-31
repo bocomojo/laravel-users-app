@@ -25,11 +25,12 @@
                             class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md">
                             Export
                         </button>
-
+                        @hasanyrole('admin|reporting')
                         <button type="button" @click="openImportModal = true"
                             class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md">
                             Import JEV
                         </button>
+                        @endhasanyrole
                     </div>
 
                     {{-- Filters & Search --}}
@@ -430,85 +431,85 @@
 
                                     <!-- Collapsible Entry Table -->
                                    @if($entries->count())
-<tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-700">
-    <td colspan="10" class="px-4 py-2">
-        <div x-data="{ openDeleteModal: false, entryId: null }">
-            <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="text-gray-600 dark:text-gray-300">
-                        <th class="py-1 px-2">Amount</th>
-                        <th class="py-1 px-2">Type</th>
-                        <th class="py-1 px-2">Supporting Document</th>
-                        <th class="py-1 px-2">Date Submitted</th>
-                        <th class="py-1 px-2 text-center">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($entries as $entry)
-                        @php
-                            $isCompliance = $entry->for_compliance > 0;
-                            $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
-                            $typeLabel = $isCompliance ? 'For Compliance' : 'Complied';
-                            $textColor = $isCompliance ? 'text-yellow-600' : 'text-green-600';
-                        @endphp
+                                    <tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-700">
+                                        <td colspan="10" class="px-4 py-2">
+                                            <div x-data="{ openDeleteModal: false, entryId: null }">
+                                                <table class="w-full text-xs text-left">
+                                                    <thead>
+                                                        <tr class="text-gray-600 dark:text-gray-300">
+                                                            <th class="py-1 px-2">Amount</th>
+                                                            <th class="py-1 px-2">Type</th>
+                                                            <th class="py-1 px-2">Supporting Document</th>
+                                                            <th class="py-1 px-2">Date Submitted</th>
+                                                            <th class="py-1 px-2 text-center">Delete</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($entries as $entry)
+                                                            @php
+                                                                $isCompliance = $entry->for_compliance > 0;
+                                                                $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
+                                                                $typeLabel = $isCompliance ? 'For Compliance' : 'Complied';
+                                                                $textColor = $isCompliance ? 'text-yellow-600' : 'text-green-600';
+                                                            @endphp
 
-                        @if($displayAmount > 0)
-                            <tr id="entry-row-{{ $entry->id }}" class="border-t border-gray-300 dark:border-gray-600">
-                                <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
-                                <td class="py-1 px-2">
-                                    <span class="text-xs font-semibold {{ $textColor }}">
-                                        {{ $typeLabel }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
-                                    @if ($entry->compliance_file)
-                                        <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
-                                            {{ $entry->compliance_file_name ?? 'View File' }}
-                                        </a>
-                                    @else
-                                        N/A
+                                                            @if($displayAmount > 0)
+                                                                <tr id="entry-row-{{ $entry->id }}" class="border-t border-gray-300 dark:border-gray-600">
+                                                                    <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
+                                                                    <td class="py-1 px-2">
+                                                                        <span class="text-xs font-semibold {{ $textColor }}">
+                                                                            {{ $typeLabel }}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                                                                        @if ($entry->compliance_file)
+                                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
+                                                                                {{ $entry->compliance_file_name ?? 'View File' }}
+                                                                            </a>
+                                                                        @else
+                                                                            N/A
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
+
+                                                                    <!-- Delete Column -->
+                                                                    <td class="py-1 px-2 text-center">
+                                                                        @if($liq->status === 'Draft')
+                                                                        <button @click="entryId = {{ $entry->id }}; openDeleteModal = true" class="text-red-600 hover:underline">
+                                                                            Delete
+                                                                        </button>
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+
+                                                <!-- Delete Modal -->
+                                                <div x-show="openDeleteModal" x-cloak
+                                                    class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                                                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-96 p-6">
+                                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Confirm Delete</h3>
+                                                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                                            Are you sure you want to delete this entry? This action cannot be undone.
+                                                        </p>
+                                                        <div class="mt-4 flex justify-end gap-2">
+                                                            <button @click="openDeleteModal = false"
+                                                                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600">
+                                                                Cancel
+                                                            </button>
+                                                            <button @click="deleteEntry(entryId); openDeleteModal = false"
+                                                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     @endif
-                                </td>
-                                <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
-
-                                <!-- Delete Column -->
-                                <td class="py-1 px-2 text-center">
-                                    @if($liq->status === 'Draft')
-                                    <button @click="entryId = {{ $entry->id }}; openDeleteModal = true" class="text-red-600 hover:underline">
-                                        Delete
-                                    </button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endif
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Delete Modal -->
-            <div x-show="openDeleteModal" x-cloak
-                 class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-96 p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Confirm Delete</h3>
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                        Are you sure you want to delete this entry? This action cannot be undone.
-                    </p>
-                    <div class="mt-4 flex justify-end gap-2">
-                        <button @click="openDeleteModal = false"
-                                class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600">
-                            Cancel
-                        </button>
-                        <button @click="deleteEntry(entryId); openDeleteModal = false"
-                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </td>
-</tr>
-@endif
 
                                 @empty
                                     <tr>

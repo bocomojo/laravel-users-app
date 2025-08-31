@@ -54,9 +54,9 @@
                                                     class="rounded-md bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 px-2 py-1 pr-8"
                                                     {{ $user->id == 1 ? 'disabled' : '' }}>
 
-                                                    @foreach(['admin', 'staff', 'user'] as $role)
-                                                        <option value="{{ $role }}" {{ $user->hasRole($role) ? 'selected' : '' }}>
-                                                            {{ ucfirst($role) }}
+                                                    @foreach($roles as $role)
+                                                        <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>
+                                                            {{ ucfirst($role->name) }}
                                                         </option>
                                                     @endforeach
                                                 </select>

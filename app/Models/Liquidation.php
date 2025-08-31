@@ -26,6 +26,7 @@ class Liquidation extends Model
         'for_compliance_amount',
         'pre_audited_amount',
         'pre_auditor',
+        'jev_no',
         'status',
     ];
 

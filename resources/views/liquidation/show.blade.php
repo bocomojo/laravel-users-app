@@ -321,18 +321,25 @@
                                                         : number_format($liquidation->pre_audited_amount, 2) }}
                                                 </td>
                                                 <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{{ $liquidation->pre_auditor }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300" x-data>
                                                     @if (empty($liquidation->jev_no))
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Enter JEV"
-                                                            onchange="confirmInlineUpdate(this, '{{ $liquidation->id }}')"
-                                                            class="w-24 px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring focus:ring-blue-300 dark:focus:ring-blue-700"
-                                                        />
+                                                        @hasanyrole('admin|reporting')
+                                                            <button 
+                                                                @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '' })"
+                                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md shadow">
+                                                                Add JEV
+                                                            </button>
+                                                        @else
+                                                            <span class="text-gray-400 italic">— Restricted —</span>
+                                                        @endhasanyrole
                                                     @else
-                                                        {{ $liquidation->jev_no }}
+                                                        <button 
+                                                            @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '{{ $liquidation->jev_no }}' })"
+                                                            class="text-blue-600 dark:text-blue-400 underline">
+                                                            {{ $liquidation->jev_no }}
+                                                        </button>
                                                     @endif
-                                                </td>
+                                                </td>   
                                                
                                                     <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
                                                          @foreach ($liquidation->preAuditEntries as $entry) 
@@ -356,6 +363,45 @@
                                     @endif
                                 </tbody>
                             </table>
+                        <!-- JEV Modal -->
+                        <div x-data="{ openJevModal: null, jevNo: '' }"
+                            @open-jev-modal.window="openJevModal = $event.detail.id; jevNo = $event.detail.jev">
+                            <div x-show="openJevModal" x-cloak
+                                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+                                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Add / Edit JEV</h2>
+
+                                    <form @submit.prevent="
+                                        fetch(`/liquidation/${openJevModal}/jev`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                            },
+                                            body: JSON.stringify({ jev_no: jevNo })
+                                        })
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if(data.success) {
+                                                $dispatch('show-msg', { type: 'success', message: `JEV updated: ${data.jev_no}` });
+                                                openJevModal = null;
+                                                setTimeout(() => location.reload(), 1200);
+                                            } else {
+                                                $dispatch('show-msg', { type: 'fail', message: data.message || 'Failed to update JEV.' });
+                                            }
+                                        })
+                                    ">
+                                        <label class="block mb-2 text-gray-700 dark:text-gray-300">JEV Number</label>
+                                        <input type="text" x-model="jevNo" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-2 mb-4" required>
+
+                                        <div class="flex justify-end space-x-2">
+                                            <button type="button" @click="openJevModal = null" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded text-gray-800 dark:text-white">Cancel</button>
+                                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Delete Confirmation Modal -->
                         <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -373,37 +419,20 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Success / Fail Modal -->
+                    <div x-data="{ message: '', type: '', showMsg: false }" 
+                        @show-msg.window="message = $event.detail.message; type = $event.detail.type; showMsg = true"
+                        x-show="showMsg" x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div :class="type === 'success' ? 'bg-green-500' : 'bg-red-500'" 
+                            class="p-6 rounded-lg shadow-lg w-full max-w-sm text-white">
+                            <h2 class="text-lg font-semibold" x-text="type === 'success' ? 'Success' : 'Error'"></h2>
+                            <p class="mt-2" x-text="message"></p>
+                            <div class="mt-4 text-right">
+                                <button @click="showMsg = false" class="px-4 py-2 bg-white text-gray-800 rounded">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-    <script>
-function confirmInlineUpdate(input, id) {
-    const value = input.value;
-
-    if (confirm('Are you sure you want to update this amount?')) {
-        fetch(`/liquidation/update-inline/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                field: 'for_compliance_amount',
-                value: value
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert('Update successful!');
-        })
-        .catch(err => {
-            alert('Update failed!');
-            console.error(err);
-        });
-    } else {
-        input.value = input.defaultValue;
-    }
-}
-</script>
-
 </x-app-layout>

@@ -219,6 +219,29 @@ class LiquidationController extends Controller
         return back()->with('success', 'Marked as completed.');
     }
 
+    public function updateJev(Request $request, $id)
+    {
+        $request->validate([
+            'jev_no' => 'required|string|max:255',
+        ]);
+
+        $liquidation = \App\Models\Liquidation::findOrFail($id);
+        $liquidation->jev_no = $request->jev_no;
+        $liquidation->save();
+
+        \App\Models\LiquidationActivity::create([
+            'liquidation_id' => $liquidation->id,
+            'user_id' => auth()->id(),
+            'action' => $liquidation->jev_no ? 'JEV Updated' : 'JEV Added',
+            'details' => "JEV number set to {$liquidation->jev_no}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'jev_no' => $liquidation->jev_no
+        ]);
+    }
+
     public function markForApproval($id)
     {
         $liq = \App\Models\Liquidation::findOrFail($id);
@@ -313,6 +336,30 @@ class LiquidationController extends Controller
         return view('liquidation.for-transmittal', compact('liquidations'));
     }
 
+    public function getNextLrNumber()
+    {
+        $currentYear = now()->format('y'); 
+        $currentMonth = now()->format('m');
+
+        $latest = Liquidation::where('liquidation_type', 'Liquidation')
+            ->where('liq_number', 'like', "L-{$currentYear}-{$currentMonth}-%")
+            ->orderByDesc('id')
+            ->lockForUpdate()
+            ->pluck('liq_number')
+            ->first();
+
+        if ($latest) {
+            $lastNumber = intval(substr($latest, -5));
+            $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '00001';
+        }
+
+        return response()->json([
+            'next_number' => "L-{$currentYear}-{$currentMonth}-{$newNumber}"
+        ]);
+    }
+
     public function store(Request $request)
     {
         $isRefund = $request->input('liquidation_type') === 'Refund';
@@ -330,31 +377,45 @@ class LiquidationController extends Controller
         if ($isRefund) {
             $rules['or_number'] = 'required|string|max:255';
             $rules['or_date'] = 'required|date';
-        } else {
-            $rules['liq_number'] = 'required|string|max:255';
         }
 
         $validated = $request->validate($rules);
 
-        if ($isRefund) {
+        // Generate liq_number only if it's a Liquidation
+        if (!$isRefund) {
+            $currentYear = now()->format('y'); // 2-digit year
+            $currentMonth = now()->format('m'); // 2-digit month
+
+            // Get the latest liq_number in the format L-YY-MM-XXXXX
+            $latest = Liquidation::where('liquidation_type', 'Liquidation')
+                ->where('liq_number', 'like', "L-{$currentYear}-%")
+                ->orderByDesc('id')
+                ->pluck('liq_number')
+                ->first();
+
+            if ($latest) {
+                // Extract the last numeric part and ensure next number is unique
+                $lastNumber = intval(substr($latest, -5));
+                $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+            } else {
+                $newNumber = '00001';
+            }
+
+            $validated['liq_number'] = "L-{$currentYear}-{$currentMonth}-{$newNumber}";
+            $validated['liq_date'] = now();
+        } else {
             $validated['liq_number'] = null;
             $validated['liq_date'] = null;
-        } else {
-            $validated['or_number'] = null;
-            $validated['or_date'] = null;
         }
 
         $sdo = Sdo::findOrFail($validated['sdo_id']);
         $validated['sdo_name'] = $sdo->name;
-        $validated['for_liquidation_amount'] = $validated['for_liquidation_amount'];
         $validated['pre_audited_amount'] = $validated['for_liquidation_amount'] + $request->input('for_compliance_amount', 0);
         $validated['status'] = $isRefund ? 'Approved' : 'For Checking';
 
         if ($request->has('pre_auditor')) {
             $auditor = PreAuditor::find($request->pre_auditor);
             $validated['pre_auditor'] = $auditor?->name ?? null;
-        } else {
-            $validated['pre_auditor'] = null;
         }
 
         $liquidation = Liquidation::create($validated);
@@ -367,7 +428,9 @@ class LiquidationController extends Controller
             $cashAdvance = CashAdvance::with('liquidation')->find($validated['cash_advance_id']);
             $totalPreAudited = $cashAdvance->liquidation->sum('pre_audited_amount');
 
-            $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2) ? 'Fully Liquidated' : 'Ongoing';
+            $cashAdvance->status = round($totalPreAudited, 2) == round($cashAdvance->granted_amount, 2)
+                ? 'Fully Liquidated'
+                : 'Ongoing';
             $cashAdvance->save();
         }
 

@@ -81,8 +81,9 @@
                                 <option value="">-- Select Status --</option>
                                 <option value="Regular" {{ old('employment_status') == 'Regular' ? 'selected' : '' }}>Regular</option>
                                 <option value="Contractual" {{ old('employment_status') == 'Contractual' ? 'selected' : '' }}>Contractual</option>
-                                <option value="Job Order" {{ old('employment_status') == 'Job Order' ? 'selected' : '' }}>Job Order</option>
                                 <option value="Contract of Service" {{ old('employment_status') == 'Contract of Service' ? 'selected' : '' }}>Contract of Service</option>
+                                <option value="Job Order" {{ old('employment_status') == 'Job Order' ? 'selected' : '' }}>Job Order</option>
+                                <option value="OJT" {{ old('employment_status') == 'OJT' ? 'selected' : '' }}>OJT</option>
                             </select>
                             @error('employment_status') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
                         </div>

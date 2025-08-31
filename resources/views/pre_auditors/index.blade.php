@@ -129,5 +129,30 @@
                 </form>
             </div>
         </div>
+        <!-- ✅ Success / Error Modal -->
+        <div 
+            x-data="{ show: @json(session('success') || session('error') ? true : false) }"
+            x-show="show" 
+            x-cloak 
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            x-transition
+        >
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm text-center">
+                @if(session('success'))
+                    <h2 class="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">Success</h2>
+                    <p class="text-gray-700 dark:text-gray-300">{{ session('success') }}</p>
+                @elseif(session('error'))
+                    <h2 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">Failed</h2>
+                    <p class="text-gray-700 dark:text-gray-300">{{ session('error') }}</p>
+                @endif
+
+                <div class="mt-4 flex justify-center">
+                    <button @click="show = false"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </x-app-layout>

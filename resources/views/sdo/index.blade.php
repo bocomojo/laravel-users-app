@@ -9,6 +9,34 @@
         <div class="w-[90%] mx-auto">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
+
+                {{-- ✅ Success / Fail Modal --}}
+                    @if (session('success') || session('error'))
+                        <div 
+                            x-data="{ showAlert: true }" 
+                            x-show="showAlert" 
+                            x-transition 
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                            style="display: none;"
+                        >
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                                <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                                    {{ session('success') ? '✅ Success' : '❌ Error' }}
+                                </h2>
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mb-6">
+                                    {{ session('success') ?? session('error') }}
+                                </p>
+                                <div class="flex justify-end">
+                                    <button 
+                                        @click="showAlert = false"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     <!-- Top Bar: Add + Export Left, Search Right -->
                     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div class="flex items-center gap-2">

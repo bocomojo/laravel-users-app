@@ -89,6 +89,9 @@ Route::prefix('liquidation')->group(function () {
     Route::get('export/{cashAdvanceId}', [LiquidationController::class, 'export'])->name('liquidation.export');
     Route::get('sdo/{sdoId}/cash-advance', [LiquidationController::class, 'getOngoingCashAdvance']);
 });
+
+Route::get('/liquidation/next-lr-number', [LiquidationController::class, 'getNextLrNumber'])->name('liquidation.nextLrNumber');
+
 Route::resource('liquidation', LiquidationController::class)->only([
     'create', 'store', 'show', 'index', 'edit', 'update', 'destroy'
 ]);
@@ -197,6 +200,11 @@ Route::middleware('auth')->get('/api/latest-ongoing-cash-advance/{sdoId}', funct
         ? response()->json($cashAdvance)
         : response()->json(['message' => 'No ongoing cash advance found.'], 404);
 });
+
+Route::post('/liquidation/{id}/jev', [LiquidationController::class, 'updateJev'])
+    ->name('liquidation.updateJev')
+    ->middleware('role:admin|reporting');
+
 
 // ---------------------
 // Pre-Audit Dashboard

@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;                // ✅ import Spatie Role
+use Spatie\Permission\PermissionRegistrar;        // ✅ to clear cache
 
 class UserController extends Controller
 {
-        public function __construct()
+    public function __construct()
     {
-        // Only logged‑in admins can hit ANY action in this controller
+        // Only logged-in admins can hit ANY action in this controller
         $this->middleware(['auth', 'role:admin']);
     }
     
@@ -24,7 +26,9 @@ class UserController extends Controller
             ->orderBy('name')
             ->paginate(10);
 
-        return view('users', compact('users', 'search'));
+        $roles = Role::all();   // ✅ fetch all roles for dropdown
+
+        return view('users', compact('users', 'search', 'roles'));   // ✅ pass roles
     }
 
     // Show the edit form
@@ -37,10 +41,17 @@ class UserController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|string|in:admin,staff,user',
+            'role' => 'required|exists:roles,name',   // ✅ validate dynamically
         ]);
 
-        // Remove existing roles
+        if ($user->id == 1) {
+            return back()->with('error', 'Cannot change the super admin role.');
+        }
+
+        // ✅ clear cached permissions
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // ✅ assign new role
         $user->syncRoles([$request->role]);
 
         return redirect()->back()->with('success', 'User role updated.');
