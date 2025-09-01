@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class PreAuditor extends Model
 {
-    protected $fillable = ['name'];
-
+    protected $fillable = ['user_id', 'name']; // ✅ added user_id
+    protected $table = 'pre_auditors';
+    
     public function preAuditEntries()
     {
         return $this->hasMany(PreAuditorLiquidationEntry::class);
@@ -28,4 +29,9 @@ class PreAuditor extends Model
         return $this->belongsToMany(Liquidation::class, 'pre_auditor_liquidation');
     }
 
+    // ✅ convenience relation back to the User
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

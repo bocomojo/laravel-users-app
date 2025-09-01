@@ -38,21 +38,33 @@ class UserController extends Controller
     }
 
     // Update user role (with protection)
+    // Update user role (with protection)
     public function updateRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|exists:roles,name',   // ✅ validate dynamically
+            'role' => 'required|exists:roles,name',
         ]);
 
         if ($user->id == 1) {
             return back()->with('error', 'Cannot change the super admin role.');
         }
 
-        // ✅ clear cached permissions
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        // clear cached permissions
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // ✅ assign new role
+        // assign new role
         $user->syncRoles([$request->role]);
+
+        // 👉 if role is Pre-auditor, insert/update in pre_auditors
+        if (strtolower($request->role) === 'pre-auditor') {
+            \App\Models\PreAuditor::updateOrCreate(
+                ['user_id' => $user->id], // condition
+                ['name' => $user->name]   // values
+            );
+        } else {
+            // 👉 optional: if user is no longer a pre-auditor, remove them
+            \App\Models\PreAuditor::where('user_id', $user->id)->delete();
+        }
 
         return redirect()->back()->with('success', 'User role updated.');
     }
