@@ -134,6 +134,7 @@
     <!-- Fail Modal -->
     <div x-data="{ open: {{ $errors->has('liq_number') ? 'true' : 'false' }} }" 
         x-show="open" 
+        x-cloak
         class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6">
             <h2 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">Error</h2>

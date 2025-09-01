@@ -341,15 +341,15 @@ class LiquidationController extends Controller
         $currentYear = now()->format('y'); 
         $currentMonth = now()->format('m');
 
+        // ✅ Always get the highest liq_number regardless of year/month
         $latest = Liquidation::where('liquidation_type', 'Liquidation')
-            ->where('liq_number', 'like', "L-{$currentYear}-{$currentMonth}-%")
             ->orderByDesc('id')
             ->lockForUpdate()
             ->pluck('liq_number')
             ->first();
 
         if ($latest) {
-            $lastNumber = intval(substr($latest, -5));
+            $lastNumber = intval(substr($latest, -5)); // extract last 5 digits
             $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
         } else {
             $newNumber = '00001';
@@ -381,21 +381,20 @@ class LiquidationController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Generate liq_number only if it's a Liquidation
+        // ✅ Generate liq_number only for Liquidation (not Refund)
         if (!$isRefund) {
-            $currentYear = now()->format('y'); // 2-digit year
-            $currentMonth = now()->format('m'); // 2-digit month
+            $currentYear = now()->format('y');   // e.g. 25
+            $currentMonth = now()->format('m');  // e.g. 09
 
-            // Get the latest liq_number in the format L-YY-MM-XXXXX
+            // ✅ Always get the highest liq_number regardless of year/month
             $latest = Liquidation::where('liquidation_type', 'Liquidation')
-                ->where('liq_number', 'like', "L-{$currentYear}-%")
                 ->orderByDesc('id')
+                ->lockForUpdate()
                 ->pluck('liq_number')
                 ->first();
 
             if ($latest) {
-                // Extract the last numeric part and ensure next number is unique
-                $lastNumber = intval(substr($latest, -5));
+                $lastNumber = intval(substr($latest, -5)); // last 5 digits
                 $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
             } else {
                 $newNumber = '00001';
