@@ -15,11 +15,12 @@ class PreAuditorLiquidationEntry extends Model
         'amount',
         'for_compliance',
         'compliance_file',
+        'pre_auditor',
     ];
 
     public function preAuditor()
     {
-        return $this->belongsTo(PreAuditor::class);
+        return $this->belongsTo(User::class, 'pre_auditor_id');
     }
 
     public function liquidation()

@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PreAuditor;
+use App\Models\PreAuditorLiquidationEntry;
+use App\Models\CashAdvance;
+use App\Models\LiquidationActivity;
+use App\Models\SDO;
+use App\Models\SackAssignment;
 
 class Liquidation extends Model
 {
@@ -30,9 +36,11 @@ class Liquidation extends Model
         'status',
     ];
 
+    // Relations
+
     public function cashAdvance()
     {
-        return $this->belongsTo(\App\Models\CashAdvance::class, 'cash_advance_id');
+        return $this->belongsTo(CashAdvance::class, 'cash_advance_id');
     }
 
     public function activities()
@@ -40,36 +48,65 @@ class Liquidation extends Model
         return $this->hasMany(LiquidationActivity::class)->latest();
     }
 
-    public function preAuditors()
+    /**
+     * All pre-audit entries for this liquidation
+     */
+    public function preAuditEntries()
     {
-        return $this->belongsToMany(
-            PreAuditor::class,
-            'pre_auditor_liquidation',
-            'liquidation_id',
-            'pre_auditor_id'
-        )->withTimestamps();
+        return $this->hasMany(PreAuditorLiquidationEntry::class, 'liquidation_id');
     }
 
+    /**
+     * Single pre-audit entry (optional)
+     */
+    public function preAuditorEntry()
+    {
+        return $this->hasOne(PreAuditorLiquidationEntry::class, 'liquidation_id');
+    }
+
+    /**
+     * Compliance entries only
+     */
+    public function complianceFiles()
+    {
+        return $this->hasMany(PreAuditorLiquidationEntry::class, 'liquidation_id')
+                    ->where('for_compliance', true);
+    }
+
+    /**
+     * All pre-auditors that have entries for this liquidation
+     */
+    public function preAuditors()
+    {
+        return $this->hasManyThrough(
+            PreAuditor::class,
+            PreAuditorLiquidationEntry::class,
+            'liquidation_id',   // FK on entries table
+            'id',               // PK on pre_auditors table
+            'id',               // Local PK on liquidation
+            'pre_auditor_id'    // FK on entries table
+        )->distinct();
+    }
+
+    /**
+     * Convenience relation to single pre-auditor (if using 'pre_auditor' column)
+     */
     public function preAuditor()
     {
         return $this->belongsTo(PreAuditor::class, 'pre_auditor');
     }
 
-    public function preAuditEntries()
+    public function sdo()
     {
-        return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class);
+        return $this->belongsTo(SDO::class, 'sdo_id');
     }
 
-    public function preAuditorEntry()
+    public function sackAssignments()
     {
-        return $this->hasOne(\App\Models\PreAuditorLiquidationEntry::class, 'liquidation_id');
+        return $this->hasMany(SackAssignment::class, 'liq_number', 'liq_number');
     }
 
-    public function complianceFiles()
-    {
-        return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class, 'liquidation_id')
-                    ->where('for_compliance', true);
-    }
+    // Accessors
 
     public function getDisplayStatusAttribute()
     {
@@ -89,15 +126,4 @@ class Liquidation extends Model
 
         return $this->status;
     }
- 
-    public function sdo()
-    {
-        return $this->belongsTo(SDO::class, 'sdo_id');
-    }
-
-    public function sackAssignments()
-    {
-        return $this->hasMany(SackAssignment::class, 'liq_number', 'liq_number');
-    }
-
 }

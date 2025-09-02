@@ -120,7 +120,6 @@
                                     <th class="px-6 py-3">Received</th>
                                     <th class="px-6 py-3">Reference (LR/OR)</th>
                                     <th class="px-6 py-3">Reviewed Date</th>
-                                    <th class="px-6 py-3">Pre-Auditor</th>
                                     <th class="px-6 py-3 text-center">Action</th>
                                     <th class="px-6 py-3">History</th>
                                 </tr>
@@ -140,7 +139,8 @@
 
                                         $isComplete = ($liq->for_liquidation_amount - $totalPreAudited) == 0 && $hasComplianceEntry;
                                     @endphp
-                                    <tr class="{{ $loop->odd ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700' }} hover:bg-blue-50 dark:hover:bg-gray-600 transition" onclick="toggleEntry({{ $liq->id }})">
+                                    <tr class="{{ $loop->odd ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700' }} hover:bg-blue-50 dark:hover:bg-gray-600 transition cursor-pointer"
+    onclick="toggleEntry({{ $liq->id }})">
                                         <td class="px-6 py-3">{{ $liq->sdo_name }}</td>
                                         <td class="px-6 py-3">
                                             <a href="{{ route('liquidation.show', $liq->cash_advance_id) }}" onclick="event.stopPropagation()" class="text-blue-600 hover:underline">
@@ -189,14 +189,6 @@
                                             @else
                                                 — 
                                             @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-center">
-                                            @foreach ($liq->preAuditors as $auditor)
-                                                <a href="{{ route('pre-auditors.liquidations', $auditor->id) }}" onclick="event.stopPropagation()"
-                                                    class="text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
-                                                    {{ $auditor->name }}
-                                                </a>
-                                            @endforeach
                                         </td>
 
                                         {{-- Actions --}}
@@ -430,7 +422,7 @@
                                     </div>
 
                                     <!-- Collapsible Entry Table -->
-                                   @if($entries->count())
+                                    @if($liq->preAuditEntries->count())
                                     <tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-700">
                                         <td colspan="10" class="px-4 py-2">
                                             <div x-data="{ openDeleteModal: false, entryId: null }">
@@ -440,12 +432,13 @@
                                                             <th class="py-1 px-2">Amount</th>
                                                             <th class="py-1 px-2">Type</th>
                                                             <th class="py-1 px-2">Supporting Document</th>
+                                                            <th class="py-1 px-2">Pre-Auditor</th>
                                                             <th class="py-1 px-2">Date Submitted</th>
                                                             <th class="py-1 px-2 text-center">Delete</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @foreach($entries as $entry)
+                                                        @foreach($liq->preAuditEntries as $entry)
                                                             @php
                                                                 $isCompliance = $entry->for_compliance > 0;
                                                                 $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
@@ -454,33 +447,32 @@
                                                             @endphp
 
                                                             @if($displayAmount > 0)
-                                                                <tr id="entry-row-{{ $entry->id }}" class="border-t border-gray-300 dark:border-gray-600">
-                                                                    <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
-                                                                    <td class="py-1 px-2">
-                                                                        <span class="text-xs font-semibold {{ $textColor }}">
-                                                                            {{ $typeLabel }}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
-                                                                        @if ($entry->compliance_file)
-                                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
-                                                                                {{ $entry->compliance_file_name ?? 'View File' }}
-                                                                            </a>
-                                                                        @else
-                                                                            N/A
-                                                                        @endif
-                                                                    </td>
-                                                                    <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
-
-                                                                    <!-- Delete Column -->
-                                                                    <td class="py-1 px-2 text-center">
-                                                                        @if($liq->status === 'Draft')
-                                                                        <button @click="entryId = {{ $entry->id }}; openDeleteModal = true" class="text-red-600 hover:underline">
-                                                                            Delete
-                                                                        </button>
-                                                                        @endif
-                                                                    </td>
-                                                                </tr>
+                                                            <tr id="entry-row-{{ $entry->id }}" class="border-t border-gray-300 dark:border-gray-600">
+                                                                <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
+                                                                <td class="py-1 px-2">
+                                                                    <span class="text-xs font-semibold {{ $textColor }}">
+                                                                        {{ $typeLabel }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                                                                    @if ($entry->compliance_file)
+                                                                        <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
+                                                                            {{ $entry->compliance_file_name ?? 'View File' }}
+                                                                        </a>
+                                                                    @else
+                                                                        N/A
+                                                                    @endif
+                                                                </td>
+                                                                <td class="py-1 px-2">{{ $entry->preAuditor?->name ?? 'N/A' }}</td>
+                                                                <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
+                                                                <td class="py-1 px-2 text-center">
+                                                                    @if($liq->status === 'Draft')
+                                                                    <button @click="entryId = {{ $entry->id }}; openDeleteModal = true" class="text-red-600 hover:underline">
+                                                                        Delete
+                                                                    </button>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
                                                             @endif
                                                         @endforeach
                                                     </tbody>
@@ -651,93 +643,98 @@
             </form>
         </div>
         <!-- Global Delete Confirmation Modal -->
-<div x-data="{ open: false, entryId: null }" x-show="open" 
-     class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-     x-cloak>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-96 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Confirm Delete</h3>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Are you sure you want to delete this entry? This action cannot be undone.
-        </p>
-        <div class="mt-4 flex justify-end gap-2">
-            <button @click="open = false" 
-                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
-                Cancel
-            </button>
-            <button @click="deleteEntry(entryId); open = false" 
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                Delete
-            </button>
-        </div>
-    </div>
-</div>
-{{-- Import Result Modal --}}
-@if(session('success') || session('warning'))
-    <div x-data="{ open: true }">
-        <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-lg w-full">
-                @if(session('success'))
-                    <div class="flex items-center text-green-600 mb-4">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <h2 class="text-lg font-semibold">Success</h2>
-                    </div>
-                    <p class="text-gray-700 dark:text-gray-300">{{ session('success') }}</p>
-                @elseif(session('warning'))
-                    <div class="flex items-center text-yellow-600 mb-4">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <h2 class="text-lg font-semibold">Warning</h2>
-                    </div>
-                    <p class="text-gray-700 dark:text-gray-300">{{ session('warning') }}</p>
-
-                    {{-- Skipped entries --}}
-                    @if(session('skippedLiquidations'))
-                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            {{ count(session('skippedLiquidations')) }} liquidation(s) skipped:
-                        </p>
-                        <ul class="mt-3 list-disc list-inside text-sm text-gray-700 dark:text-gray-300 max-h-40 overflow-y-auto">
-                            @foreach(session('skippedLiquidations') as $row)
-                                <li>
-                                    <strong>SDO:</strong> {{ $row['sdo_name'] ?? 'Unknown SDO' }},
-                                    <strong>Check #:</strong> {{ $row['check_number'] ?? 'N/A' }},
-                                    <strong>LIQ #:</strong> {{ $row['liq_number'] ?? 'N/A' }}  
-                                    <span class="text-red-500">({{ $row['reason'] }})</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-                @endif
-
-                <div class="mt-6 text-right">
-                    <button @click="open = false"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Close
+        <div x-data="{ open: false, entryId: null }" x-show="open" 
+            class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+            x-cloak>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-96 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Confirm Delete</h3>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    Are you sure you want to delete this entry? This action cannot be undone.
+                </p>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button @click="open = false" 
+                            class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button @click="deleteEntry(entryId); open = false" 
+                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        Delete
                     </button>
                 </div>
             </div>
         </div>
-    </div>
-@endif
+        {{-- Import Result Modal --}}
+        @if(session('success') || session('warning'))
+            <div x-data="{ open: true }">
+                <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-lg w-full">
+                        @if(session('success'))
+                            <div class="flex items-center text-green-600 mb-4">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <h2 class="text-lg font-semibold">Success</h2>
+                            </div>
+                            <p class="text-gray-700 dark:text-gray-300">{{ session('success') }}</p>
+                        @elseif(session('warning'))
+                            <div class="flex items-center text-yellow-600 mb-4">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <h2 class="text-lg font-semibold">Warning</h2>
+                            </div>
+                            <p class="text-gray-700 dark:text-gray-300">{{ session('warning') }}</p>
 
-    <script>
-        function toggleEntry(id) {
-            const target = document.getElementById(`entries-${id}`);
-            const isHidden = target.classList.contains('hidden');
+                            {{-- Skipped entries --}}
+                            @if(session('skippedLiquidations'))
+                                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {{ count(session('skippedLiquidations')) }} liquidation(s) skipped:
+                                </p>
+                                <ul class="mt-3 list-disc list-inside text-sm text-gray-700 dark:text-gray-300 max-h-40 overflow-y-auto">
+                                    @foreach(session('skippedLiquidations') as $row)
+                                        <li>
+                                            <strong>SDO:</strong> {{ $row['sdo_name'] ?? 'Unknown SDO' }},
+                                            <strong>Check #:</strong> {{ $row['check_number'] ?? 'N/A' }},
+                                            <strong>LIQ #:</strong> {{ $row['liq_number'] ?? 'N/A' }}  
+                                            <span class="text-red-500">({{ $row['reason'] }})</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        @endif
 
-            // Close all
-            document.querySelectorAll('[id^="entries-"]').forEach(el => el.classList.add('hidden'));
+                        <div class="mt-6 text-right">
+                            <button @click="open = false"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
-            // Only open if it was previously hidden
-            if (isHidden) {
-                target.classList.remove('hidden');
-            }
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    window.toggleEntry = function(id) {
+        const target = document.getElementById(`entries-${id}`);
+        if (!target) return;
+
+        const isHidden = target.classList.contains('hidden');
+
+        // Hide all collapsible rows
+        document.querySelectorAll('[id^="entries-"]').forEach(el => el.classList.add('hidden'));
+
+        // Toggle current row
+        if (isHidden) {
+            target.classList.remove('hidden');
         }
-    </script>
+    };
+});
+</script>
+
 <script>
 function deleteEntry(entryId) {
     fetch(`/pre-auditor-entry/${entryId}`, {

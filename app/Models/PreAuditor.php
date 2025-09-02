@@ -3,33 +3,49 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Liquidation;
+use App\Models\PreAuditorLiquidationEntry;
 
 class PreAuditor extends Model
 {
-    protected $fillable = ['user_id', 'name']; // ✅ added user_id
+    protected $fillable = ['user_id', 'name'];
     protected $table = 'pre_auditors';
-    
+
+    /**
+     * All pre-audit entries done by this auditor.
+     */
     public function preAuditEntries()
     {
-        return $this->hasMany(PreAuditorLiquidationEntry::class);
+        return $this->hasMany(PreAuditorLiquidationEntry::class, 'pre_auditor_id');
     }
 
+    /**
+     * Convenience alias for entries.
+     */
     public function liquidationEntries()
     {
-        return $this->hasMany(\App\Models\PreAuditorLiquidationEntry::class);
+        return $this->preAuditEntries();
     }
 
-    public function liquidation()
+    /**
+     * All liquidations related to this auditor via entries.
+     */
+    public function liquidations()
     {
-        return $this->belongsToMany(Liquidation::class, 'pre_auditor_liquidation');
+        return $this->hasManyThrough(
+            Liquidation::class,
+            PreAuditorLiquidationEntry::class,
+            'pre_auditor_id',  // Foreign key on entries table
+            'id',              // Foreign key on liquidations table
+            'id',              // Local key on pre_auditors table
+            'liquidation_id'   // Local key on entries table
+        )->distinct();
     }
 
-    public function assignedLiquidations()
-    {
-        return $this->belongsToMany(Liquidation::class, 'pre_auditor_liquidation');
-    }
-
-    // ✅ convenience relation back to the User
+    /**
+     * Convenience relation back to the User model.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

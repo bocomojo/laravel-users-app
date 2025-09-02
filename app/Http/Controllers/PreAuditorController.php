@@ -49,72 +49,65 @@ class PreAuditorController extends Controller
     }
 
     public function showLiquidations($id)
-    {
-        $auditor = PreAuditor::findOrFail($id);
+{
+    // Eager load liquidations with their preAuditEntries and the preAuditor for each entry
+    $auditor = PreAuditor::with(['liquidations.preAuditEntries.preAuditor'])->findOrFail($id);
 
-        $liquidations = $auditor->liquidation()
-            ->with('preAuditEntries')
-            ->orderByRaw("CASE WHEN status = 'Completed' THEN 1 ELSE 0 END ASC")
-            ->orderBy('created_at', 'asc')
-            ->get();
+    // Sort liquidations: Completed at the bottom
+    $liquidations = $auditor->liquidations
+        ->sortBy(function($liq) {
+            return $liq->status === 'Completed' ? 1 : 0;
+        })
+        ->values();
 
-        // Time frames
-        $yesterday = Carbon::yesterday();
-        $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
-        $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+    // Time frames
+    $yesterday = Carbon::yesterday();
+    $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+    $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+    $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
+    $endOfLastMonth = Carbon::now()->subMonth()->endOfMonth();
 
-        $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
-        $endOfLastMonth = Carbon::now()->subMonth()->endOfMonth();
+    // Totals
+    $yesterdayTotal = $auditor->preAuditEntries()
+        ->whereDate('created_at', $yesterday)
+        ->sum(DB::raw('amount + for_compliance'));
+    $lastWeekTotal = $auditor->preAuditEntries()
+        ->whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
+        ->sum(DB::raw('amount + for_compliance'));
+    $lastMonthTotal = $auditor->preAuditEntries()
+        ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+        ->sum(DB::raw('amount + for_compliance'));
 
-        // Fixed period totals
-        $yesterdayTotal = $auditor->preAuditEntries()
-            ->whereDate('created_at', $yesterday)
+    $customTotal = null;
+    if (request()->filled('custom_date')) {
+        $customDate = Carbon::parse(request('custom_date'))->startOfDay();
+        $customTotal = $auditor->preAuditEntries()
+            ->whereDate('created_at', $customDate)
             ->sum(DB::raw('amount + for_compliance'));
-
-        $lastWeekTotal = $auditor->preAuditEntries()
-            ->whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
+    } elseif (request()->filled('custom_month')) {
+        $customMonth = Carbon::parse(request('custom_month'));
+        $customTotal = $auditor->preAuditEntries()
+            ->whereBetween('created_at', [$customMonth->startOfMonth(), $customMonth->endOfMonth()])
             ->sum(DB::raw('amount + for_compliance'));
-
-        $lastMonthTotal = $auditor->preAuditEntries()
-            ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
-            ->sum(DB::raw('amount + for_compliance'));
-
-        // Optional custom range summary
-        $customTotal = null;
-
-        if (request()->filled('custom_date')) {
-            $customDate = Carbon::parse(request('custom_date'))->startOfDay();
-            $customTotal = $auditor->preAuditEntries()
-                ->whereDate('created_at', $customDate)
-                ->sum(DB::raw('amount + for_compliance'));
-
-        } elseif (request()->filled('custom_month')) {
-            $customMonth = Carbon::parse(request('custom_month'));
-            $startOfCustomMonth = $customMonth->startOfMonth();
-            $endOfCustomMonth = $customMonth->endOfMonth();
-
-            $customTotal = $auditor->preAuditEntries()
-                ->whereBetween('created_at', [$startOfCustomMonth, $endOfCustomMonth])
-                ->sum(DB::raw('amount + for_compliance'));
-        }
-
-        $totalAssigned = $liquidations->count();
-        $totalCompleted = $liquidations->where('status', 'Completed')->count();
-        $totalForChecking = $liquidations->where('status', 'For Checking')->count();
-
-        return view('pre_auditors.liquidations', compact(
-            'auditor',
-            'liquidations',
-            'yesterdayTotal',
-            'lastWeekTotal',
-            'lastMonthTotal',
-            'customTotal',
-            'totalAssigned',
-            'totalCompleted',
-            'totalForChecking'
-        ));
     }
-    
+
+    // Totals by status
+    $totalAssigned = $liquidations->count();
+    $totalCompleted = $liquidations->where('status', 'Completed')->count();
+    $totalForChecking = $liquidations->where('status', 'For Checking')->count();
+
+    return view('pre_auditors.liquidations', compact(
+        'auditor',
+        'liquidations',
+        'yesterdayTotal',
+        'lastWeekTotal',
+        'lastMonthTotal',
+        'customTotal',
+        'totalAssigned',
+        'totalCompleted',
+        'totalForChecking'
+    ));
+}
 
 public function addEntry(Request $request)
 {
@@ -124,16 +117,6 @@ public function addEntry(Request $request)
         'for_compliance'   => 'required|boolean',
         'supporting_file'  => 'required_if:for_compliance,1|file|mimes:pdf,jpg,png|max:10048',
     ]);
-
-    $preAuditorId = DB::table('pre_auditor_liquidation')
-        ->where('liquidation_id', $request->liquidation_id)
-        ->value('pre_auditor_id');
-
-    if (!$preAuditorId) {
-        return back()->withErrors([
-            'pre_auditor_id' => 'No assigned pre-auditor found for this liquidation.'
-        ]);
-    }
 
     $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])->findOrFail($request->liquidation_id);
 
@@ -176,7 +159,7 @@ if ($request->for_compliance) {
 
     // Create the pre-audit entry
     PreAuditorLiquidationEntry::create([
-        'pre_auditor_id'   => $preAuditorId,
+        'pre_auditor_id'   => auth()->id(),  // <-- store current user ID here
         'liquidation_id'   => $request->liquidation_id,
         'amount'           => $request->for_compliance ? 0 : $request->amount,
         'for_compliance'   => $request->for_compliance ? $request->amount : 0,
@@ -274,10 +257,11 @@ public function destroyEntry($id)
 
 public function dashboard()
 {
-    $preAuditors = PreAuditor::with(['preAuditEntries', 'liquidation'])->get();
+    $preAuditors = PreAuditor::with(['preAuditEntries', 'liquidations'])->get();
 
     return view('pre_auditors.dashboard', compact('preAuditors'));
 }
+
 
     public function update(Request $request, PreAuditor $preAuditor)
     {
