@@ -1,4 +1,159 @@
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+
+    @php
+        $modules = [
+            [
+                'label' => 'Liquidation Module',
+                'submenu' => [
+                    'label' => 'Liquidation Report',
+                    'routes' => [
+                        ['label' => 'Add', 'route' => 'liquidation.create'],
+                        ['label' => 'View', 'route' => 'liquidation.index'],
+                        ['label' => 'For Transmittal', 'route' => 'liquidation.for-transmittal'],
+                    ]
+                ]
+            ],
+            [
+                'label' => 'Cash Advance Module',
+                'submenu' => [
+                    'label' => 'Cash Advance',
+                    'routes' => [
+                        ['label' => 'Add Cash Advance', 'route' => 'sdo.cash_advance.create'],
+                        ['label' => 'View SDO', 'route' => 'sdo.cash_advance.index'],
+                        ['label' => 'View Cash Advance', 'route' => 'sdo.cash_advance.cash_advances'],
+                    ]
+                ]
+            ],
+            [
+                'label' => 'Pre-Auditor Module',
+                'submenu' => [
+                    'label' => 'Pre-Auditor',
+                    'routes' => [
+                        ['label' => 'Dashboard', 'route' => 'preaudit.dashboard'],
+                        ['label' => 'View', 'route' => 'pre-auditors.index'],
+                    ]
+                ]
+            ],
+            [
+                'label' => 'SDO Module',
+                'submenus' => [
+                    [
+                        'label' => 'SDO Database',
+                        'routes' => [
+                            ['label' => 'Add', 'route' => 'sdo.create'],
+                            ['label' => 'View', 'route' => 'sdo.index'],
+                        ]
+                    ],
+                    [
+                        'label' => 'Bonded Officials',
+                        'routes' => [
+                            ['label' => 'View', 'route' => 'sdo.bonded.index'],
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'label' => 'Audit Findings',
+                'submenus' => [
+                    [
+                        'label' => 'Compliance Tracking',
+                        'routes' => [
+                            ['label' => 'View', 'route' => 'sdo.compliance.index'],
+                        ]
+                    ],
+                    [
+                        'label' => 'Sent Items',
+                        'routes' => [
+                            ['label' => 'View', 'route' => 'gmail.sent'],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    @endphp
+
+    <!-- Mobile Menu -->
+    <div x-show="open" x-transition x-cloak class="sm:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <div class="px-4 pt-2 pb-3 space-y-1">
+            <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900">
+                Dashboard
+            </a>
+
+            @foreach ($modules as $mod)
+                <div x-data="{ submenuOpen: false }">
+                    <button @click="submenuOpen = !submenuOpen"
+                            class="w-full flex justify-between items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900">
+                        {{ $mod['label'] }}
+                        <svg :class="{ 'rotate-180': submenuOpen }"
+                             class="ml-2 h-4 w-4 transition-transform duration-200"
+                             fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <div x-show="submenuOpen" x-transition x-cloak class="pl-4 space-y-1">
+                        @if(isset($mod['submenu']))
+                            @foreach ($mod['submenu']['routes'] as $link)
+                                <a href="{{ route($link['route']) }}" class="block px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900">
+                                    {{ $link['label'] }}
+                                </a>
+                            @endforeach
+                        @elseif(isset($mod['submenus']))
+                            @foreach ($mod['submenus'] as $sub)
+                                <span class="block px-3 py-2 font-medium text-gray-600 dark:text-gray-400">{{ $sub['label'] }}</span>
+                                @foreach ($sub['routes'] as $link)
+                                    <a href="{{ route($link['route']) }}" class="block pl-6 px-3 py-1 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900">
+                                        {{ $link['label'] }}
+                                    </a>
+                                @endforeach
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+            <!-- Settings -->
+            <div x-data="{ submenuOpen: false }">
+                <button @click="submenuOpen = !submenuOpen"
+                        class="w-full flex justify-between items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900">
+                    {{ __('Settings') }}
+                    <svg :class="{ 'rotate-180': submenuOpen }"
+                        class="ml-2 h-4 w-4 transition-transform duration-200"
+                        fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="submenuOpen" x-transition x-cloak class="pl-4 space-y-1">
+                    <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900">
+                        {{ __('Users') }}
+                    </a>
+                    <a href="{{ route('pap.index') }}" class="block px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900">
+                        {{ __('PAP') }}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Account -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="px-3">
+                    <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
+                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                </div>
+                <div class="mt-3 space-y-1">
+                    <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900">
+                        {{ __('Profile') }}
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900">
+                            {{ __('Log Out') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Navigation -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -8,81 +163,8 @@
                     </a>
                 </div>
 
-                <!-- Main Navigation Modules -->
+                <!-- Main Navigation -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
-
-                    @php
-                        $modules = [
-                            [
-                                'label' => 'Liquidation Module',
-                                'submenu' => [
-                                    'label' => 'Liquidation Report',
-                                    'routes' => [
-                                        ['label' => 'Add', 'route' => 'liquidation.create'],
-                                        ['label' => 'View', 'route' => 'liquidation.index'],
-                                        ['label' => 'For Transmittal', 'route' => 'liquidation.for-transmittal'],
-                                    ]
-                                ]
-                            ],
-                            [
-                                'label' => 'Cash Advance Module',
-                                'submenu' => [
-                                    'label' => 'Cash Advance',
-                                    'routes' => [
-                                        ['label' => 'Add Cash Advance', 'route' => 'sdo.cash_advance.create'],
-                                        ['label' => 'View SDO', 'route' => 'sdo.cash_advance.index'],
-                                        ['label' => 'View Cash Advance', 'route' => 'sdo.cash_advance.cash_advances'],
-                                    ]
-                                ]
-                            ],
-                            [
-                                'label' => 'Pre-Auditor Module',
-                                'submenu' => [
-                                    'label' => 'Pre-Auditor',
-                                    'routes' => [
-                                        ['label' => 'Dashboard', 'route' => 'preaudit.dashboard'],
-                                        ['label' => 'View', 'route' => 'pre-auditors.index'],
-                                    ]
-                                ]
-                            ],
-                            [
-                                'label' => 'SDO Module',
-                                'submenus' => [
-                                    [
-                                        'label' => 'SDO Database',
-                                        'routes' => [
-                                            ['label' => 'Add', 'route' => 'sdo.create'],
-                                            ['label' => 'View', 'route' => 'sdo.index'],
-                                        ]
-                                    ],
-                                    [
-                                        'label' => 'Bonded Officials',
-                                        'routes' => [
-                                            ['label' => 'View', 'route' => 'sdo.bonded.index'],
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            [
-                                'label' => 'Audit Findings',
-                                'submenus' => [
-                                    [
-                                        'label' => 'Compliance Tracking',
-                                        'routes' => [
-                                            ['label' => 'View', 'route' => 'sdo.compliance.index'],
-                                        ]
-                                    ],
-                                    [
-                                        'label' => 'Sent Items',
-                                        'routes' => [
-                                            ['label' => 'View', 'route' => 'gmail.sent'],
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ];
-                    @endphp
-
                     @foreach ($modules as $mod)
                         @php $modOpen = Str::slug($mod['label']) @endphp
                         <div x-data="{ open: false, submenuOpen: '' }" class="relative" @mouseenter="open = true" @mouseleave="open = false">
@@ -93,6 +175,7 @@
                                 </svg>
                             </div>
 
+                            <!-- Dropdowns -->
                             <div x-show="open" x-cloak x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                                 @if (isset($mod['submenu']))
                                     <div @mouseenter="submenuOpen = '{{ $modOpen }}'" @mouseleave="submenuOpen = ''" class="relative">
@@ -145,10 +228,8 @@
                         <div x-show="open" x-cloak x-transition class="absolute left-0 top-full mt-0 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
                             <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Users') }}</a>
                             <a href="{{ route('pap.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('PAP') }}</a>
-                            <a href="{{ route('pre-auditors.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('Pre-Auditors') }}</a>
                         </div>
                     </div>
-
                 </div>
             </div>
 

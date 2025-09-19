@@ -60,11 +60,17 @@ class SdoController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         return view('sdo.create');
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'nullable|email|unique:sdo,email',
@@ -88,6 +94,9 @@ class SdoController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|email|unique:sdo,email,' . $id,
@@ -105,16 +114,20 @@ class SdoController extends Controller
     }
 
     public function destroy($id)
-{
-    $record = Sdo::findOrFail($id);
+    {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
 
-    // Delete any linked bonded_official records
-    BondedOfficial::where('sdo_id', $record->id)->delete();
+        $record = Sdo::findOrFail($id);
 
-    // Delete the SDO record
-    $record->delete();
+        // Delete any linked bonded_official records
+        BondedOfficial::where('sdo_id', $record->id)->delete();
 
-    return redirect()->route('sdo.index')->with('success', 'SDO record and related bonded officials deleted successfully.');
+        // Delete the SDO record
+        $record->delete();
+
+        return redirect()->route('sdo.index')->with('success', 'SDO record and related bonded officials deleted successfully.');
 }
 
 public function cashAdvanceWithFilters(Request $request, $id)
@@ -157,6 +170,9 @@ public function cashAdvance($id)
 
     public function import(Request $request)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls|max:12048',
         ]);
@@ -183,12 +199,18 @@ public function cashAdvance($id)
 
     public function edit($id)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $sdo = Sdo::findOrFail($id);
         return view('sdo.edit', compact('sdo'));
     }
 
     public function createForLiquidation()
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $sdos = Sdo::orderBy('name')->get();
         return view('liquidation.create', compact('sdos'))->with('cashAdvance', null);
     }

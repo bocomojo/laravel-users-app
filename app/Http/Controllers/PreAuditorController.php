@@ -18,17 +18,24 @@ class PreAuditorController extends Controller
 {
     public function index()
     {
+
         $preAuditors = PreAuditor::all();
         return view('pre_auditors.index', compact('preAuditors'));
     }
 
     public function create()
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         return view('pre_auditors.create');
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         if ($request->hasFile('file')) {
             Excel::import(new PreAuditorImport, $request->file('file'));
             return back()->with('success', 'Pre-Auditors imported successfully.');
@@ -45,56 +52,123 @@ class PreAuditorController extends Controller
 
     public function edit(PreAuditor $preAuditor)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         return view('pre_auditors.edit', compact('preAuditor'));
     }
 
     public function showLiquidations($id)
 {
-    // Eager load liquidations with their preAuditEntries and the preAuditor for each entry
+    // Eager load auditor with relations
     $auditor = PreAuditor::with(['liquidations.preAuditEntries.preAuditor'])->findOrFail($id);
 
     // Sort liquidations: Completed at the bottom
     $liquidations = $auditor->liquidations
-        ->sortBy(function($liq) {
+        ->sortBy(function ($liq) {
             return $liq->status === 'Completed' ? 1 : 0;
         })
         ->values();
 
-    // Time frames
+    // Time frames for summary totals
     $yesterday = Carbon::yesterday();
     $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
     $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
     $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
     $endOfLastMonth = Carbon::now()->subMonth()->endOfMonth();
 
-    // Totals
+    // Totals (still basic sums)
     $yesterdayTotal = $auditor->preAuditEntries()
         ->whereDate('created_at', $yesterday)
         ->sum(DB::raw('amount + for_compliance'));
+
     $lastWeekTotal = $auditor->preAuditEntries()
         ->whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])
         ->sum(DB::raw('amount + for_compliance'));
+
     $lastMonthTotal = $auditor->preAuditEntries()
         ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
         ->sum(DB::raw('amount + for_compliance'));
 
-    $customTotal = null;
-    if (request()->filled('custom_date')) {
-        $customDate = Carbon::parse(request('custom_date'))->startOfDay();
-        $customTotal = $auditor->preAuditEntries()
-            ->whereDate('created_at', $customDate)
-            ->sum(DB::raw('amount + for_compliance'));
-    } elseif (request()->filled('custom_month')) {
-        $customMonth = Carbon::parse(request('custom_month'));
-        $customTotal = $auditor->preAuditEntries()
-            ->whereBetween('created_at', [$customMonth->startOfMonth(), $customMonth->endOfMonth()])
-            ->sum(DB::raw('amount + for_compliance'));
+    // Filters
+    $startDate = request('start_date');
+    $endDate   = request('end_date');
+    $search    = request('search');
+
+    $filteredEntries = collect();
+    $grandTotalBalance = 0;
+
+    // Base query for liquidations (always tied to this auditor)
+    $query = Liquidation::whereHas('preAuditEntries', function ($q) use ($auditor) {
+        $q->where('pre_auditor_id', $auditor->user_id);
+    });
+
+    // Apply date filter
+    if ($startDate && $endDate) {
+        $query->whereHas('preAuditEntries', function ($q) use ($auditor, $startDate, $endDate) {
+            $q->where('pre_auditor_id', $auditor->user_id)
+              ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        });
     }
 
-    // Totals by status
-    $totalAssigned = $liquidations->count();
-    $totalCompleted = $liquidations->where('status', 'Completed')->count();
-    $totalForChecking = $liquidations->where('status', 'For Checking')->count();
+    // Apply search filter
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('liq_number', 'like', "%{$search}%")
+              ->orWhere('status', 'like', "%{$search}%");
+        });
+    }
+
+    // Fetch filtered liquidations with entries
+    $filteredLiquidations = $query->with(['preAuditEntries' => function ($q) use ($auditor, $startDate, $endDate) {
+        $q->where('pre_auditor_id', $auditor->user_id)
+          ->orderBy('created_at');
+
+        if ($startDate && $endDate) {
+            $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        }
+    }])->get();
+
+    // Group filtered entries and calculate balances
+    if ($filteredLiquidations->isNotEmpty()) {
+        $filteredEntries = $filteredLiquidations->flatMap(fn($liq) => $liq->preAuditEntries)
+            ->groupBy(fn($entry) => $entry->liquidation->liq_number)
+            ->map(function ($group) use (&$grandTotalBalance) {
+                $liqRunningBalance = 0;
+                $liqTotal = 0;
+                $liqCompliance = 0;
+
+                $group = $group->sortBy('created_at')->map(function ($entry) use (&$liqRunningBalance, &$liqTotal, &$liqCompliance) {
+                    $isCompliance = $entry->for_compliance > 0;
+                    $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
+                    $liqRunningBalance += $isCompliance ? -$displayAmount : $displayAmount;
+                    $liqTotal += $entry->amount;
+                    $liqCompliance += $entry->for_compliance;
+
+                    return [
+                        'entry' => $entry,
+                        'displayAmount' => $displayAmount,
+                        'typeLabel' => $isCompliance ? 'For Compliance' : 'Pre-Audited',
+                        'textColor' => $isCompliance ? 'text-yellow-600' : 'text-green-600',
+                        'liqRunningBalance' => $liqRunningBalance
+                    ];
+                });
+
+                $grandTotalBalance += $liqRunningBalance;
+
+                return [
+                    'entries' => $group,
+                    'liqTotal' => $liqTotal,
+                    'liqCompliance' => $liqCompliance,
+                    'liqRunningBalance' => $liqRunningBalance
+                ];
+            });
+    }
+
+    // Default liquidations for display when no filters applied
+    $auditorLiquidations = $liquidations->filter(function ($liq) use ($auditor) {
+        return $liq->preAuditEntries->where('pre_auditor_id', $auditor->id)->count() > 0;
+    });
 
     return view('pre_auditors.liquidations', compact(
         'auditor',
@@ -102,10 +176,13 @@ class PreAuditorController extends Controller
         'yesterdayTotal',
         'lastWeekTotal',
         'lastMonthTotal',
-        'customTotal',
-        'totalAssigned',
-        'totalCompleted',
-        'totalForChecking'
+        'startDate',
+        'endDate',
+        'search',
+        'filteredEntries',
+        'grandTotalBalance',
+        'auditorLiquidations',
+        'filteredLiquidations'
     ));
 }
 
@@ -273,6 +350,9 @@ public function dashboard()
 
     public function destroy(PreAuditor $preAuditor)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
         $preAuditor->delete();
         return redirect()->route('pre-auditors.index')->with('success', 'Pre-Auditor deleted.');
     }

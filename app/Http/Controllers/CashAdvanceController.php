@@ -48,6 +48,10 @@ class CashAdvanceController extends Controller
 
     public function create(Request $request)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
+
         $sdoId = $request->get('sdo_id');
         $paps = Pap::all();
         $sdoList = Sdo::all();
@@ -148,6 +152,10 @@ public function cancel($id)
 
 public function updateDates(Request $request, $id)
 {
+    if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
+
     $request->validate([
         'payout_start' => 'required|date',
         'payout_end'   => 'required|date|after_or_equal:payout_start',
@@ -241,6 +249,10 @@ public function updateDates(Request $request, $id)
 
     public function edit($id)
     {
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
+
         $advance = CashAdvance::findOrFail($id);
         $sdoList = Sdo::all(); // if you have dropdowns
         $papList = Pap::all(); // if you need pap selection
@@ -250,6 +262,11 @@ public function updateDates(Request $request, $id)
 
     public function update(Request $request, $id)
     {
+
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
+        
         $request->validate([
             'granted_amount' => 'required|numeric|min:0',
             'check_number' => 'required|string',

@@ -1,19 +1,24 @@
 <div wire:poll.60s>
     @php
+        use App\Models\PreAuditorLiquidationEntry;
+
         $yesterday = now()->subDay()->toDateString();
         $today = now()->toDateString();
 
-        $yesterdayTotal = $auditor->preAuditEntries
+        // Get yesterday & today totals from pre_auditor_liquidation_entries
+        $yesterdayTotal = PreAuditorLiquidationEntry::where('pre_auditor_id', $auditor->id)
             ->whereBetween('created_at', [$yesterday . ' 00:00:00', $yesterday . ' 23:59:59'])
-            ->sum(fn($entry) => $entry->amount + $entry->for_compliance);
+            ->sum(\DB::raw('amount + for_compliance'));
 
-        $todayTotal = $auditor->preAuditEntries
+        $todayTotal = PreAuditorLiquidationEntry::where('pre_auditor_id', $auditor->id)
             ->whereBetween('created_at', [$today . ' 00:00:00', $today . ' 23:59:59'])
-            ->sum(fn($entry) => $entry->amount + $entry->for_compliance);
+            ->sum(\DB::raw('amount + for_compliance'));
 
-        $assigned = $auditor->liquidation->count();
-        $completed = $auditor->liquidation->where('status', 'Approved')->count();
+        // Keep assigned/completed counts from liquidations
+        $assigned = $auditor->liquidations->count();
+        $completed = $auditor->liquidations->where('status', 'Approved')->count();
 
+        // Quota system
         $quota = 2500000;
         $ratio = $todayTotal / $quota;
 
@@ -38,21 +43,15 @@
                 </h3>
             </div>
 
-            <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                <strong>Yesterday:</strong> ₱{{ number_format($yesterdayTotal, 2) }}
-            </div>
-
-            <div class="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Today:</strong> ₱{{ number_format($todayTotal, 2) }}
-            </div>
-
-            <div class="flex justify-between items-center text-sm font-medium">
-                <span class="text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
-                    Assigned: {{ $assigned }}
-                </span>
-                <span class="text-green-800 dark:text-green-300 bg-green-100 dark:bg-green-800 px-2 py-1 rounded-md">
-                    Completed: {{ $completed }}
-                </span>
+            <div class="grid grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300 mb-4">
+                <div>
+                    <strong>Yesterday</strong><br>
+                    ₱{{ number_format($yesterdayTotal, 2) }}
+                </div>
+                <div>
+                    <strong>Today</strong><br>
+                    ₱{{ number_format($todayTotal, 2) }}
+                </div>
             </div>
         </div>
     </a>

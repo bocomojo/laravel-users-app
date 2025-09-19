@@ -279,16 +279,23 @@ class LiquidationController extends Controller
 
     public function create(Request $request)
     {
+        // 🔒 Role-based access control
+        if (!auth()->user()->hasAnyRole(['admin', 'reporting', 'verifier'])) {
+            abort(403);
+        }
+
         $cashAdvance = null;
 
-        $preAuditors = PreAuditor::withSum(['liquidation' => function ($query) {
-            $query->where('status', 'For Checking');
-        }], 'for_liquidation_amount')
+        // Load pre-auditors with sum of pending liquidations
+        $preAuditors = PreAuditor::withSum(['liquidations' => function ($query) {
+                $query->where('status', 'For Checking');
+            }], 'for_liquidation_amount')
             ->get()
             ->sortBy(function ($auditor) {
-                return abs($auditor->liquidation_sum_for_liquidation_amount ?? 0);
+                return abs($auditor->liquidations_sum_for_liquidation_amount ?? 0);
             });
 
+        // Handle cash advance selection
         if ($request->has('cash_advance_id')) {
             $cashAdvance = CashAdvance::with('sdo')->findOrFail($request->get('cash_advance_id'));
             $sdoList = collect([$cashAdvance->sdo]);

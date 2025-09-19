@@ -102,7 +102,7 @@ Route::resource('liquidation', LiquidationController::class)->only([
 Route::resource('pre-auditors', PreAuditorController::class);
 Route::post('pre-auditors/import', [PreAuditorController::class, 'import'])->name('pre-auditors.import');
 Route::get('pre-auditors/{auditor}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditors.liquidations');
-Route::get('pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditor.show');
+// Route::get('pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditor.show');
 Route::post('pre-auditor/liquidations/add-entry', [PreAuditorController::class, 'addEntry'])->name('pre-auditor.liquidations.add-entry');
 
 Route::post('/jev/import', [JevController::class, 'import'])->name('jev.import');

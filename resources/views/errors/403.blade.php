@@ -8,7 +8,7 @@
     <div class="py-12 text-center">
         <h1 class="text-4xl font-bold text-red-600">403</h1>
         <p class="mt-4 text-lg text-gray-700 dark:text-gray-300">
-            You do not have permission to access this page.
+            You do not have permission to access this.
         </p>
         <a href="{{ url()->previous() }}"
            class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
