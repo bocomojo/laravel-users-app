@@ -20,7 +20,8 @@ class PreAuditorController extends Controller
     {
 
         $preAuditors = PreAuditor::all();
-        return view('pre_auditors.index', compact('preAuditors'));
+        $pre_auditors = PreAuditor::with('user')->get();
+        return view('pre_auditors.index', compact('preAuditors','pre_auditors'));
     }
 
     public function create()
@@ -182,79 +183,142 @@ class PreAuditorController extends Controller
         'filteredEntries',
         'grandTotalBalance',
         'auditorLiquidations',
-        'filteredLiquidations'
+        'filteredLiquidations',
     ));
 }
 
 public function addEntry(Request $request)
 {
-    $request->validate([
-        'liquidation_id'   => 'required|exists:liquidation,id',
-        'amount'           => 'required|numeric|min:0.01',
-        'for_compliance'   => 'required|boolean',
-        'supporting_file'  => 'required_if:for_compliance,1|file|mimes:pdf,jpg,png|max:10048',
-    ]);
-
-    $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])->findOrFail($request->liquidation_id);
-
-// Sum all previous amounts marked for compliance
-$existingCompliance = $liquidation->preAuditEntries
-    ->where('for_compliance', true)
-    ->sum('amount');
-
-// Sum all previous amounts not for compliance
-$existingNonCompliance = $liquidation->preAuditEntries
-    ->where('for_compliance', false)
-    ->sum('amount');
-
-$forLiquidationAmount = abs($liquidation->for_liquidation_amount);
-
-// If current entry is for compliance, check against total compliance + new amount
-if ($request->for_compliance) {
-    $total = $existingCompliance + $request->amount;
-
-    if ($total > $forLiquidationAmount) {
-        return back()->withErrors([
-            'amount' => 'Total for-compliance amount exceeds the liquidation amount.'
-        ])->withInput();
+    // ✅ Normalize arrays before validation
+    if ($request->boolean('for_compliance')) {
+        $preAuditors = array_values(array_filter((array) $request->input('pre_auditors')));
+        $amounts = array_values(array_filter((array) $request->input('amounts')));
+        $request->merge([
+            'pre_auditors' => $preAuditors,
+            'amounts' => $amounts,
+        ]);
     }
-} else {
-    $total = $existingNonCompliance + $request->amount;
 
-    if ($total > $forLiquidationAmount) {
-        return back()->withErrors([
-            'amount' => 'Total pre-audited amount exceeds the liquidation amount.'
-        ])->withInput();
+    // --- Validation rules ---
+    $baseRules = [
+        'liquidation_id'  => 'required|exists:liquidation,id',
+        'for_compliance'  => 'required|boolean',
+        'supporting_file' => 'required_if:for_compliance,1|file|mimes:pdf,jpg,jpeg,png|max:10048',
+    ];
+
+    if ($request->boolean('for_compliance')) {
+        $baseRules['pre_auditors']   = 'required|array|min:1';
+        $baseRules['pre_auditors.*'] = 'exists:users,id';
+        $baseRules['amounts']        = 'required|array|min:1';
+        $baseRules['amounts.*']      = 'numeric|min:0.01';
+    } else {
+        $baseRules['amount'] = 'required|numeric|min:0.01';
     }
-}
 
-    // Handle file upload if for compliance
+    $validated = $request->validate($baseRules);
+
+    // --- Load liquidation ---
+    $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])
+        ->findOrFail($request->liquidation_id);
+
+    $existingCompliance   = $liquidation->preAuditEntries->sum('for_compliance');
+    $existingComplied     = $liquidation->preAuditEntries->sum('amount');
+    $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
+
+    // --- Handle file upload / deduplication ---
     $filePath = null;
-    if ($request->for_compliance && $request->hasFile('supporting_file')) {
-        $filePath = $request->file('supporting_file')->store('supporting_files', 'public');
+    $originalName = null;
+
+    if ($request->boolean('for_compliance') && $request->hasFile('supporting_file')) {
+        $uploadedFile = $request->file('supporting_file');
+        $uploadedName = $uploadedFile->getClientOriginalName();
+        $uploadedSize = $uploadedFile->getSize();
+
+        // ✅ Check for existing identical file in this liquidation
+        $existingFile = PreAuditorLiquidationEntry::where('liquidation_id', $liquidation->id)
+            ->whereNotNull('compliance_file')
+            ->get()
+            ->first(function ($entry) use ($uploadedFile, $uploadedName, $uploadedSize) {
+                $path = storage_path('app/public/' . $entry->compliance_file);
+                return file_exists($path)
+                    && $entry->compliance_file_name === $uploadedName
+                    && filesize($path) === $uploadedSize;
+            });
+
+        if ($existingFile) {
+            // Reuse existing path
+            $filePath = $existingFile->compliance_file;
+            $originalName = $existingFile->compliance_file_name;
+        } else {
+            // Upload new
+            $filePath = $uploadedFile->store('supporting_files', 'public');
+            $originalName = $uploadedName;
+        }
     }
 
-    // Create the pre-audit entry
-    PreAuditorLiquidationEntry::create([
-        'pre_auditor_id'   => auth()->id(),  // <-- store current user ID here
-        'liquidation_id'   => $request->liquidation_id,
-        'amount'           => $request->for_compliance ? 0 : $request->amount,
-        'for_compliance'   => $request->for_compliance ? $request->amount : 0,
-        'compliance_file'  => $filePath,
-    ]);
+    // ===============================
+    // CASE 1: COMPLIED ENTRY
+    // ===============================
+    if (!$request->boolean('for_compliance')) {
+        $total = $existingComplied + $request->amount;
+        if ($total > $forLiquidationAmount) {
+            return back()->withErrors([
+                'amount' => 'Total pre-audited amount exceeds the liquidation amount.',
+            ])->withInput();
+        }
 
-    // Reload and update liquidation totals
+        PreAuditorLiquidationEntry::create([
+            'pre_auditor_id'        => auth()->id(),
+            'liquidation_id'        => $request->liquidation_id,
+            'amount'                => $request->amount,
+            'for_compliance'        => 0.00,
+            'compliance_file'       => null,
+            'compliance_file_name'  => null,
+        ]);
+
+        $activityDetails = 'Complied Amount: ₱' . number_format($request->amount, 2);
+    }
+
+    // ===============================
+    // CASE 2: FOR COMPLIANCE ENTRIES
+    // ===============================
+    else {
+        $sumNewAmounts = array_sum($request->amounts);
+        $total = $existingCompliance + $sumNewAmounts;
+
+        if ($total > $forLiquidationAmount) {
+            return back()->withErrors([
+                'amounts' => 'Total for-compliance amount exceeds the liquidation amount.',
+            ])->withInput();
+        }
+
+        foreach ($request->pre_auditors as $index => $preAuditorId) {
+            $amount = (float) ($request->amounts[$index] ?? 0);
+            if ($amount <= 0) continue;
+
+            PreAuditorLiquidationEntry::create([
+                'pre_auditor_id'        => $preAuditorId,
+                'liquidation_id'        => $request->liquidation_id,
+                'amount'                => 0.00,
+                'for_compliance'        => $amount,
+                'compliance_file'       => $filePath,
+                'compliance_file_name'  => $originalName,
+            ]);
+        }
+
+        $activityDetails = 'For Compliance Total: ₱' . number_format($sumNewAmounts, 2);
+    }
+
+    // --- Update liquidation totals ---
     $liquidation->load('preAuditEntries');
-    $entries = $liquidation->preAuditEntries;
+    $totalComplied   = $liquidation->preAuditEntries->sum('amount');
+    $totalCompliance = $liquidation->preAuditEntries->sum('for_compliance');
+    $totalCombined   = $totalComplied + $totalCompliance;
 
-    $totalComplied = $entries->sum('amount');
-    $totalCompliance = $entries->sum('for_compliance');
-    $totalCombined = $totalComplied + $totalCompliance;
-
-    $liquidation->pre_audited_amount = $totalComplied;
+    $liquidation->pre_audited_amount    = $totalComplied;
     $liquidation->for_compliance_amount = $totalCompliance;
 
-    if ($entries->isNotEmpty()) {
+    if ($liquidation->preAuditEntries->isNotEmpty()) {
         $liquidation->status = 'Processing';
     }
 
@@ -263,28 +327,28 @@ if ($request->for_compliance) {
     }
 
     $liquidation->save();
+
+    // --- Log activity ---
     LiquidationActivity::create([
-    'liquidation_id' => $liquidation->id,
-    'user_id'        => auth()->id(),
-    'action'         => 'Pre-Audit Entry Added',
-    'details'        => 'Amount: ' . $request->amount . ', For Compliance: ' . ($request->for_compliance ? 'Yes' : 'No'),
-]);
+        'liquidation_id' => $liquidation->id,
+        'user_id'        => auth()->id(),
+        'action'         => 'Pre-Audit Entry Added',
+        'details'        => $activityDetails,
+    ]);
 
-
-    // Email the SDO if for compliance and email is available
-    if ($request->for_compliance && $filePath) {
-    $sdoEmail = optional($liquidation->cashAdvance->sdo)->email;
-
+    // --- Send email for compliance ---
+    if ($request->boolean('for_compliance') && $filePath) {
+        $sdoEmail = optional($liquidation->cashAdvance->sdo)->email;
         if ($sdoEmail) {
             Mail::to($sdoEmail)->send(new ComplianceFileSubmitted($liquidation, $filePath));
         } else {
-            // Optional: log it or alert admins
             \Log::warning("No email found for SDO of Liquidation ID {$liquidation->id}.");
         }
     }
 
-    return back()->with('success', 'Pre-audit entry added and totals updated.');
-} 
+    return back()->with('success', 'Pre-audit entry added and totals updated successfully.');
+}
+ 
 
 public function destroyEntry($id)
 {

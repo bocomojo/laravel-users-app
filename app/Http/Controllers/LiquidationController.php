@@ -11,6 +11,8 @@ use App\Exports\LiquidationsExport;
 use App\Models\LiquidationActivity;
 use App\Exports\CondensedLiquidationExport;
 use App\Models\PreAuditorLiquidationEntry;
+use App\Exports\LiquidationTransmittalExport;
+use App\Exports\TransmittalExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\LiquidationImport;
 use Illuminate\Support\Facades\DB;
@@ -61,15 +63,24 @@ class LiquidationController extends Controller
         return Excel::download(new CondensedLiquidationExport($liquidations), 'condensed_liquidation.xlsx');
     }
 
-    public function export($cashAdvanceId)
-    {   
-        return Excel::download(new LiquidationsExport($cashAdvanceId), 'liquidation.xlsx');
+    public function export(Request $request, $cashAdvanceId)
+    {
+        $cashAdvance = CashAdvance::with(['sdo', 'liquidation'])->findOrFail($cashAdvanceId);
+
+        // Match show() logic exactly
+        $liquidations = Liquidation::where('cash_advance_id', $cashAdvance->id)
+            ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
+            ->when($request->filled('type'), fn($q) => $q->where('liquidation_type', $request->type))
+            ->orderBy('created_at', $request->get('sort', 'desc'))
+            ->get();
+
+        // Pass only what's currently shown
+        return Excel::download(new LiquidationsExport($liquidations, $cashAdvance), 'liquidation.xlsx');
     }
 
-    public function exportTransmittal()
+   public function exportTransmittal()
     {
-        // Example logic: export to Excel or PDF
-        return response()->json(['message' => 'Export not yet implemented']);
+        return Excel::download(new LiquidationTransmittalExport, 'For_Transmittal.xlsx');
     }
 
     public function assignSack(Request $request)
@@ -89,17 +100,80 @@ class LiquidationController extends Controller
         return redirect()->back()->with('success', 'Sack number assigned successfully.');
     }
 
-    public function bulkTransmit()
-    {
-        DB::table('liquidation')
-            ->where('status', '!=', 'Transmitted')
-            ->update(['status' => 'Transmitted']);
+    public function autoAssignSacks()
+{
+    $MAX_SACK_AMOUNT = 7750000;
+    $currentTotal = 0;
+    $sackNumber = 1;
 
-        return redirect()->back()->with('success', 'All visible liquidations marked as Transmitted.');
+    $liquidations = \App\Models\Liquidation::where('status', 'For Transmittal')
+        ->orderBy('liq_number')
+        ->get(['liq_number', 'for_liquidation_amount']);
+
+    if ($liquidations->isEmpty()) {
+        return redirect()->back()->with('success', 'No liquidations available for sack assignment.');
     }
+
+    foreach ($liquidations as $liq) {
+        // If adding this liquidation exceeds the limit → start a new sack
+        if ($currentTotal + $liq->for_liquidation_amount > $MAX_SACK_AMOUNT) {
+            $sackNumber++;
+            $currentTotal = 0;
+        }
+
+        // Assign this liquidation to the current sack
+        DB::table('sack_assignment')->updateOrInsert(
+            ['liq_number' => $liq->liq_number],
+            [
+                'sack_number' => $sackNumber,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        $currentTotal += $liq->for_liquidation_amount;
+    }
+
+    return redirect()->back()->with('success', 'Sack numbers automatically assigned successfully.');
+}
+
+
+public function bulkTransmit(Request $request)
+{
+    $ids = $request->input('liq_ids', []);
+
+    $query = \App\Models\Liquidation::query()
+        ->where('status', 'For Transmittal');
+
+    if (!empty($ids)) {
+        $query->whereIn('id', $ids);
+    }
+
+    $toUpdate = $query->get();
+
+    \DB::transaction(function () use ($toUpdate) {
+        foreach ($toUpdate as $liq) {
+            $liq->status = 'Transmitted';
+            $liq->save();
+
+            \App\Models\LiquidationActivity::create([
+                'liquidation_id' => $liq->id,
+                'user_id' => auth()->id(),
+                'action' => 'Transmitted',
+                'details' => 'Marked as Transmitted via bulk transmit',
+            ]);
+        }
+    });
+
+    $count = $toUpdate->count();
+
+    return redirect()->back()->with('success', "{$count} liquidation(s) marked as Transmitted.");
+}
 
     public function index(Request $request)
     {
+        $pre_auditors = PreAuditor::with('user')->get();
+
         $query = Liquidation::with([
             'cashAdvance',
             'cashAdvance.sdo',
@@ -158,27 +232,57 @@ class LiquidationController extends Controller
         }
 
         $sdos = Sdo::orderBy('name')->get();
+        $preAuditors = PreAuditor::all();
 
-        return view('liquidation.index', compact('liquidations', 'sdos'));
+        return view('liquidation.index', compact('liquidations', 'sdos', 'pre_auditors' ));
     }
 
-    public function show($id, Request $request)
-    {
-        $cashAdvance = CashAdvance::with(['sdo', 'liquidation'])->findOrFail($id);
+public function show($id, Request $request)
+{
+    $cashAdvance = CashAdvance::with(['sdo', 'liquidation'])->findOrFail($id);
 
-        $liquidations = Liquidation::where('cash_advance_id', $cashAdvance->id)
-            ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
-            ->when($request->filled('type'), fn($q) => $q->where('liquidation_type', $request->type))
-            ->orderBy('created_at', $request->get('sort', 'desc'))
-            ->get();
+    // Fetch liquidations (currently filtered by approved/transmitted)
+    $liquidations = Liquidation::where('cash_advance_id', $cashAdvance->id)
+        ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
+        ->when($request->filled('type'), fn($q) => $q->where('liquidation_type', $request->type))
+        ->orderBy('created_at', $request->get('sort', 'desc'))
+        ->get();
 
-        return view('liquidation.show', [
-            'cashAdvance' => $cashAdvance,
-            'liquidations' => $liquidations,
-            'sortOrder' => $request->get('sort', 'desc'),
-            'filterType' => $request->get('type'),
-        ]);
-    }
+    // 1️⃣ Total Liquidation Received — regardless of status
+    $totalLiquidationReceived = Liquidation::where('cash_advance_id', $cashAdvance->id)
+        ->where('liquidation_type', 'Liquidation')
+        ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
+        ->sum('for_liquidation_amount');
+
+    // ✅ Total Pre-Audited = sum(amount) from pre_auditor_liquidation_entries
+    $totalPreAudited = \App\Models\PreAuditorLiquidationEntry::whereIn(
+        'liquidation_id',
+        $liquidations->pluck('id')
+    )->sum('amount');
+
+    // 4️⃣ Total For Compliance = sum(for_compliance)
+    $totalForCompliance = \App\Models\PreAuditorLiquidationEntry::whereIn(
+        'liquidation_id',
+        $liquidations->pluck('id')
+    )->sum('for_compliance');
+
+    // 5️⃣ Total Refund
+    $totalRefund = Liquidation::where('cash_advance_id', $cashAdvance->id)
+        ->where('liquidation_type', 'Refund')
+        ->whereIn('status', ['Approved', 'For Transmittal', 'Transmitted'])
+        ->sum('for_liquidation_amount');
+
+    return view('liquidation.show', [
+        'cashAdvance' => $cashAdvance,
+        'liquidations' => $liquidations,
+        'sortOrder' => $request->get('sort', 'desc'),
+        'filterType' => $request->get('type'),
+        'totalLiquidationReceived' => abs($totalLiquidationReceived),
+        'totalPreAudited' => $totalPreAudited,
+        'totalForCompliance' => $totalForCompliance,
+        'totalRefund' => abs($totalRefund),
+    ]);
+}
 
     public function import(Request $request)
     {
@@ -329,19 +433,28 @@ class LiquidationController extends Controller
         return redirect()->back()->with('success', 'Liquidation marked as Approved.');
     }
 
-    public function forTransmittal(Request $request)
-    {
-        $search = $request->input('search');
+public function forTransmittal(Request $request)
+{
+    $search = $request->input('search');
 
-        $liquidations = Liquidation::where('status', 'For Transmittal')
-            ->when($search, function ($query, $search) {
-                $query->where('liq_number', 'like', "%{$search}%")
-                    ->orWhere('sdo_name', 'like', "%{$search}%");
-            })
-            ->get();
+    $liquidations = Liquidation::leftJoin('sack_assignment', 'liquidation.liq_number', '=', 'sack_assignment.liq_number')
+        ->where('liquidation.status', 'For Transmittal')
+        ->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('liquidation.liq_number', 'like', "%{$search}%")
+                    ->orWhere('liquidation.sdo_name', 'like', "%{$search}%");
+            });
+        })
+        ->select(
+            'liquidation.*',
+            'sack_assignment.sack_number as sack_no'
+        )
+        ->orderBy('liquidation.liq_number')
+        ->get();
 
-        return view('liquidation.for-transmittal', compact('liquidations'));
-    }
+    return view('liquidation.for-transmittal', compact('liquidations'));
+}
+
 
     public function getNextLrNumber()
     {

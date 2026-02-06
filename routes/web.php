@@ -92,6 +92,12 @@ Route::prefix('liquidation')->group(function () {
 
 Route::get('/liquidation/next-lr-number', [LiquidationController::class, 'getNextLrNumber'])->name('liquidation.nextLrNumber');
 
+Route::get('/liquidation/assign-sack', [LiquidationController::class, 'autoAssignSacks'])
+    ->name('liquidation.assign.sack');
+
+Route::get('/liquidations/export/transmittal', [LiquidationController::class, 'exportTransmittal'])
+    ->name('liquidation.export.transmittal');
+    
 Route::resource('liquidation', LiquidationController::class)->only([
     'create', 'store', 'show', 'index', 'edit', 'update', 'destroy'
 ]);
@@ -108,7 +114,6 @@ Route::post('pre-auditor/liquidations/add-entry', [PreAuditorController::class, 
 Route::post('/jev/import', [JevController::class, 'import'])->name('jev.import');
 
 Route::get('/liquidations/for-transmittal', [LiquidationController::class, 'forTransmittal'])->name('liquidation.for-transmittal');
-Route::get('/liquidation/export-transmittal', [LiquidationController::class, 'exportTransmittal'])->name('liquidation.export.transmittal');
 Route::post('/liquidation/assign-sack', [LiquidationController::class, 'assignSack'])->name('liquidation.assign.sack');
 Route::post('/liquidations/transmit', [LiquidationController::class, 'bulkTransmit'])->name('liquidation.transmit.bulk');
 

@@ -129,33 +129,25 @@
                         <!-- Total Liquidation Received -->
                         <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Liquidation Received:</span>
-                            <span>
-                                {{ number_format(abs($liquidations->where('liquidation_type', 'Liquidation')->sum('for_liquidation_amount')), 2) }}
-                            </span>
+                            <span>{{ number_format($totalLiquidationReceived, 2) }}</span>
                         </div>
 
                         <!-- Total Pre-Audited -->
                         <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Pre-Audited:</span>
-                            <span>
-                                {{ number_format($liquidations->where('liquidation_type', 'Liquidation')->sum('pre_audited_amount'), 2) }}
-                            </span>
+                            <span>{{ number_format($totalPreAudited, 2) }}</span>
                         </div>
 
                         <!-- Total For Compliance -->
                         <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total For Compliance:</span>
-                            <span>
-                                {{ number_format(abs((float) str_replace(',', '', $liquidations->sum('for_compliance_amount'))), 2) }}
-                            </span>
+                            <span>{{ number_format($totalForCompliance, 2) }}</span>
                         </div>
 
                         <!-- Total Refund -->
                         <div class="flex justify-between text-sm text-gray-800 dark:text-white pt-4">
                             <span class="font-semibold">Total Refund:</span>
-                            <span>
-                                {{ number_format(abs($liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount')), 2) }}
-                            </span>
+                            <span>{{ number_format($totalRefund, 2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -224,8 +216,12 @@
             <!-- Right container: Liquidation Table -->
             <div x-data="{ showModal: false, deleteId: null }" class="w-full lg:w-2/3">
                 <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 overflow-x-auto">
+                    
+                    <!-- Header -->
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Related Liquidations</h3>
+                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                            Related Liquidations
+                        </h3>
                         <div class="text-sm text-right space-y-1">
                             <p class="text-gray-700 dark:text-gray-300">
                                 <span class="font-semibold">Starting Balance:</span>
@@ -235,9 +231,7 @@
                             @php
                                 $totalPreAudited = $liquidations->sum('pre_audited_amount');
                                 $refunds = $liquidations->where('liquidation_type', 'Refund')->sum('for_liquidation_amount');
-
-                                    $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited + $refunds;
-
+                                $remainingBalance = $cashAdvance->granted_amount - $totalPreAudited + $refunds;
                             @endphp
 
                             <p class="text-gray-700 dark:text-gray-300">
@@ -249,16 +243,18 @@
 
                     <!-- Sorting & Filtering -->
                     <form method="GET" class="mb-4 flex flex-wrap items-center gap-4">
-                        <div>
+                        <!-- <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort:</label>
-                            <select name="sort" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                            <select name="sort" onchange="this.form.submit()" 
+                                    class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
                                 <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Newest First</option>
                                 <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>Oldest First</option>
                             </select>
-                        </div>
+                        </div> -->
                         <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter:</label>
-                            <select name="type" onchange="this.form.submit()" class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
+                            <select name="type" onchange="this.form.submit()" 
+                                    class="bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-white rounded p-2">
                                 <option value="">All</option>
                                 <option value="Liquidation" {{ request('type') == 'Liquidation' ? 'selected' : '' }}>Liquidation</option>
                                 <option value="Refund" {{ request('type') == 'Refund' ? 'selected' : '' }}>Refund</option>
@@ -266,111 +262,173 @@
                         </div>
                     </form>
 
+                    <!-- Table -->
                     <div class="relative max-h-[500px] overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg">
-                        <table class="min-w-[1200px] table-fixed text-sm text-left text-gray-800 dark:text-gray-200">
+                        <table class="min-w-[1300px] table-fixed text-sm text-left text-gray-800 dark:text-gray-200">
                             <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800 z-20">
                                 <tr>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Transaction Type</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Reference (LR/OR)</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Date Received</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Date Reviewed</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Liq Amount Received</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Amount for Compliance</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Audited Amount</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Pre-Auditor</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">JEV No.</th>
-                                    <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Attachment</th>
-                                    <!-- <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-700">Actions</th> -->
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Transaction Type</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Reference (LR/OR)</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Date Received</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Date Reviewed</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Liq Amount Received</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Amount for Compliance</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Pre-Audited Amount</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Running Balance</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">JEV No.</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Pre-Auditor</th>
+                                    <th class="px-4 py-3 text-xs font-bold uppercase border-b">Attachments</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800 will-change-transform">
-                                    @if ($liquidations->isEmpty())
-                                        <tr>
-                                            <td colspan="10" class="px-4 py-4 text-center text-gray-600 dark:text-gray-400">
-                                                No liquidations found for this cash advance.
+
+                            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                                @if ($liquidations->isEmpty())
+                                    <tr>
+                                        <td colspan="11" class="px-4 py-4 text-center text-gray-600 dark:text-gray-400">
+                                            No liquidations found for this cash advance.
+                                        </td>
+                                    </tr>
+                                @else
+                                    @php
+                                        $runningBalance = $cashAdvance->granted_amount;
+                                    @endphp
+                                    @foreach ($liquidations as $liquidation)
+                                        @php
+                                            // Deduct pre-audited amount
+                                            $runningBalance -= $liquidation->pre_audited_amount ?? 0;
+                                        @endphp
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                            <td class="px-4 py-2">{{ $liquidation->liquidation_type }}</td>
+                                            <td class="px-4 py-2">
+                                                @if ($liquidation->liquidation_type === 'Refund')
+                                                    {{ $liquidation->or_number ?? '—' }}
+                                                @elseif ($liquidation->liquidation_type === 'Liquidation')
+                                                    {{ $liquidation->liq_number ?? '—' }}
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                {{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                {{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                {{ $liquidation->for_liquidation_amount < 0
+                                                    ?  number_format(abs($liquidation->for_liquidation_amount), 2)
+                                                    : number_format($liquidation->for_liquidation_amount, 2) }}
+                                            </td>
+                                            <td class="px-4 py-2 text-black dark:text-white">
+                                                {{ '(' . number_format($liquidation->for_compliance_amount, 2) . ')' }}
+                                            </td>
+                                            <td class="px-4 py-2 text-black dark:text-white">
+                                                {{ $liquidation->pre_audited_amount < 0
+                                                    ? '(' . number_format(abs($liquidation->pre_audited_amount), 2) . ')'
+                                                    : number_format($liquidation->pre_audited_amount, 2) }}
+                                            </td>
+                                            <!-- ✅ Running Balance -->
+                                            <td class="px-4 py-2 font-semibold text-black dark:text-white">
+                                                {{ number_format($runningBalance, 2) }}
+                                            </td>
+
+
+                                            <!-- JEV No -->
+                                            <td class="px-4 py-2" x-data>
+                                                @if (empty($liquidation->jev_no))
+                                                    @hasanyrole('admin|reporting')
+                                                        <button 
+                                                            @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '' })"
+                                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md shadow">
+                                                            Add JEV
+                                                        </button>
+                                                    @else
+                                                        <span class="text-gray-400 italic">— Restricted —</span>
+                                                    @endhasanyrole
+                                                @else
+                                                    <button 
+                                                        @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '{{ $liquidation->jev_no }}' })"
+                                                        class="text-blue-600 dark:text-blue-400 underline">
+                                                        {{ $liquidation->jev_no }}
+                                                    </button>
+                                                @endif
+                                            </td>
+                                            
+                                            <!-- ✅ Pre-Auditors column -->
+                                            <td class="px-4 py-2 align-top">
+                                                @php
+                                                    $auditors = $liquidation->preAuditEntries
+                                                        ->whereNotNull('pre_auditor_id')
+                                                        ->unique('pre_auditor_id');
+                                                @endphp
+
+                                                @if ($auditors->isNotEmpty())
+                                                    <div x-data="{ open: false }" class="text-sm">
+                                                        <button 
+                                                            @click="open = !open" 
+                                                            class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                                                            <span x-text="open ? 'Hide : 'Show'"></span>
+                                                        </button>
+
+                                                        <div x-show="open" class="mt-1 space-y-1">
+                                                            @foreach ($auditors as $entry)
+                                                                <div class="text-gray-700 dark:text-gray-300 truncate">
+                                                                    • {{ $entry->preAuditor->name ?? '—' }}
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-400 italic">No pre-auditors</span>
+                                                @endif
+                                            </td>
+
+                                            <!-- Attachments (deduped) -->
+                                            <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 align-top">
+                                                @if ($liquidation->preAuditEntries->isNotEmpty())
+                                                    @php
+                                                        $uniqueFiles = $liquidation->preAuditEntries
+                                                            ->filter(fn($entry) => !empty($entry->compliance_file))
+                                                            ->unique('compliance_file');
+                                                    @endphp
+
+                                                    @if ($uniqueFiles->isNotEmpty())
+                                                        <div x-data="{ open: false }">
+                                                            <button @click="open = !open" 
+                                                                    class="text-blue-500 hover:text-blue-700 underline">
+                                                                <span x-text="open ? 'Hide' : 'Show'"></span>
+                                                            </button>
+
+                                                            <div x-show="open" class="mt-2 space-y-1">
+                                                                @foreach ($uniqueFiles as $entry)
+                                                                    <a href="{{ asset('storage/' . $entry->compliance_file) }}"
+                                                                    target="_blank"
+                                                                    class="block underline hover:text-blue-800 dark:hover:text-blue-300 truncate max-w-[220px]">
+                                                                        📎 {{ $entry->compliance_file_name ?? 'View File' }}
+                                                                    </a>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400 italic">No attachments</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-gray-400 italic">No attachments</span>
+                                                @endif
                                             </td>
                                         </tr>
-                                    @else
-                                        @foreach ($liquidations as $liquidation)
-                                            <tr>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $liquidation->liquidation_type }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                                    @if ($liquidation->liquidation_type === 'Refund')
-                                                        {{ $liquidation->or_number ?? '—' }}
-                                                    @elseif ($liquidation->liquidation_type === 'Liquidation')
-                                                        {{ $liquidation->liq_number ?? '—' }}
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                                    {{ $liquidation->liq_date_received ? \Carbon\Carbon::parse($liquidation->liq_date_received)->format('F d, Y') : '—' }}
-                                                </td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                                    {{ $liquidation->liq_date ? \Carbon\Carbon::parse($liquidation->liq_date)->format('F d, Y') : '—' }}
-                                                </td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                                    {{ $liquidation->for_liquidation_amount < 0
-                                                        ? '(' . number_format(abs($liquidation->for_liquidation_amount), 2) . ')'
-                                                        : number_format($liquidation->for_liquidation_amount, 2) }}
-                                                </td>
-                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{{ number_format($liquidation->for_compliance_amount, 2) }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">
-                                                    {{ $liquidation->pre_audited_amount < 0
-                                                        ? '(' . number_format(abs($liquidation->pre_audited_amount), 2) . ')'
-                                                        : number_format($liquidation->pre_audited_amount, 2) }}
-                                                </td>
-                                                <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{{ $liquidation->pre_auditor }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300" x-data>
-                                                    @if (empty($liquidation->jev_no))
-                                                        @hasanyrole('admin|reporting')
-                                                            <button 
-                                                                @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '' })"
-                                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md shadow">
-                                                                Add JEV
-                                                            </button>
-                                                        @else
-                                                            <span class="text-gray-400 italic">— Restricted —</span>
-                                                        @endhasanyrole
-                                                    @else
-                                                        <button 
-                                                            @click="$dispatch('open-jev-modal', { id: {{ $liquidation->id }}, jev: '{{ $liquidation->jev_no }}' })"
-                                                            class="text-blue-600 dark:text-blue-400 underline">
-                                                            {{ $liquidation->jev_no }}
-                                                        </button>
-                                                    @endif
-                                                </td>   
-                                               
-                                                    <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
-                                                         @foreach ($liquidation->preAuditEntries as $entry) 
-                                                        @if ($entry->compliance_file)
-                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
-                                                                {{ $entry->compliance_file_name ?? 'View File' }}
-                                                            </a>
-                                                        @else
-                                                            
-                                                        @endif
-                                                    </td>
-                                                @endforeach
-                                                <!-- <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 align-top">
-                                                    <div class="flex flex-col items-start space-y-1">
-                                                        <a href="{{ route('liquidation.edit', $liquidation->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                                        <button @click="showModal = true; deleteId = {{ $liquidation->id }}" class="text-red-600 hover:underline">Delete</button>
-                                                    </div>
-                                                </td> -->
-                                            </tr>
-                                        @endforeach
-                                    @endif
-                                </tbody>
-                            </table>
-                        <!-- JEV Modal -->
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+
+                        <!-- ✅ JEV Modal -->
                         <div x-data="{ openJevModal: null, jevNo: '' }"
                             @open-jev-modal.window="openJevModal = $event.detail.id; jevNo = $event.detail.jev">
                             <div x-show="openJevModal" x-cloak
                                 class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
                                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Add / Edit JEV</h2>
-
                                     <form @submit.prevent="
                                         fetch(`/liquidation/${openJevModal}/jev`, {
                                             method: 'POST',
@@ -392,47 +450,45 @@
                                         })
                                     ">
                                         <label class="block mb-2 text-gray-700 dark:text-gray-300">JEV Number</label>
-                                        <input type="text" x-model="jevNo" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-2 mb-4" required>
+                                        <input type="text" x-model="jevNo" 
+                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-2 mb-4" required>
 
                                         <div class="flex justify-end space-x-2">
-                                            <button type="button" @click="openJevModal = null" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded text-gray-800 dark:text-white">Cancel</button>
-                                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save</button>
+                                            <button type="button" @click="openJevModal = null" 
+                                                    class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded text-gray-800 dark:text-white">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" 
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                                                Save
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Delete Confirmation Modal -->
-                        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                            <div class="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
-                                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Confirm Deletion</h2>
-                                <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this liquidation record? This action cannot be undone.</p>
-                                <div class="flex justify-end space-x-4">
-                                    <button @click="showModal = false" type="button" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">Cancel</button>
-                                    <form :action="`/liquidation/${deleteId}`" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                    <!-- Success / Fail Modal -->
-                    <div x-data="{ message: '', type: '', showMsg: false }" 
-                        @show-msg.window="message = $event.detail.message; type = $event.detail.type; showMsg = true"
-                        x-show="showMsg" x-cloak
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                        <div :class="type === 'success' ? 'bg-green-500' : 'bg-red-500'" 
-                            class="p-6 rounded-lg shadow-lg w-full max-w-sm text-white">
-                            <h2 class="text-lg font-semibold" x-text="type === 'success' ? 'Success' : 'Error'"></h2>
-                            <p class="mt-2" x-text="message"></p>
-                            <div class="mt-4 text-right">
-                                <button @click="showMsg = false" class="px-4 py-2 bg-white text-gray-800 rounded">Close</button>
+
+                    <!-- Delete Confirmation Modal -->
+                    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div class="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Confirm Deletion</h2>
+                            <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this liquidation record? This action cannot be undone.</p>
+                            <div class="flex justify-end space-x-4">
+                                <button @click="showModal = false" type="button" 
+                                        class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">Cancel</button>
+                                <form :action="`/liquidation/${deleteId}`" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+
+
 </x-app-layout>

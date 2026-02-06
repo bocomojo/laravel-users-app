@@ -119,7 +119,7 @@
                                     <th class="px-6 py-3">Type</th>
                                     <th class="px-6 py-3">Received</th>
                                     <th class="px-6 py-3">Reference (LR/OR)</th>
-                                    <th class="px-6 py-3">Reviewed Date</th>
+                                    <th class="px-6 py-3">OR Date/Reviewed Date</th>
                                     <th class="px-6 py-3 text-center">Action</th>
                                     <th class="px-6 py-3">History</th>
                                 </tr>
@@ -196,8 +196,13 @@
                                         <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
 
                                                 @if (in_array($liq->status, ['For Checking', 'Processing']))
+                                                    <!-- <button 
+                                                        @click="$dispatch('open-modal', '{{ $liq->id }}')"
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
+                                                        Add Pre-Audit
+                                                    </button> -->
                                                     <button 
-                                                        onclick="event.stopPropagation(); document.getElementById('modal-{{ $liq->id }}').classList.remove('hidden')" 
+                                                        @click="$dispatch('open-preaudit-modal', { id: '{{ $liq->id }}' })"
                                                         class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
                                                         Add Pre-Audit
                                                     </button>
@@ -214,11 +219,11 @@
                                                 @endif
 
                                                 @if (in_array($liq->status, ['For Transmittal', 'Transmitted']))
-                                                    <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                                    <!-- <a href="{{ route('liquidation.edit', $liq->id) }}"
                                                         onclick="event.stopPropagation()"
                                                         class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
                                                         Edit
-                                                    </a>
+                                                    </a> -->
                                                     @role('admin')
                                                     <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST" onclick="event.stopPropagation()" onsubmit="event.stopPropagation()">
                                                         @csrf
@@ -355,13 +360,47 @@
                                     </div>
 
                                     <!-- Add Pre-Audited Modal -->
-                                    <div id="modal-{{ $liq->id }}" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
-                                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+                                    <div 
+                                        x-data="{ 
+                                            show: false, 
+                                            forCompliance: '0', 
+                                            rows: [{ auditor: '', amount: '' }],
+                                            handleSubmit($event) {
+                                                // Before submitting, remove any old hidden inputs
+                                                const form = $event.target.closest('form');
+                                                form.querySelectorAll('.dynamic-hidden').forEach(el => el.remove());
+
+                                                // If For Compliance mode, inject dynamic inputs
+                                                if (this.forCompliance === '1') {
+                                                    this.rows.forEach((row, i) => {
+                                                        const auditorInput = document.createElement('input');
+                                                        auditorInput.type = 'hidden';
+                                                        auditorInput.name = `pre_auditors[${i}]`;
+                                                        auditorInput.value = row.auditor;
+                                                        auditorInput.classList.add('dynamic-hidden');
+                                                        form.appendChild(auditorInput);
+
+                                                        const amountInput = document.createElement('input');
+                                                        amountInput.type = 'hidden';
+                                                        amountInput.name = `amounts[${i}]`;
+                                                        amountInput.value = row.amount;
+                                                        amountInput.classList.add('dynamic-hidden');
+                                                        form.appendChild(amountInput);
+                                                    });
+                                                }
+                                            }
+                                        }"
+                                        x-show="show"
+                                        x-cloak
+                                        @open-preaudit-modal.window="if ($event.detail.id == '{{ $liq->id }}') show = true"
+                                        class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
+                                    >
+                                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-lg" @click.outside="show = false">
                                             <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
                                                 Add Pre-Audited Entry — {{ $liq->liq_number ?? $liq->check_number }}
                                             </h2>
 
-                                            {{-- Show form errors --}}
+                                            {{-- Validation Errors --}}
                                             @if ($errors->any())
                                                 <div class="mb-4 bg-red-100 text-red-700 px-4 py-2 rounded">
                                                     <ul class="text-sm list-disc pl-5">
@@ -372,48 +411,117 @@
                                                 </div>
                                             @endif
 
-                                            <form method="POST" action="{{ route('pre-auditor.liquidations.add-entry') }}"
-                                                enctype="multipart/form-data" id="entry-form-{{ $liq->id }}">
+                                            {{-- FORM --}}
+                                            <form 
+                                                id="entry-form-{{ $liq->id }}"
+                                                method="POST"
+                                                action="{{ route('pre-auditor.liquidations.add-entry') }}"
+                                                enctype="multipart/form-data"
+                                                @submit.prevent="handleSubmit($event); $event.target.submit();"
+                                            >
                                                 @csrf
-
                                                 <input type="hidden" name="liquidation_id" value="{{ $liq->id }}">
-
-                                                {{-- Amount --}}
-                                                <div class="mb-4">
-                                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-                                                    <input type="number" name="amount" step="0.01" placeholder="₱0.00" required
-                                                        class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white">
-                                                </div>
 
                                                 {{-- Entry Type --}}
                                                 <div class="mb-4">
                                                     <label class="block text-gray-700 dark:text-gray-300 mb-1">Entry Type</label>
-                                                    <select name="for_compliance" required
-                                                            class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
-                                                            onchange="toggleFileInput(this, '{{ $liq->id }}')">
+                                                    <select 
+                                                        name="for_compliance" 
+                                                        x-model="forCompliance" 
+                                                        required
+                                                        class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                    >
                                                         <option value="0">Complied</option>
                                                         <option value="1">For Compliance</option>
                                                     </select>
                                                 </div>
 
-                                                {{-- Supporting File --}}
-                                                <div class="mb-4 hidden" id="file-input-container-{{ $liq->id }}">
-                                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Supporting File (PDF, JPG, PNG)</label>
-                                                    <input type="file" name="supporting_file" accept=".pdf,.jpg,.jpeg,.png"
+                                                {{-- Complied Amount --}}
+                                                <div class="mb-4" x-show="forCompliance === '0'" x-cloak>
+                                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+                                                    <input 
+                                                        type="number" 
+                                                        name="amount" 
+                                                        step="0.01" 
+                                                        placeholder="₱0.00" 
+                                                        x-bind:required="forCompliance === '0'"
                                                         class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
-                                                        id="supporting-file-{{ $liq->id }}">
+                                                    >
+                                                </div>
+
+                                                {{-- For Compliance Section --}}
+                                                <div class="mb-4" x-show="forCompliance === '1'" x-cloak>
+                                                    <template x-for="(row, index) in rows" :key="index">
+                                                        <div class="flex space-x-2 mb-2 items-center">
+                                                            <!-- Pre-Auditor -->
+                                                            <select 
+                                                                x-model="row.auditor"
+                                                                class="w-1/2 px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                            >
+                                                                <option value="">Select Pre-Auditor</option>
+                                                                @foreach ($pre_auditors as $pre)
+                                                                    <option value="{{ $pre->user_id }}">{{ $pre->user->name }}</option>
+                                                                @endforeach
+                                                            </select>
+
+                                                            <!-- Amount -->
+                                                            <input 
+                                                                type="number"
+                                                                step="0.01" 
+                                                                placeholder="₱0.00"
+                                                                x-model="row.amount"
+                                                                class="w-1/2 px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                            >
+
+                                                            <!-- Remove Button -->
+                                                            <button 
+                                                                type="button"
+                                                                class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                                                                x-show="rows.length > 1"
+                                                                @click="rows.splice(index, 1)"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </template>
+
+                                                    <!-- Add Row Button -->
+                                                    <button 
+                                                        type="button"
+                                                        class="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm"
+                                                        @click="rows.push({ auditor: '', amount: '' })"
+                                                    >
+                                                        + Add Another
+                                                    </button>
+
+                                                    <!-- Supporting File -->
+                                                    <div class="mt-4">
+                                                        <label class="block text-gray-700 dark:text-gray-300 mb-1">
+                                                            Supporting File (PDF, JPG, PNG)
+                                                        </label>
+                                                        <input 
+                                                            type="file" 
+                                                            name="supporting_file" 
+                                                            accept=".pdf,.jpg,.jpeg,.png"
+                                                            x-bind:required="forCompliance === '1'"
+                                                            class="w-full px-3 py-2 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-white"
+                                                        >
+                                                    </div>
                                                 </div>
 
                                                 {{-- Actions --}}
-                                                <div class="flex justify-end space-x-2">
-                                                    <button type="button"
-                                                        onclick="document.getElementById('modal-{{ $liq->id }}').classList.add('hidden')"
-                                                        class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded">
+                                                <div class="flex justify-end space-x-2 mt-6">
+                                                    <button 
+                                                        type="button"
+                                                        @click="show = false"
+                                                        class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
+                                                    >
                                                         Cancel
                                                     </button>
-                                                    <button type="submit"
+                                                    <button 
+                                                        type="submit" 
                                                         class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                                                        onclick="return validateFileInput('{{ $liq->id }}')">
+                                                    >
                                                         Save
                                                     </button>
                                                 </div>
@@ -423,85 +531,165 @@
 
                                     <!-- Collapsible Entry Table -->
                                     @if($liq->preAuditEntries->count())
-                                    <tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-700">
-                                        <td colspan="10" class="px-4 py-2">
+                                    <tr id="entries-{{ $liq->id }}" class="hidden bg-gray-50 dark:bg-gray-800">
+                                        <td colspan="10" class="px-6 py-4">
                                             <div x-data="{ openDeleteModal: false, entryId: null }">
-                                                <table class="w-full text-xs text-left">
-                                                    <thead>
-                                                        <tr class="text-gray-600 dark:text-gray-300">
-                                                            <th class="py-1 px-2">Amount</th>
-                                                            <th class="py-1 px-2">Type</th>
-                                                            <th class="py-1 px-2">Supporting Document</th>
-                                                            <th class="py-1 px-2">Pre-Auditor</th>
-                                                            <th class="py-1 px-2">Date Submitted</th>
-                                                            <th class="py-1 px-2 text-center">Delete</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($liq->preAuditEntries as $entry)
+
+                                                @php
+                                                    // Ensure starting balance is always positive
+                                                    $startingBalance = abs($liq->for_liquidation_amount ?? 0);
+
+                                                    // Compute totals before table render
+                                                    $totalComplied = 0;
+                                                    $totalForCompliance = 0;
+
+                                                    foreach ($liq->preAuditEntries as $entry) {
+                                                        $displayAmount = $entry->for_compliance > 0 ? $entry->for_compliance : $entry->amount;
+                                                        if ($entry->for_compliance > 0) {
+                                                            $totalForCompliance += $displayAmount;
+                                                        } else {
+                                                            $totalComplied += $displayAmount;
+                                                        }
+                                                    }
+
+                                                    $grandTotal = $totalComplied + $totalForCompliance;
+                                                    $variance = $startingBalance - $grandTotal;
+                                                @endphp
+
+                                                <div class="rounded-lg shadow-sm border border-gray-300 dark:border-gray-700 overflow-hidden">
+                                                    <div class="bg-white dark:bg-gray-900 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                                                        <div class="flex items-center gap-6">
+                                                            <div>
+                                                                <span class="text-sm text-gray-600 dark:text-gray-300">Starting Balance:</span>
+                                                                <span class="text-base font-semibold text-green-700 dark:text-green-500">
+                                                                    ₱{{ number_format($startingBalance, 2) }}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-sm text-gray-600 dark:text-gray-300">Remaining Balance:</span>
+                                                                <span class="text-base font-semibold {{ $variance >= 0 ? 'text-blue-700 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }}">
+                                                                    ₱{{ number_format($variance, 2) }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <table class="w-full text-sm text-left">
+                                                        <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+                                                            <tr class="text-gray-700 dark:text-gray-300">
+                                                                <th class="py-2 px-3 font-semibold">Type</th>
+                                                                <th class="py-2 px-3 font-semibold">Amount</th>
+                                                                <th class="py-2 px-3 font-semibold">Running Balance</th>
+                                                                <th class="py-2 px-3 font-semibold">Supporting Document</th>
+                                                                <th class="py-2 px-3 font-semibold">Pre-Auditor</th>
+                                                                <th class="py-2 px-3 font-semibold">Date Submitted</th>
+                                                                <th class="py-2 px-3 font-semibold text-center">Action</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                                                             @php
-                                                                $isCompliance = $entry->for_compliance > 0;
-                                                                $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
-                                                                $typeLabel = $isCompliance ? 'For Compliance' : 'Complied';
-                                                                $textColor = $isCompliance ? 'text-yellow-600' : 'text-green-600';
+                                                                $runningBalance = $startingBalance;
+                                                                $totalComplied = 0;
+                                                                $totalForCompliance = 0;
                                                             @endphp
 
-                                                            @if($displayAmount > 0)
-                                                            <tr id="entry-row-{{ $entry->id }}" class="border-t border-gray-300 dark:border-gray-600">
-                                                                <td class="py-1 px-2">₱{{ number_format($displayAmount, 2) }}</td>
-                                                                <td class="py-1 px-2">
-                                                                    <span class="text-xs font-semibold {{ $textColor }}">
-                                                                        {{ $typeLabel }}
-                                                                    </span>
-                                                                </td>
-                                                                <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 space-y-1">
-                                                                    @if ($entry->compliance_file)
-                                                                        <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline">
-                                                                            {{ $entry->compliance_file_name ?? 'View File' }}
-                                                                        </a>
-                                                                    @else
-                                                                        N/A
-                                                                    @endif
-                                                                </td>
-                                                                <td class="py-1 px-2">{{ $entry->preAuditor?->name ?? 'N/A' }}</td>
-                                                                <td class="py-1 px-2">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
-                                                                <td class="py-1 px-2 text-center">
-                                                                    @if($liq->status === 'Draft')
-                                                                    <button @click="entryId = {{ $entry->id }}; openDeleteModal = true" class="text-red-600 hover:underline">
-                                                                        Delete
-                                                                    </button>
-                                                                    @endif
-                                                                </td>
+                                                            @foreach($liq->preAuditEntries as $entry)
+                                                                @php
+                                                                    $isCompliance = $entry->for_compliance > 0;
+                                                                    $displayAmount = $isCompliance ? $entry->for_compliance : $entry->amount;
+                                                                    $typeLabel = $isCompliance ? 'For Compliance' : 'Complied';
+                                                                    $textColor = $isCompliance ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400';
+
+                                                                    if ($isCompliance) {
+                                                                        $totalForCompliance += $displayAmount;
+                                                                    } else {
+                                                                        $totalComplied += $displayAmount;
+                                                                    }
+
+                                                                    $runningBalance = max(0, $runningBalance - $displayAmount);
+                                                                @endphp
+
+                                                                @if($displayAmount > 0)
+                                                                <tr id="entry-row-{{ $entry->id }}" class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                                    <td class="py-2 px-3">
+                                                                        <span class="font-medium {{ $textColor }}">{{ $typeLabel }}</span>
+                                                                    </td>
+                                                                    <td class="py-2 px-3">₱{{ number_format($displayAmount, 2) }}</td>
+                                                                    <td class="py-2 px-3">₱{{ number_format($runningBalance, 2) }}</td>
+                                                                    <td class="py-2 px-3 text-blue-600 dark:text-blue-400">
+                                                                        @if ($entry->compliance_file)
+                                                                            <a href="{{ asset('storage/' . $entry->compliance_file) }}" target="_blank" class="underline hover:text-blue-800 dark:hover:text-blue-300">
+                                                                                {{ $entry->compliance_file_name ?? 'View File' }}
+                                                                            </a>
+                                                                        @else
+                                                                            <span class="text-gray-500 dark:text-gray-400">N/A</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="py-2 px-3">{{ $entry->preAuditor?->name ?? 'N/A' }}</td>
+                                                                    <td class="py-2 px-3">{{ $entry->created_at->format('M d, Y h:i A') }}</td>
+                                                                    <td class="py-2 px-3 text-center">
+                                                                        @if($liq->status === 'Draft')
+                                                                        <button @click="entryId = {{ $entry->id }}; openDeleteModal = true"
+                                                                                class="text-red-600 dark:text-red-400 hover:underline font-medium">
+                                                                            Delete
+                                                                        </button>
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
+                                                                @endif
+                                                            @endforeach
+                                                        </tbody>
+
+                                                        <!-- Totals -->
+                                                        <tfoot class="bg-gray-50 dark:bg-gray-800 border-t border-gray-300 dark:border-gray-700">
+                                                            <tr>
+                                                                <td class="py-2 px-3 text-right font-semibold text-green-700 dark:text-green-400">Total Complied:</td>
+                                                                <td class="py-2 px-3 font-semibold text-green-700 dark:text-green-400">₱{{ number_format($totalComplied, 2) }}</td>
+                                                                <td colspan="5"></td>
                                                             </tr>
-                                                            @endif
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
+                                                            <tr>
+                                                                <td class="py-2 px-3 text-right font-semibold text-yellow-600 dark:text-yellow-400">Total For Compliance:</td>
+                                                                <td class="py-2 px-3 font-semibold text-yellow-600 dark:text-yellow-400">₱{{ number_format($totalForCompliance, 2) }}</td>
+                                                                <td colspan="5"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="py-2 px-3 text-right font-bold text-gray-800 dark:text-gray-100 border-t border-gray-300 dark:border-gray-600">Total Pre-audited:</td>
+                                                                <td class="py-2 px-3 font-bold text-gray-800 dark:text-gray-100 border-t border-gray-300 dark:border-gray-600">
+                                                                    ₱{{ number_format($grandTotal, 2) }}
+                                                                </td>
+                                                                <td colspan="5"></td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
 
                                                 <!-- Delete Modal -->
                                                 <div x-show="openDeleteModal" x-cloak
                                                     class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
                                                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-96 p-6">
-                                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Confirm Delete</h3>
+                                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Confirm Delete</h3>
                                                         <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
                                                             Are you sure you want to delete this entry? This action cannot be undone.
                                                         </p>
                                                         <div class="mt-4 flex justify-end gap-2">
                                                             <button @click="openDeleteModal = false"
-                                                                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600">
+                                                                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded">
                                                                 Cancel
                                                             </button>
                                                             <button @click="deleteEntry(entryId); openDeleteModal = false"
-                                                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                                                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">
                                                                 Delete
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
+
                                             </div>
                                         </td>
                                     </tr>
                                     @endif
+
 
                                 @empty
                                     <tr>
@@ -759,29 +947,36 @@ function deleteEntry(entryId) {
     });
 }
 </script>
-    <script>
-        function toggleFileInput(select, id) {
-            const container = document.getElementById('file-input-container-' + id);
-            const input = document.getElementById('supporting-file-' + id);
-            if (select.value === '1') {
-                container.classList.remove('hidden');
-                input.required = true;
-            } else {
-                container.classList.add('hidden');
-                input.required = false;
-            }
-        }
+<script>
+function handleEntryTypeChange(select, id) {
+    const isForCompliance = select.value === '1';
+    const modal = document.getElementById(`modal-${id}`);
 
-        function validateFileInput(id) {
-            const select = document.querySelector(`#entry-form-${id} select[name="for_compliance"]`);
-            const fileInput = document.getElementById('supporting-file-' + id);
+    const complianceFields = modal.querySelector(`#for-compliance-fields-${id}`);
+    const fileContainer = modal.querySelector(`#file-input-container-${id}`);
+    const fileInput = modal.querySelector(`#supporting-file-${id}`);
+    const compliedAmount = modal.querySelector(`#complied-amount-${id}`);
+    const compliedAmountInput = compliedAmount.querySelector('input[name="amount"]');
 
-            if (select.value === '1' && !fileInput.value) {
-                alert('Please attach a supporting file for compliance.');
-                return false;
-            }
-            return true;
-        }
-    </script>
+    // Toggle visibility
+    complianceFields.classList.toggle('hidden', !isForCompliance);
+    fileContainer.classList.toggle('hidden', !isForCompliance);
+    compliedAmount.classList.toggle('hidden', isForCompliance);
+
+    // Toggle required attributes
+    if (fileInput) fileInput.required = isForCompliance;
+    if (compliedAmountInput) compliedAmountInput.required = !isForCompliance;
+}
+
+</script>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.store('modal', { open: null });
+
+    window.addEventListener('open-modal', e => {
+        Alpine.store('modal').open = e.detail;
+    });
+});
+</script>
 
     </x-app-layout>

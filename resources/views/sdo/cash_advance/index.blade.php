@@ -48,6 +48,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Employment Status</th>
                                     <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Email</th>
                                     <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Corporate Email</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Balance</th>
                                     <th class="px-4 py-3 text-left text-xs font-bold uppercase text-gray-600 dark:text-gray-200 border-b-2 dark:border-gray-600">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-200 uppercase border-b-2 dark:border-gray-600">Actions</th>
                                 </tr>
@@ -60,11 +61,19 @@
                                         $bondStatus = optional($record->bondedOfficial)->bond_status; // null if no record
                                     @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-b dark:border-gray-600">
-                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+                                            <a href="{{ route('sdo.cash_advance', $record->id) }}" 
+                                            class="text-blue-600 dark:text-blue-400 hover:underline">
+                                                {{ $record->name }}
+                                            </a>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->position }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->employment_status }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->email }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">{{ $record->corporate_email }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+                                            {{ number_format($record->balance ?? 0, 2) }}
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
                                             @if (is_null($record->bondedOfficial))
                                                 <span class="inline-block px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-200 dark:bg-gray-600 dark:text-gray-100 rounded-full">

@@ -12,7 +12,7 @@
                 {{-- Filters & Search --}}
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                     
-                    {{-- Left: Filters --}}
+                    <!-- {{-- Left: Filters --}}
                     <form method="GET" class="flex flex-wrap items-center gap-2">
                         <select name="status"
                             class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-md text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500">
@@ -37,7 +37,7 @@
                            class="px-3 py-1 bg-gray-500 text-white text-xs rounded-md hover:bg-gray-600 focus:ring-2 focus:ring-gray-400">
                             Clear
                         </a>
-                    </form>
+                    </form> -->
 
                     {{-- Right: Search --}}
                     <form method="GET" class="flex">
@@ -83,7 +83,9 @@
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->ors_date }}</td>
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->particulars }}</td>
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->transaction_type }}</td>
-                                    <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->pap }}</td>
+                                    <td class="px-4 py-3 text-gray-900 dark:text-gray-100">
+                                        {{ $ca->papData->pap_name ?? 'N/A' }}
+                                    </td>
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ number_format($ca->granted_amount, 2) }}</td>
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->payout_start }}</td>
                                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $ca->payout_end }}</td>

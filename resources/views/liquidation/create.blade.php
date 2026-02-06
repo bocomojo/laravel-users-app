@@ -101,28 +101,6 @@
                         </div>
                     </div>
 
-                    <div class="mt-4">
-                        <label for="pre_auditors" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-Auditor</label>
-
-                        <button type="button" id="toggleAuditors" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md w-full text-left hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                            Select Pre-Auditor
-                        </button>
-
-                        <div id="auditorList" class="mt-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 p-3 hidden max-h-60 overflow-y-auto">
-                            @foreach ($preAuditors as $index => $auditor)
-                                <label class="flex items-center mb-1 text-sm text-gray-800 dark:text-gray-200">
-                                    <input type="radio" name="pre_auditor" value="{{ $auditor->id }}"
-                                        class="mr-2 rounded border-gray-400 dark:border-gray-600"
-                                        {{ old('pre_auditor') == $auditor->id ? 'checked' : '' }}>
-                                    {{ $auditor->name }}
-                                    @if ($loop->first)
-                                        <span class="ml-1 text-green-600 dark:text-green-300"></span>
-                                    @endif
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-
                     <div class="flex justify-between items-center mt-6">
                         <a href="{{ route('liquidation.index') }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back to Liquidations</a>
                         <button type="submit" id="submit_btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Save</button>
