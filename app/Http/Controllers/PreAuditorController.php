@@ -221,6 +221,12 @@ public function addEntry(Request $request)
     $liquidation = Liquidation::with(['preAuditEntries', 'cashAdvance.sdo'])
         ->findOrFail($request->liquidation_id);
 
+    $liquidation->refresh();
+
+    if ($liquidation->status === 'Draft') {
+        return back()->with('error', 'Cannot add new entries while liquidation is in Draft status.');
+    }
+    
     $existingCompliance   = $liquidation->preAuditEntries->sum('for_compliance');
     $existingComplied     = $liquidation->preAuditEntries->sum('amount');
     $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
@@ -369,9 +375,14 @@ public function updateEntry(Request $request, $id)
     $entry = PreAuditorLiquidationEntry::findOrFail($id);
     $liquidation = $entry->liquidation;
 
-    $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
-    $isCompliance = $entry->for_compliance > 0;
+    $liquidation->refresh();
 
+    if ($liquidation->status !== 'Draft') {
+        return back()->with('error', 'Liquidation is no longer editable.');
+    }
+
+    $isCompliance = $entry->for_compliance > 0;
+    $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
     // =====================================================
     // VALIDATION
     // =====================================================
@@ -502,6 +513,12 @@ public function destroyEntry($id)
     $entry = PreAuditorLiquidationEntry::findOrFail($id);
     $liquidation = $entry->liquidation;
 
+    $liquidation->refresh();
+
+    if ($liquidation->status !== 'Draft') {
+        return back()->with('error', 'Liquidation is no longer editable.');
+    }
+
     // Delete attached file if exists
     if ($entry->compliance_file && \Storage::disk('public')->exists($entry->compliance_file)) {
         \Storage::disk('public')->delete($entry->compliance_file);
@@ -510,23 +527,14 @@ public function destroyEntry($id)
     // Delete entry
     $entry->delete();
 
-    // Recalculate totals
-    $entries = $liquidation->preAuditEntries;
+    // Just recalc totals, DO NOT change status
+    $liquidation->refresh();
 
-    $totalComplied = $entries->sum('amount');
-    $totalCompliance = $entries->sum('for_compliance');
-    $totalCombined = $totalComplied + $totalCompliance;
+    $liquidation->pre_audited_amount =
+        $liquidation->preAuditEntries()->sum('amount');
 
-    $liquidation->pre_audited_amount = $totalComplied;
-    $liquidation->for_compliance_amount = $totalCompliance;
-
-    $forLiquidationAmount = abs($liquidation->for_liquidation_amount);
-
-    if (round($totalCombined, 2) === round($forLiquidationAmount, 2)) {
-        $liquidation->status = 'For Approval';
-    } else {
-        $liquidation->status = 'Processing';
-    }
+    $liquidation->for_compliance_amount =
+        $liquidation->preAuditEntries()->sum('for_compliance');
 
     $liquidation->save();
 
@@ -538,11 +546,7 @@ public function destroyEntry($id)
         'details'        => 'Entry ID: ' . $id,
     ]);
 
-    // Respond with JSON for AJAX
-    return response()->json([
-        'success' => true,
-        'entryId' => $id
-    ]);
+    return redirect()->back()->with('success', 'Pre-audit entry deleted successfully.');
 }
 
 public function dashboard()
