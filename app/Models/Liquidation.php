@@ -43,10 +43,15 @@ class Liquidation extends Model
         return $this->belongsTo(CashAdvance::class, 'cash_advance_id');
     }
 
-    public function activities()
-    {
-        return $this->hasMany(LiquidationActivity::class)->latest();
-    }
+    // public function activities()
+    // {
+    //     return $this->hasMany(LiquidationActivity::class)->latest();
+    // }
+
+public function activities()
+{
+    return $this->hasMany(\App\Models\LiquidationActivity::class);
+}
 
     /**
      * All pre-audit entries for this liquidation

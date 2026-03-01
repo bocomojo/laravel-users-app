@@ -110,6 +110,9 @@ Route::post('pre-auditors/import', [PreAuditorController::class, 'import'])->nam
 Route::get('pre-auditors/{auditor}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditors.liquidations');
 // Route::get('pre-auditors/{id}/liquidations', [PreAuditorController::class, 'showLiquidations'])->name('pre-auditor.show');
 Route::post('pre-auditor/liquidations/add-entry', [PreAuditorController::class, 'addEntry'])->name('pre-auditor.liquidations.add-entry');
+Route::patch('/pre-auditor-entry/{id}', 
+    [PreAuditorController::class, 'updateEntry']
+)->name('pre-auditor-entry.update');
 
 Route::post('/jev/import', [JevController::class, 'import'])->name('jev.import');
 
@@ -179,6 +182,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/liquidation/{liquidation}/pre-audits', 
+    [LiquidationController::class, 'preAudits']
+)->name('liquidation.pre-audits');
 
 // ---------------------
 // Admin Dashboard

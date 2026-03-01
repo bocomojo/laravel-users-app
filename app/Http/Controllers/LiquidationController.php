@@ -137,6 +137,17 @@ class LiquidationController extends Controller
     return redirect()->back()->with('success', 'Sack numbers automatically assigned successfully.');
 }
 
+public function preAudits(Liquidation $liquidation)
+{
+    $liquidation->load([
+        'preAuditEntries.preAuditor',
+        'activities.user'
+    ]);
+
+    $pre_auditors = PreAuditor::with('user')->get();
+
+    return view('liquidation.pre_audits', compact('liquidation','pre_auditors'));
+}
 
 public function bulkTransmit(Request $request)
 {
@@ -178,8 +189,8 @@ public function bulkTransmit(Request $request)
             'cashAdvance',
             'cashAdvance.sdo',
             'cashAdvance.pap',
-            'preAuditEntries',
-            'preAuditor',
+            'preAuditEntries.preAuditor',
+            // 'preAuditor',
         ]);
 
         if ($request->filled('type')) {
@@ -412,25 +423,33 @@ public function show($id, Request $request)
 
     public function approve($id)
     {
-        $liq = \App\Models\Liquidation::findOrFail($id);
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Only admins can approve liquidations.');
+        }
+
+        $liq = Liquidation::findOrFail($id);
+
+        // Extra safety: only allow approval if currently For Approval
+        if ($liq->status !== 'For Approval') {
+            return back()->with('error', 'Liquidation is not ready for approval.');
+        }
 
         $liq->status = 'Approved';
 
-        // Only set liq_date if it's currently null
         if (is_null($liq->liq_date)) {
-            $liq->liq_date = now(); // or Carbon::now() if not using the global helper
+            $liq->liq_date = now();
         }
 
         $liq->save();
 
-        \App\Models\LiquidationActivity::create([
+        LiquidationActivity::create([
             'liquidation_id' => $liq->id,
             'user_id' => auth()->id(),
             'action' => 'Approved',
-            'details' => 'Status changed to Approved by button click',
+            'details' => 'Status changed to Approved by admin',
         ]);
 
-        return redirect()->back()->with('success', 'Liquidation marked as Approved.');
+        return back()->with('success', 'Liquidation marked as Approved.');
     }
 
 public function forTransmittal(Request $request)
@@ -584,6 +603,9 @@ public function forTransmittal(Request $request)
 
         public function setAsDraft($id)
         {
+            if (!auth()->user()->hasRole('admin')) {
+                abort(403);
+            }
             $liquidation = \App\Models\Liquidation::findOrFail($id);
 
             if (in_array($liquidation->status, ['Approved', 'For Approval', 'For Checking', 'Processing'])) {
@@ -659,8 +681,8 @@ public function forTransmittal(Request $request)
     LiquidationActivity::create([
             'liquidation_id' => $liquidation->id,
             'user_id' => auth()->id(),
-            'action' => 'Approved',
-            'details' => 'Status changed to Approved',
+            'action' => 'Liquidation Updated',
+            'details' => 'Liquidation details modified',
         ]);
 
     return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
