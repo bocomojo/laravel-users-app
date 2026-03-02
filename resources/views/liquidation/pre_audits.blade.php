@@ -91,6 +91,14 @@
                             @endif
 
                             @if ($liq->status === 'Draft')
+
+                                <!-- EDIT LIQUIDATION (MAIN ROW) -->
+                                <a href="{{ route('liquidation.edit', $liq->id) }}"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
+                                    Edit
+                                </a>
+
+                                <!-- MARK AS DONE -->
                                 <form action="{{ route('liquidation.markForApproval', $liq->id) }}" method="POST">
                                     @csrf
                                     @method('PATCH')
@@ -99,6 +107,7 @@
                                         Done
                                     </button>
                                 </form>
+
                             @endif
 
                             @role('admin')

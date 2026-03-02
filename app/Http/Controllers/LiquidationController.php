@@ -627,18 +627,33 @@ public function forTransmittal(Request $request)
             return redirect()->back()->with('error', 'Cannot set as Draft from current status.');
         }
 
-        public function edit($id)
-        {
-            $liquidation = Liquidation::findOrFail($id);
-            $sdo = Sdo::where('name', $liquidation->sdo_name)->first();
+public function edit($id)
+{
+    $liquidation = Liquidation::findOrFail($id);
 
-            return view('liquidation.edit', compact('liquidation', 'sdo'));
-        }
+    // 🔒 HARD PROTECTION
+    if ($liquidation->status !== 'Draft') {
+        return redirect()
+            ->route('liquidation.pre-audits', $liquidation->id)
+            ->with('error', 'This liquidation is no longer editable.');
+    }
+
+    $sdo = Sdo::where('name', $liquidation->sdo_name)->first();
+
+    return view('liquidation.edit', compact('liquidation', 'sdo'));
+}
 
         public function update(Request $request, $id)
 {
     $liquidation = Liquidation::findOrFail($id);
 
+     // 🔒 HARD PROTECTION
+    if ($liquidation->status !== 'Draft') {
+        return redirect()
+            ->route('liquidation.pre-audits', $liquidation->id)
+            ->with('error', 'This liquidation was already processed and cannot be edited.');
+    }
+    
     $rules = [
         'for_liquidation_amount' => 'required|numeric',
         'for_compliance_amount' => 'nullable|numeric|min:0',
@@ -685,8 +700,8 @@ public function forTransmittal(Request $request)
             'details' => 'Liquidation details modified',
         ]);
 
-    return redirect()->route('liquidation.index', $liquidation->cash_advance_id)
-                     ->with('success', 'Liquidation updated successfully.');
+    return redirect()->route('liquidation.pre-audits', $liquidation->id)
+    ->with('success', 'Liquidation updated successfully.');
 }
 
         public function destroy($id)

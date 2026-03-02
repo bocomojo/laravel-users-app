@@ -104,7 +104,10 @@
                     </div> -->
 
                     <div class="flex justify-between items-center mt-6">
-                        <a href="{{ route('liquidation.index') }}" class="text-sm text-gray-600 hover:underline dark:text-gray-300">← Back to Liquidations</a>
+                        <a href="{{ route('liquidation.pre-audits', $liquidation) }}"
+                        class="text-sm text-gray-600 hover:underline dark:text-gray-300">
+                            ← Return to Page
+                        </a>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Update</button>
                     </div>
                 </form>
