@@ -1,95 +1,186 @@
-<div wire:poll.60s class="space-y-12 w-full px-4 sm:px-6 lg:px-8">
+<div wire:poll.60s class="w-full max-w-[1700px] mx-auto px-12 py-12 space-y-14 bg-gray-100 dark:bg-gray-900">
 
-    {{-- Date Filter --}}
-    <div class="flex flex-col sm:flex-row gap-4 items-center mb-6">
-        <div class="flex flex-col">
-            <label for="start_date" class="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-            <input type="date" id="start_date" wire:model="startDate" class="mt-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+@php
+
+$cashCards = [
+    ['Total', $cashSummary['total'], 'bg-blue-600'],
+    ['Ongoing', $cashSummary['ongoing'], 'bg-yellow-600'],
+    ['Overdue', $cashSummary['overdue'], 'bg-red-600'],
+    ['Cancelled', $cashSummary['cancelled'], 'bg-gray-500'],
+    ['Fully Liquidated', $cashSummary['fully_liquidated'], 'bg-indigo-600'],
+];
+
+$liquidationCards = [
+    ['Total For Liquidation', abs($liquidationSummary['total_for_liquidation'])],
+    ['Total Complied', abs($liquidationSummary['total_pre_audited'])],
+    ['Total Remaining', max(0,$liquidationSummary['total_remaining'])],
+];
+
+@endphp
+
+
+{{-- HEADER --}}
+<div class="flex justify-between items-end border-b border-gray-300 dark:border-gray-700 pb-6">
+
+    <div>
+        <h1 class="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+            Accounting Financial Dashboard
+        </h1>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Cash Advance and Liquidation Monitoring
+        </p>
+    </div>
+
+    <div class="flex gap-4">
+
+        <div>
+            <label class="text-xs text-gray-500">Start Date</label>
+            <input type="date"
+                wire:model="startDate"
+                class="mt-1 p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-600">
         </div>
-        <div class="flex flex-col">
-            <label for="end_date" class="text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-            <input type="date" id="end_date" wire:model="endDate" class="mt-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+        <div>
+            <label class="text-xs text-gray-500">End Date</label>
+            <input type="date"
+                wire:model="endDate"
+                class="mt-1 p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-600">
         </div>
-        <button wire:click="filterByDate" class="mt-4 sm:mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">Filter</button>
+
+        <button wire:click="filterByDate"
+            class="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 self-end">
+            Apply
+        </button>
+
     </div>
 
-    {{-- Section: Cash Advances --}}
-    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Cash Advances</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        @foreach($cashSummary as $label => $value)
-            @php
-                $labelLower = strtolower($label);
-                $bgColor = match($labelLower) {
-                    'overdue' => 'bg-red-50 text-red-700 dark:bg-red-800 dark:text-red-300',
-                    'ongoing' => 'bg-yellow-50 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-300',
-                    'cancelled' => 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-                    'fully liquidated' => 'bg-green-50 text-green-700 dark:bg-green-800 dark:text-green-300',
-                    default => 'bg-blue-50 text-blue-700 dark:bg-blue-800 dark:text-blue-300',
-                };
-            @endphp
-            <div class="p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1 {{ $bgColor }} flex flex-col justify-center items-center border-l-4 border-gray-300 dark:border-gray-600">
-                <h3 class="text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ ucwords(str_replace('_',' ',$label)) }}</h3>
-                <p class="text-3xl font-extrabold mt-2">{{ number_format(abs($value)) }}</p>
-            </div>
-        @endforeach
-    </div>
+</div>
 
-    {{-- Section: Liquidation --}}
-    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-12 mb-6">Liquidation</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        @foreach(['total_for_liquidation', 'total_pre_audited', 'total_remaining'] as $key)
-            <div class="p-6 rounded-2xl shadow bg-white dark:bg-gray-800 flex flex-col justify-center items-center border-t-4 border-green-500 hover:shadow-lg transition transform hover:-translate-y-1">
-                <h4 class="text-sm text-gray-400 dark:text-gray-300 mb-2">{{ ucwords(str_replace('_',' ',$key)) }}</h4>
-                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ number_format(abs($liquidationSummary[$key]),2) }}</p>
-            </div>
-        @endforeach
-    </div>
 
-    {{-- Liquidation Statuses --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full">
-        @php
-            $statuses = $liquidationSummary['statuses'];
 
-            // Define main status order
-            $defaultStatuses = [
-                'Draft' => 0,
-                'For Checking' => 0,
-                'Processing' => 0,
-                'For Approval' => 0,
-                'Approved' => 0,
-                'For Transmittal' => 0,
-                'Transmitted' => 0,
-            ];
+{{-- CASH ADVANCES --}}
+<section>
 
-            // Merge with actual statuses
-            $statuses = $defaultStatuses + $statuses;
+<h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+Cash Advances
+</h2>
 
-            // Include other statuses not in default
-            $otherStatuses = collect($statuses)->except(array_keys($defaultStatuses))->toArray();
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6">
 
-            // Final ordered statuses
-            $orderedStatuses = $defaultStatuses + $otherStatuses;
-        @endphp
+@foreach($cashCards as [$label,$value,$color])
 
-        @foreach($orderedStatuses as $status => $amount)
-            <div class="p-4 rounded-xl shadow bg-white dark:bg-gray-800 flex flex-col justify-center items-center hover:shadow-md transition transform hover:-translate-y-0.5">
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $status }}</span>
-                <p class="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{{ number_format(abs($amount),2) }}</p>
-            </div>
-        @endforeach
-    </div>
+<div class="{{ $color }} text-white p-6 rounded-lg text-center shadow">
 
-    {{-- Section: Bonded Officials / SDO --}}
-    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-12 mb-6">Bonded Officials (SDO)</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-6 rounded-2xl shadow bg-white dark:bg-gray-800 flex flex-col justify-center items-center border-l-4 border-indigo-500 hover:shadow-lg transition transform hover:-translate-y-1">
-            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-center">With SO</h3>
-            <p class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-2">{{ number_format(abs($bondedSummary['with_so'])) }}</p>
-        </div>
-        <div class="p-6 rounded-2xl shadow bg-white dark:bg-gray-800 flex flex-col justify-center items-center border-l-4 border-red-500 hover:shadow-lg transition transform hover:-translate-y-1">
-            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-center">Without SO</h3>
-            <p class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-2">{{ number_format(abs($bondedSummary['without_so'])) }}</p>
-        </div>
-    </div>
+<p class="text-xs uppercase">{{ $label }}</p>
+
+<p class="text-2xl font-bold mt-2">
+{{ number_format($value) }}
+</p>
+
+</div>
+
+@endforeach
+
+</div>
+
+</section>
+
+
+
+{{-- LIQUIDATION --}}
+<section>
+
+<h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+Liquidation
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+@foreach($liquidationCards as [$label,$value])
+
+<div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-t-4 border-green-500 text-center">
+
+<p class="text-xs uppercase text-gray-500">
+{{ $label }}
+</p>
+
+<p class="text-2xl font-semibold mt-3">
+₱ {{ number_format($value,2) }}
+</p>
+
+</div>
+
+@endforeach
+
+</div>
+
+</section>
+
+
+
+{{-- LIQUIDATION STATUS --}}
+<section>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+
+@foreach($liquidationSummary['statuses'] as $status => $amount)
+
+<div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm text-center">
+
+<p class="text-xs uppercase text-gray-500">
+{{ $status }}
+</p>
+
+<p class="text-lg font-semibold mt-2">
+₱ {{ number_format(abs($amount),2) }}
+</p>
+
+</div>
+
+@endforeach
+
+</div>
+
+</section>
+
+
+
+{{-- BONDED OFFICIALS --}}
+<section>
+
+<h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+Bonded Officials (SDO)
+</h2>
+
+<div class="grid grid-cols-2 gap-6 max-w-md">
+
+<div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm text-center border-l-4 border-blue-500">
+
+<p class="text-xs uppercase text-gray-500">
+With SO
+</p>
+
+<p class="text-2xl font-semibold mt-2">
+{{ number_format($bondedSummary['with_so']) }}
+</p>
+
+</div>
+
+<div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm text-center border-l-4 border-red-500">
+
+<p class="text-xs uppercase text-gray-500">
+Without SO
+</p>
+
+<p class="text-2xl font-semibold mt-2">
+{{ number_format($bondedSummary['without_so']) }}
+</p>
+
+</div>
+
+</div>
+
+</section>
 
 </div>

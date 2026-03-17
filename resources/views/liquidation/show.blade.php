@@ -11,7 +11,7 @@
                class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow transition">
                 ↓ Export to Excel
             </a>
-            <x-back-button label="← Return to Previous Page"/>
+            <!-- <x-back-button label="← Return to Previous Page"/> -->
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6 max-w-full mx-auto px-4 lg:px-8">

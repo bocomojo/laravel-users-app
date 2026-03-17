@@ -78,6 +78,8 @@
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
                                 Add Pre-Audit
                             </button>
+                            @endif
+                            @if (in_array($liq->status, ['For Checking','Processing','For Approval','Approved']))
                                 @role('admin')
                                 <form action="{{ route('liquidation.set-draft', $liq->id) }}" method="POST">
                                     @csrf

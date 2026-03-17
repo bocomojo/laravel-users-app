@@ -81,4 +81,19 @@ class CashAdvance extends Model
     return $this->hasOne(\App\Models\BondedOfficial::class, 'sdo_id', 'id');
 }
 
+    public function getRemainingBalanceAttribute()
+    {
+        $relatedLiquidations = $this->liquidation
+            ->where('status', 'Approved');
+
+        $preAudited = $relatedLiquidations
+            ->sum('pre_audited_amount');
+
+        $refunds = $this->liquidation
+            ->where('liquidation_type', 'Refund')
+            ->sum('for_liquidation_amount');
+
+        return $this->granted_amount - $preAudited + $refunds;
+    }
+
 }

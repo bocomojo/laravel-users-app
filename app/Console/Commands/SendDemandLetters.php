@@ -24,7 +24,7 @@ class SendDemandLetters extends Command
 
         foreach ($cashAdvances as $advance) {
             $payoutEnd = Carbon::parse($advance->payout_end);
-            $deadline = $payoutEnd->copy()->addDays(30);
+            $deadline = $payoutEnd->copy()->addDays(31);
 
             $totalLiquidated = $advance->liquidation->sum('for_liquidation_amount');
             $remaining = $advance->granted_amount - $totalLiquidated;
